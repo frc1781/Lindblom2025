@@ -14,8 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import tech.team1781.ConfigMap;
-import tech.team1781.utils.SwerveModuleConfiguration;
+import tech.lindblom.Config;
 
 public class NEOL1SwerveModule extends SwerveModule{
     private SwerveModuleState mDesiredState = new SwerveModuleState();
@@ -153,7 +152,7 @@ public class NEOL1SwerveModule extends SwerveModule{
         ret_val.drivingP = 0.1;
         ret_val.drivingI = 0.0;
         ret_val.drivingD = 0.01;
-        ret_val.drivingFF = 1.0 / (ConfigMap.MAX_VELOCITY_METERS_PER_SECOND + 0.08);
+        ret_val.drivingFF = 1.0 / (Config.MAX_VELOCITY_METERS_PER_SECOND + 0.08);
 
         ret_val.turningP = 1; 
         ret_val.turningI = 0.0;

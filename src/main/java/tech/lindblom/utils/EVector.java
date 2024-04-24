@@ -1,4 +1,4 @@
-package tech.lindblom.util;
+package tech.lindblom.utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;

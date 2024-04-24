@@ -1,10 +1,27 @@
 package tech.lindblom.swerve;
 
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import tech.lindblom.Config;
 
 public class KrakenL2SwerveModule extends SwerveModule { 
     private SwerveModuleState mDesiredState = new SwerveModuleState();
@@ -82,18 +99,6 @@ public class KrakenL2SwerveModule extends SwerveModule {
         mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
 
         mTurnMotor.burnFlash();
-
-        RioLogger.initLog(name + "/Offset", cancoderOffset);
-        RioLogger.logData(name + "/Offset", cancoderOffset);
-
-        RioLogger.initLog(name + "/Drive Motor Velocity", 0.0);
-        RioLogger.initLog(name + "/Drive Motor Position", 0.0);
-        RioLogger.initLog(name + "/Turning Motor Position", 0.0);
-        RioLogger.initLog(name + "/CANCoder Position", 0.0);
-        RioLogger.initLog(name + "/Turning Motor CANCoder Difference", 0.0);
-
-        RioLogger.initLog(name + "/Drive Requested Velocity", 0.0);
-        RioLogger.initLog(name + "/Turn Requested Position", 0.0);
     }
 
     public Rotation2d getAbsoluteAngle() {
@@ -117,18 +122,10 @@ public class KrakenL2SwerveModule extends SwerveModule {
 
     public void setDesiredState(SwerveModuleState desiredState) {
         SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
-        RioLogger.logData(this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
-        RioLogger.logData(this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
-        
         mTurnPID.setReference(optimizedState.angle.getRadians(), ControlType.kPosition);
         // mDriveVelocity.Velocity = desiredState.speedMetersPerSecond;
         // mDriveVelocity.FeedForward = driveFF.calculate(desiredState.speedMetersPerSecond);
-        mDriveMotor.set(optimizedState.speedMetersPerSecond / ConfigMap.MAX_VELOCITY_METERS_PER_SECOND);
-
-        RioLogger.logData(this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
-        RioLogger.logData(this.name + "/Drive Motor Position", getDriveMotorPosition());
-        RioLogger.logData(this.name + "/Turning Motor Position", mTurnEncoder.getPosition());
-        
+        mDriveMotor.set(optimizedState.speedMetersPerSecond / Config.MAX_VELOCITY_METERS_PER_SECOND);
         mDesiredState = optimizedState;
         syncRelativeToAbsoluteEncoder();
     }
@@ -153,8 +150,6 @@ public class KrakenL2SwerveModule extends SwerveModule {
         double turnEncoderPosition = mTurnEncoder.getPosition();
         double diff = getAbsoluteAngle().getRadians() - turnEncoderPosition;
 
-        RioLogger.logData(name + "/CANCoder Position", turnEncoderPosition);
-        RioLogger.logData(this.name + "/Turning Motor CANCoder Difference", diff);
         if(Math.abs(diff) > 0.02) {
             mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
         }
@@ -173,9 +168,9 @@ public class KrakenL2SwerveModule extends SwerveModule {
         ret_val.drivingP = 0.1; 
         ret_val.drivingI = 0.0;
         ret_val.drivingD = 0.01;
-        ret_val.drivingFF = 1.0 / (ConfigMap.MAX_VELOCITY_METERS_PER_SECOND + 0.08);
+        ret_val.drivingFF = 1.0 / (Config.MAX_VELOCITY_METERS_PER_SECOND + 0.08);
         ret_val.drivingKS = 0.02;
-        ret_val.drivingKV = 1.0 / (ConfigMap.MAX_VELOCITY_RADIANS_PER_SECOND + 0.08) - ret_val.drivingKS;
+        ret_val.drivingKV = 1.0 / (Config.MAX_VELOCITY_RADIANS_PER_SECOND + 0.08) - ret_val.drivingKS;
         ret_val.drivingKA = 5.4; 
 
         ret_val.turningP = 1;
