@@ -25,10 +25,6 @@ public abstract class Subsystem {
         return name;
     }
 
-    public final void feedStateTime(double sampledTime) {
-        currentTime = sampledTime;
-    }
-
     public void setDesiredState(SubsystemState desiredState) {
         if (desiredState == currentState) {
             return;

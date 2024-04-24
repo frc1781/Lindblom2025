@@ -52,27 +52,20 @@ public class DriveSystem extends Subsystem {
     private boolean mIsFieldOriented = true;
     private double mNavXOffset = 0;
     private boolean mHasNavXOffsetBeenSet = false;
-    private boolean mOdometryBeenSet = false;
+
     // Sensors
     private AHRS mNavX = new AHRS(SPI.Port.kMXP);
 
     public DriveSystem() {
         super("Drive System", DriveSystemState.DRIVE_MANUAL);
-        // mOdometry = new SwerveDriveOdometry(mKinematics, getRobotAngle(),
-        // getModulePositions());
         mPoseEstimator = new SwerveDrivePoseEstimator(mKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
         mNavX.resetDisplacement();
     }
 
     public enum DriveSystemState implements Subsystem.SubsystemState {
-        DRIVE_SETPOINT,
-        DRIVE_NOTE,
-        DRIVE_TRAJECTORY,
         DRIVE_MANUAL,
-        DRIVE_ROTATION,
         SYSID,
-        DRIVE_TRAJECTORY_NOTE
     }
 
     @Override
@@ -97,7 +90,6 @@ public class DriveSystem extends Subsystem {
 
     @Override
     public boolean matchesDesiredState() {
-
         switch ((DriveSystemState) getState()) {
             case DRIVE_MANUAL:
                 return true;
@@ -126,24 +118,11 @@ public class DriveSystem extends Subsystem {
         mBackRight.init();
 
         switch (currentMode) {
-            case AUTONOMOUS:
-                mNavX.reset();
-                mNavX.zeroYaw();
-                mIsFieldOriented = true;
-                mHasNavXOffsetBeenSet = false;
-                mOdometryBeenSet = false;
-                break;
             case TELEOP:
                 mHasNavXOffsetBeenSet = false;
                 mIsFieldOriented = true;
 
                 setDesiredState(DriveSystemState.DRIVE_MANUAL);
-                break;
-            case DISABLED:
-                break;
-            case SIMULATION:
-                break;
-            case TEST:
                 break;
             default:
                 break;
@@ -152,38 +131,6 @@ public class DriveSystem extends Subsystem {
 
     public void setOdometry(Pose2d pose) {
         mPoseEstimator.resetPosition(getRobotAngle(), getModulePositions(), pose);
-    }
-
-    public void driveWithChassisSpeeds(ChassisSpeeds speeds) {
-        if (getState() == DriveSystemState.DRIVE_MANUAL)
-            return;
-        // System.out.println("Driving: " + speeds.vxMetersPerSecond + " " +
-        // speeds.vyMetersPerSecond + " "
-        // + speeds.omegaRadiansPerSecond);
-
-        SwerveModuleState[] moduleStates = mKinematics.toSwerveModuleStates(speeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Config.MAX_VELOCITY_METERS_PER_SECOND);
-
-        mFrontLeft.setDesiredState(moduleStates[0]);
-        mFrontRight.setDesiredState(moduleStates[1]);
-        mBackLeft.setDesiredState(moduleStates[2]);
-        mBackRight.setDesiredState(moduleStates[3]);
-    }
-
-    public boolean matchesPosition(Pose2d other) {
-        final double TOLERANCE = 0.1;
-        EVector currentPose = EVector.fromPose(getRobotPose());
-        EVector otherPose = EVector.fromPose(other);
-        double dist = currentPose.dist(otherPose);
-        return dist <= TOLERANCE;
-    }
-
-    public boolean matchesRotation(double rotation) {
-        final double TOLERANCE = 0.15;
-        double currentRotation = getRobotAngle().getRadians();
-        double dist = Math.abs(currentRotation - rotation);
-
-        return dist <= TOLERANCE;
     }
 
     public void driveRaw(double xSpeed, double ySpeed, double rot) {
@@ -224,7 +171,6 @@ public class DriveSystem extends Subsystem {
     }
     
     private void updateOdometry() {
-        // mOdometry.update(getRobotAngle(), getModulePositions());
         mPoseEstimator.update(getRobotAngle(), getModulePositions());
     }
 
