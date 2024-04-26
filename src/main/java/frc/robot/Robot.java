@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -23,17 +24,17 @@ public class Robot extends LoggedRobot {
   public void robotInit() {
     mDriverInput  = new DriverInput();
     mControlSystem = new ControlSystem();
-    Logger.recordMetadata("2025", "Robot"); // Set a metadata value
+    Logger.recordMetadata("RobotName", "GLaDOS");
+    Logger.recordMetadata("Team", "1781");
 
     if (isReal()) {
-      Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
-      Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
-      new PowerDistribution(1, PowerDistribution.ModuleType.kRev); // Enables power distribution logging
+      Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new NT4Publisher());
+
+      new PowerDistribution(1, PowerDistribution.ModuleType.kRev);
     } else {
       setUseTiming(false);
-      String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
-      Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
-      Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save outputs to a new log
+      Logger.addDataReceiver(new NT4Publisher());
     }
 
     Logger.start();

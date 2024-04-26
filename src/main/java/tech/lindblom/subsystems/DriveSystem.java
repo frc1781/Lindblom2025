@@ -1,11 +1,6 @@
 package tech.lindblom.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
-import edu.wpi.first.math.controller.HolonomicDriveController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,15 +8,12 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.Config;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
-import tech.lindblom.utils.EVector;
 
 public class DriveSystem extends Subsystem {
 
@@ -108,6 +100,7 @@ public class DriveSystem extends Subsystem {
 
     @Override
     public void genericPeriodic() {
+        updateOdometry();
     }
 
     @Override
@@ -122,6 +115,8 @@ public class DriveSystem extends Subsystem {
                 mHasNavXOffsetBeenSet = false;
                 mIsFieldOriented = true;
 
+                zeroNavX();
+                setOdometry(new Pose2d(0, 0, mNavX.getRotation2d()));
                 setDesiredState(DriveSystemState.DRIVE_MANUAL);
                 break;
             default:
@@ -149,6 +144,8 @@ public class DriveSystem extends Subsystem {
         mFrontRight.setDesiredState(moduleStates[1]);
         mBackLeft.setDesiredState(moduleStates[2]);
         mBackRight.setDesiredState(moduleStates[3]);
+
+        Logger.recordOutput("DriveSystem/moduleStates", moduleStates);
     }
 
     public Rotation2d getRobotAngle() {
@@ -169,9 +166,14 @@ public class DriveSystem extends Subsystem {
     public ChassisSpeeds getChassisSpeeds() {
         return mKinematics.toChassisSpeeds(getModuleStates());
     }
-    
+
     private void updateOdometry() {
-        mPoseEstimator.update(getRobotAngle(), getModulePositions());
+        Pose2d currentOdometry = mPoseEstimator.update(getRobotAngle(), getModulePositions());
+        Logger.recordOutput("DriveSystem/Odometry", currentOdometry);
+    }
+
+    private void zeroNavX() {
+        mNavX.reset();
     }
 
     private SwerveModulePosition[] getModulePositions() {

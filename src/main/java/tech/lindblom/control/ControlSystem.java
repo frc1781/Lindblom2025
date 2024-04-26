@@ -4,11 +4,10 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.Config;
 import tech.lindblom.subsystems.DriveSystem;
 import tech.lindblom.subsystems.Subsystem;
@@ -77,18 +76,24 @@ public class ControlSystem {
         return DriverStation.getAlliance().get() == Alliance.Red;
     }
 
-    public void driverDriving(EVector translation, EVector rotation, EVector triggers) {
+    public void manualDriving(EVector driving, EVector rotation, EVector triggers) {
         boolean isRed = DriverStation.getAlliance().get() == Alliance.Red;
-        int mult = isRed ? -1 : 1;
-        final double triggermult = 0;
-        triggers.mult(triggermult);
+        int redFlip = isRed ? -1 : 1;
 
         // forward and backwards
-        double xVelocity = -translation.y * mult;
+        double xVelocity = -driving.y * redFlip;
         // left and right
-        double yVelocity = -translation.x * mult;
+        double yVelocity = -driving.x * redFlip;
         // rotation
         double rotVelocity = -rotation.x * Config.DRIVER_ROTATION_INPUT_MULTIPIER + ((triggers.x) - (triggers.y));
+
+
+        Logger.recordOutput("Driver/movement/x", driving.x);
+        Logger.recordOutput("Driver/rotation/x", rotation.x);
+
+        Logger.recordOutput("Driver/movement/y", driving.y);
+        Logger.recordOutput("Driver/rotation/y", rotation.y);
+
 
         mDriveSystem.driveRaw(
                 mAutoCenterAmp ? mStrafeDC
@@ -177,6 +182,7 @@ public class ControlSystem {
     }
 
     public void run(DriverInput driverInput) {
+        mDriveSystem.genericPeriodic();
         switch (mCurrentOperatingMode) {
             case TELEOP:
                 SubsystemState finalDriveState = DriveSystem.DriveSystemState.DRIVE_MANUAL;
@@ -194,7 +200,7 @@ public class ControlSystem {
                 mDriveSystem.setDesiredState(finalDriveState);
 
                 EVector driverTriggers = driverInput.getTriggerAxis(Config.DRIVER_CONTROLLER_PORT);
-                driverDriving(
+                manualDriving(
                         driverInput.getControllerJoyAxis(ControllerSide.LEFT, Config.DRIVER_CONTROLLER_PORT),
                         driverInput.getControllerJoyAxis(ControllerSide.RIGHT, Config.DRIVER_CONTROLLER_PORT),
                         driverTriggers);
