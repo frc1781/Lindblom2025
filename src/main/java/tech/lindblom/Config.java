@@ -18,7 +18,7 @@ public class Config {
     public static final EVector BLUE_SPEAKER_LOCATION = EVector.newVector(-0.2, 5.54);
 
     public static final EVector BLUE_PODIUM = EVector.newVector(3,4.7);
-    public static final EVector RED_PODIUM = EVector.newVector(13.6,3.6);
+    public static final EVector RED_PODIUM = EVector.newVector(15.25,5.55);
 
     public static final int RED_SPEAKER_APRILTAG = 4;
     public static final int BLUE_SPEAKER_APRILTAG = 7;
@@ -118,6 +118,8 @@ public class Config {
     public static final int NOTE_LIMELIGHT_APRILTAG_PIPELINE = 1;
 
     // Controls
+    public static final double JOYSTICK_DEADZONE = 0.1;
+
     public static final int DRIVER_CONTROLLER_PORT = 0;
 
     public static final double DRIVER_TRANSLATION_RATE_LIMIT = 1.2;

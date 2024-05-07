@@ -12,6 +12,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import tech.lindblom.Config;
 import tech.lindblom.subsystems.Subsystem;
 import tech.lindblom.utils.DriverInput;
 import tech.lindblom.control.ControlSystem;
@@ -38,6 +39,12 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
+
+    mDriverInput.addClickListener(Config.DRIVER_CONTROLLER_PORT, Config.RESET_NAVX, (isPressed -> {
+      if (isPressed) {
+        mControlSystem.resetNavX();
+      }
+    }));
   }
 
   @Override

@@ -77,8 +77,7 @@ public class ControlSystem {
     }
 
     public void manualDriving(EVector driving, EVector rotation, EVector triggers) {
-        boolean isRed = DriverStation.getAlliance().get() == Alliance.Red;
-        int redFlip = isRed ? -1 : 1;
+        int redFlip = isRed() ? -1 : 1;
 
         // forward and backwards
         double xVelocity = -driving.y * redFlip;
@@ -86,14 +85,6 @@ public class ControlSystem {
         double yVelocity = -driving.x * redFlip;
         // rotation
         double rotVelocity = -rotation.x * Config.DRIVER_ROTATION_INPUT_MULTIPIER + ((triggers.x) - (triggers.y));
-
-
-        Logger.recordOutput("Driver/movement/x", driving.x);
-        Logger.recordOutput("Driver/rotation/x", rotation.x);
-
-        Logger.recordOutput("Driver/movement/y", driving.y);
-        Logger.recordOutput("Driver/rotation/y", rotation.y);
-
 
         mDriveSystem.driveRaw(
                 mAutoCenterAmp ? mStrafeDC
@@ -103,61 +94,6 @@ public class ControlSystem {
                         : (mRotDriveLimiter.calculate(rotVelocity) * Config.MAX_VELOCITY_RADIANS_PER_SECOND));
     }
 
-    public void setCenteringOnAprilTag(boolean isHeld) {
-        if (isHeld != mCenterOnAprilTagButton) {
-            mLimelightAimController.reset(0);
-
-            if (!isHeld) {
-                mAimingAngle = 0;
-            }
-        }
-        mCenterOnAprilTagButton = isHeld;
-    }
-
-    public void odometryAlignment(int id) {
-        EVector robotPose = EVector.fromPose(mDriveSystem.getRobotPose());
-        EVector targetPose = EVector.fromPose(aprilTagCoords.get(id));
-
-        robotPose.z = 0;
-
-        double angle = robotPose.angleBetween(targetPose) - Math.PI;
-        angle = normalizeRadians(angle);
-
-        mAimingAngle = mLimelightAimController.calculate(mDriveSystem.getRobotAngle().getRadians(), angle);
-    }
-
-    private double normalizeRadians(double rads) {
-        rads %= 2 * Math.PI;
-
-        if (rads < 0) {
-            rads += 2 * Math.PI;
-        }
-
-        return rads;
-    }
-
-    public double calculateShortestRotationToAngle(double startingAngle, double goalAngle) {
-        double ogAngle = startingAngle - goalAngle;
-        double[] angles = { ogAngle, ogAngle - 360, ogAngle + 360 };
-        int smallestAngleIndex = -1;
-
-        for (int i = 0; i < angles.length; i++) {
-            if (smallestAngleIndex == -1 || Math.abs(angles[i]) < Math.abs(angles[smallestAngleIndex])) {
-                smallestAngleIndex = i;
-            }
-        }
-
-        return angles[smallestAngleIndex];
-    }
-
-    public void centerNote() {
-        double x = Limelight.getTX(Config.NOTE_LIMELIGHT);
-        if (x != 0.0) {
-            mAimingAngle = mNoteAimController.calculate(x, 0);
-        } else {
-            mAimingAngle = 0.0;
-        }
-    }
 
     public void init(OperatingMode operatingMode) {
         for (Subsystem subsystem : mSubsystems) {
@@ -183,6 +119,7 @@ public class ControlSystem {
 
     public void run(DriverInput driverInput) {
         mDriveSystem.genericPeriodic();
+
         switch (mCurrentOperatingMode) {
             case TELEOP:
                 SubsystemState finalDriveState = DriveSystem.DriveSystemState.DRIVE_MANUAL;
@@ -222,30 +159,9 @@ public class ControlSystem {
         }
     }
 
-
-/*
-    public void localizationUpdates() {
-        final double speedTolerance = 0.1;
-        final double DIST_TOLERANCE = 0.5;
-
-        ChassisSpeeds robotSpeeds = mDriveSystem.getChassisSpeeds();
-        EVector chassisSpeedsVector = new EVector(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond);
-        boolean driveSystemSlowEnough = chassisSpeedsVector.magnitude() <= speedTolerance;
-        Pose2d limelightPoseTemp = Limelight.getBotPose2d(ConfigMap.APRILTAG_LIMELIGHT);
-        Pose2d limelightPose = new Pose2d(limelightPoseTemp.getTranslation(), mDriveSystem.getRobotAngle());
-
-        double dist = EVector.fromPose(limelightPose).dist(EVector.fromPose(mDriveSystem.getRobotPose()));
-        if (driveSystemSlowEnough && limelightPose.getY() != 0.0 && limelightPose.getX() != 0.0
-                && Limelight.getNumberOfApriltags(ConfigMap.APRILTAG_LIMELIGHT) > 1) {
-            if (dist > DIST_TOLERANCE) {
-                mDriveSystem.setOdometry(limelightPose);
-            }
-        } else if (limelightPose.getY() != 0.0 && limelightPose.getX() != 0.0 && dist >= DIST_TOLERANCE) {
-            mDriveSystem.updateVisionLocalization(limelightPose);
-        }
+    public void resetNavX() {
+        mDriveSystem.resetNavX();
     }
-*/
-
 }
 
 class SubsystemSetting {

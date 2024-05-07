@@ -9,6 +9,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.Config;
@@ -43,8 +45,6 @@ public class DriveSystem extends Subsystem {
     private SwerveDrivePoseEstimator mPoseEstimator;
     private boolean mIsFieldOriented = true;
     private double mNavXOffset = 0;
-    private boolean mHasNavXOffsetBeenSet = false;
-
     // Sensors
     private AHRS mNavX = new AHRS(SPI.Port.kMXP);
 
@@ -112,11 +112,9 @@ public class DriveSystem extends Subsystem {
 
         switch (currentMode) {
             case TELEOP:
-                mHasNavXOffsetBeenSet = false;
-                mIsFieldOriented = true;
+                mIsFieldOriented = false;
 
-                zeroNavX();
-                setOdometry(new Pose2d(0, 0, mNavX.getRotation2d()));
+                setOdometry(Config.RED_PODIUM.toPose2d());
                 setDesiredState(DriveSystemState.DRIVE_MANUAL);
                 break;
             default:
@@ -145,11 +143,11 @@ public class DriveSystem extends Subsystem {
         mBackLeft.setDesiredState(moduleStates[2]);
         mBackRight.setDesiredState(moduleStates[3]);
 
-        Logger.recordOutput("DriveSystem/moduleStates", moduleStates);
+        Logger.recordOutput("DriveSystem/ModuleStates", moduleStates);
     }
 
     public Rotation2d getRobotAngle() {
-        double reportedVal = -mNavX.getRotation2d().getRadians() + mNavXOffset;
+        double reportedVal = -mNavX.getRotation2d().getRadians();
 
         reportedVal %= 2 * Math.PI;
         if (reportedVal < 0) {
@@ -163,6 +161,7 @@ public class DriveSystem extends Subsystem {
         return new Pose2d(mPoseEstimator.getEstimatedPosition().getTranslation(), getRobotAngle());
     }
 
+
     public ChassisSpeeds getChassisSpeeds() {
         return mKinematics.toChassisSpeeds(getModuleStates());
     }
@@ -172,7 +171,7 @@ public class DriveSystem extends Subsystem {
         Logger.recordOutput("DriveSystem/Odometry", currentOdometry);
     }
 
-    private void zeroNavX() {
+    public void resetNavX() {
         mNavX.reset();
     }
 

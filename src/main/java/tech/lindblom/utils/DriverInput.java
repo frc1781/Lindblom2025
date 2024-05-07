@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
+import tech.lindblom.Config;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +44,9 @@ public class DriverInput {
             ret_val.x = selectedController.getRightX();
             ret_val.y = selectedController.getRightY();
         }
+
+        ret_val.x = Math.abs(ret_val.x) <= Config.JOYSTICK_DEADZONE ? 0 : ret_val.x;
+        ret_val.y = Math.abs(ret_val.y) <= Config.JOYSTICK_DEADZONE ? 0 : ret_val.y;
 
         return ret_val;
     }

@@ -1,5 +1,8 @@
 package tech.lindblom.subsystems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
+
 public abstract class Subsystem {
     protected final String name;
     protected double currentTime;
@@ -34,6 +37,7 @@ public abstract class Subsystem {
 
         currentState = desiredState;
         System.out.println("Changing " + name +  "'s state to " + desiredState);
+        Logger.recordOutput(name + "/DesiredState", desiredState.toString());
     }
 
     public final SubsystemState getState() {
