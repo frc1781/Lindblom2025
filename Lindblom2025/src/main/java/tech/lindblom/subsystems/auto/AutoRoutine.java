@@ -1,4 +1,4 @@
-package tech.lindblom.subsystems.autosystem;
+package tech.lindblom.subsystems.auto;
 
 public interface AutoRoutine {
 
