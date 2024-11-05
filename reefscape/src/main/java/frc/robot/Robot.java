@@ -1,55 +1,69 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project.
- */
-public class Robot extends TimedRobot {
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
-  @Override
-  public void robotInit() {}
+
+public class Robot extends LoggedRobot {
 
   @Override
-  public void robotPeriodic() {}
+  public void robotInit() {
+    robotController.init();
+  }
 
   @Override
-  public void autonomousInit() {}
+  public void robotPeriodic() {
+    robotController.periodic();
+  }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousInit() {
+    autonomousControl.autonomousInit();
+    robotController.autonomousInit();
+  }
 
   @Override
-  public void teleopInit() {}
+  public void autonomousPeriodic() {
+    robotController.periodic(autonomousControl.update(timestamp));  //returns input to robot as if it was the driver's station
+  }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopInit() {
+    driverStation.telopInit();
+    robotController.teleopInit();
+  }
 
   @Override
-  public void disabledInit() {}
+  public void teleopPeriodic() {
+    robotController.periodic(driverStation.getCurrentInput(timestamp)); //returns input to robot, robot can not tell if in auto or tele 
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledInit() {
+    robotController.disabledInit();
+  }
 
   @Override
-  public void testInit() {}
+  public void disabledPeriodic() {
+    robotController.disabledPeriodic();
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testInit() {
+    robotController.testInit();
+  }
 
   @Override
-  public void simulationInit() {}
+  public void testPeriodic() {
+    robotController.testPeriodic(testInput);
+  }
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationInit() {
+    robotController.simulationInit();
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    robotController.periodic(simulatedInput);
+  }
 }
