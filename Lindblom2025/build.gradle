@@ -8,7 +8,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-def MEMORY_DEBUGGING = false;
+def MEMORY_DEBUGGING = true;
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
 
 deploy {

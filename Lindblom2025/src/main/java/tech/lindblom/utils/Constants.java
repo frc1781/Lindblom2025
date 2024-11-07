@@ -1,7 +1,14 @@
 package tech.lindblom.utils;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 
 public class Constants {
 
@@ -43,5 +50,23 @@ public class Constants {
                 DRIVETRAIN_TRACKWIDTH / 2);
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
+    }
+
+    public class Vision {
+        public static final String FrontCameraName = "Main";
+
+        public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
+                new Translation3d(Units.inchesToMeters(-14.25), 0, Units.inchesToMeters(6)),
+                new Rotation3d(0, Units.degreesToRadians(-67), Units.degreesToRadians(180)));
+
+
+        // These values were also taken from 7525, again, thank you so much.
+        public static final double STD_TRUSTABLE_DISTANCE = 6;
+
+        public static final Matrix<N3, N1> SINGLE_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds, if you only see one tag, ie less accuracy/trust so higher values bc we don't trust it
+        public static final Matrix<N3, N1> MULTI_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds,  if you see multiple tags, ie more accuracy/trust so lower values bc we trust it
+
+        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
+
     }
 }
