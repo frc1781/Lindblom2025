@@ -5,8 +5,10 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
@@ -63,6 +65,16 @@ public class Drive extends StateSubsystem {
     @Override
     public boolean matchesState() {
         return false;
+    }
+
+    public void drive(ChassisSpeeds speeds) {
+        SwerveModuleState[] moduleStates = mKinematics.toSwerveModuleStates(speeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+
+        mFrontLeft.runDesiredModuleState(moduleStates[0]);
+        mFrontRight.runDesiredModuleState(moduleStates[1]);
+        mBackLeft.runDesiredModuleState(moduleStates[2]);
+        mBackRight.runDesiredModuleState(moduleStates[3]);
     }
 
     public void setInitialPose(Pose2d pose) {

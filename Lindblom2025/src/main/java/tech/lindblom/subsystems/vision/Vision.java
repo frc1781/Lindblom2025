@@ -18,7 +18,7 @@ import tech.lindblom.utils.Constants;
 import java.util.Optional;
 
 public class Vision extends Subsystem {
-    private Optional<EstimatedRobotPose> frontCameraRobotPose;
+    private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
 
     private PhotonCamera frontCamera = new PhotonCamera(Constants.Vision.FrontCameraName);
     private PhotonPoseEstimator frontCameraPoseEstimator;

@@ -1,14 +1,17 @@
 package tech.lindblom.control;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.drive.Drive;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
+import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 import java.util.ArrayList;
@@ -19,8 +22,14 @@ public class RobotController {
     Vision visionSystem;
     Auto autoSystem;
 
+    DriverInput driverInput;
+
     private ArrayList<StateSubsystem> stateSubsystems;
     private ArrayList<Subsystem> subsystems;
+
+    private final SlewRateLimiter xControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
+    private final SlewRateLimiter yControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
+    private final SlewRateLimiter rotControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_ROTATION_RATE_LIMIT);
 
     public RobotController() {
         driveSystem = new Drive();
@@ -31,6 +40,13 @@ public class RobotController {
         visionSystem = new Vision();
 
         stateSubsystems = new ArrayList<>();
+
+        try {
+            driverInput = new DriverInput();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         stateSubsystems.add(driveSystem);
 
         subsystems = new ArrayList<>();
@@ -47,10 +63,10 @@ public class RobotController {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                    setInitialRobotPose();
+                    setInitialRobotPose(mode);
                 break;
             case TELEOP:
-                    setInitialRobotPose();
+                    setInitialRobotPose(mode);
                 break;
             case TEST:
                 break;
@@ -69,13 +85,14 @@ public class RobotController {
     public void run(EnumCollection.OperatingMode mode) {
         switch (mode) {
             case DISABLED:
-                    visionUpdates();
+                visionUpdates();
                 break;
             case AUTONOMOUS:
-                    visionUpdates();
+                visionUpdates();
                 break;
             case TELEOP:
-                    visionUpdates();
+                visionUpdates();
+                Logger.recordOutput("getDriverInputs", driverInput.getDriverInputs());
                 break;
             case TEST:
                 break;
@@ -89,6 +106,14 @@ public class RobotController {
         for (Subsystem subsystem : subsystems) {
             subsystem.periodic();
         }
+    }
+
+    public void processAutonomousInputs() {
+
+    }
+
+    public void processDriverInputs() {
+
     }
 
     public void visionUpdates() {

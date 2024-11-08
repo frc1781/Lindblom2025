@@ -42,6 +42,10 @@ public class Constants {
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(23);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(25);
 
+        public static final double DRIVER_TRANSLATION_RATE_LIMIT = 1.2;
+        public static final double DRIVER_ROTATION_RATE_LIMIT = 1.2;
+        public static final double DRIVER_ROTATION_INPUT_MULTIPIER = 0.5;
+
         public static Translation2d FRONT_LEFT_MODULE_POSITION = new Translation2d(DRIVETRAIN_WHEELBASE / 2,
                 DRIVETRAIN_TRACKWIDTH / 2);
         public static Translation2d FRONT_RIGHT_MODULE_POSITION = new Translation2d(DRIVETRAIN_WHEELBASE / 2,
@@ -68,5 +72,9 @@ public class Constants {
 
         public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
 
+    }
+
+    public class Controls {
+        public static final double DEADZONE = 0.1;
     }
 }

@@ -4,7 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PowerDistribution;
 import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.utils.EnumCollection;
 
@@ -20,6 +24,20 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
+    Logger.recordMetadata("RobotName", "GLaDOS");
+    Logger.recordMetadata("Team", "1781");
+
+    if (isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new NT4Publisher());
+
+      new PowerDistribution(1, PowerDistribution.ModuleType.kRev);
+    } else {
+      //setUseTiming(false);
+      Logger.addDataReceiver(new NT4Publisher());
+    }
+
+    Logger.start();
     controlSystem = new RobotController();
   }
 
