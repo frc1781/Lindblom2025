@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
@@ -36,7 +37,7 @@ public class Drive extends StateSubsystem {
             Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET);
 
     // Odometry & Kinematics
-    private final SwerveDriveKinematics mKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
+    public final SwerveDriveKinematics mKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
@@ -53,6 +54,12 @@ public class Drive extends StateSubsystem {
 
     @Override
     public void init() {
+        switch (currentOperatingMode) {
+            case AUTONOMOUS:
+                mNavX.reset();
+                mNavX.zeroYaw();
+                break;
+        }
     }
 
     @Override
@@ -87,6 +94,7 @@ public class Drive extends StateSubsystem {
 
     private void updatePoseUsingOdometry() {
         mPoseEstimator.update(getNavXRotation(), getModulePositions());
+        Logger.recordOutput(this.name + "/CurrentPose", getRobotPose());
     }
 
     public Pose2d getRobotPose() {
@@ -99,6 +107,13 @@ public class Drive extends StateSubsystem {
 
     private Rotation2d getNavXRotation() {
         return new Rotation2d(-mNavX.getRotation2d().getRadians());
+    }
+
+    public void zeroNavX() {
+        mNavX.setAngleAdjustment(0);
+        mNavX.zeroYaw();
+        mPoseEstimator.resetPosition(getNavXRotation(), getModulePositions(),
+                new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
 
     private SwerveModulePosition[] getModulePositions() {

@@ -42,6 +42,9 @@ public class Constants {
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(23);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(25);
 
+        public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
+                (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
+
         public static final double DRIVER_TRANSLATION_RATE_LIMIT = 1.2;
         public static final double DRIVER_ROTATION_RATE_LIMIT = 1.2;
         public static final double DRIVER_ROTATION_INPUT_MULTIPIER = 0.5;
@@ -60,8 +63,8 @@ public class Constants {
         public static final String FrontCameraName = "Main";
 
         public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(-14.25), 0, Units.inchesToMeters(6)),
-                new Rotation3d(0, Units.degreesToRadians(-67), Units.degreesToRadians(180)));
+                new Translation3d(Units.inchesToMeters(0), 0, Units.inchesToMeters(0)),
+                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
 
 
         // These values were also taken from 7525, again, thank you so much.

@@ -1,37 +1,35 @@
 package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 public class DriverInput {
-    private GenericHID[] controllers = new GenericHID[] {
-            new XboxController(0),
-            new XboxController(1)
+    private static XboxController[] controllers = new XboxController[] {
+            new XboxController(0)
     };
 
     private Control[] controlList = new Control[] {
-            new Control(this, 0, 0, DriverInput.class.getDeclaredMethod("getControllerJoyAxis", ControllerSide.class, int.class), Control.InputType.JOYSTICK, ControllerSide.LEFT),
-            new Control(this, 0, 0, DriverInput.class.getDeclaredMethod("getControllerJoyAxis", ControllerSide.class, int.class), Control.InputType.JOYSTICK, ControllerSide.RIGHT)
-    };
 
+    };
 
     DriverInput() throws NoSuchMethodException {
 
     }
 
-    public Translation2d getDriverInputs() {
-        for (int i = 0; i < controlList.length; i++) {
-            Control control = controlList[i];
-            return control.getJoystickPosition();
-        }
+    public InputHolder getDriverInputs() {
+        InputHolder driverInputHolder = new InputHolder();
 
-        return new Translation2d(0, 0);
+        driverInputHolder.driverLeftJoystickPosition = getControllerJoyAxis(ControllerSide.LEFT, 0);
+        driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
+
+        driverInputHolder.resetNavX = getButton("START", 0);
+
+        return driverInputHolder;
     }
 
     public Translation2d getControllerJoyAxis(ControllerSide side, int controllerIndex) {
@@ -86,54 +84,33 @@ public class DriverInput {
         private final DriverInput driverInput;
         private final int controllerIndex;
         private final int weight;
-        private final Method inputFromController;
+        private final String inputName;
         private final InputType inputType;
+        private final StateSubsystem.SubsystemState requestedState;
 
-        private final ControllerSide side;
-
-        Control(DriverInput driverInput, int controllerIndex, int weight, Method input, InputType inputType) {
+        Control(DriverInput driverInput, int controllerIndex, int weight, String input, InputType inputType) {
             this.driverInput = driverInput;
             this.controllerIndex = controllerIndex;
             this.weight = weight;
-            this.inputFromController = input;
+            this.inputName = input;
             this.inputType = inputType;
 
-            this.side = null;
+            this.requestedState = null;
         }
 
-        Control(DriverInput driverInput, int controllerIndex, int weight, Method input, InputType inputType, ControllerSide side) {
+        Control(DriverInput driverInput, int controllerIndex, int weight, String input, InputType inputType, StateSubsystem.SubsystemState requestedState) {
             this.driverInput = driverInput;
             this.controllerIndex = controllerIndex;
             this.weight = weight;
-            this.inputFromController = input;
+            this.inputName = input;
             this.inputType = inputType;
 
-            this.side = side;
-        }
-
-        Translation2d getJoystickPosition() {
-            if (inputType == InputType.JOYSTICK) {
-                try {
-                    Object joystick = inputFromController.invoke(driverInput, side, controllerIndex);
-                    Translation2d joystickPosition = (Translation2d) joystick;
-                    return joystickPosition;
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return new Translation2d();
+            this.requestedState = requestedState;
         }
 
         boolean getButtonValue() {
             if (inputType == InputType.BUTTON) {
-                try {
-                    Object button = inputFromController.invoke(driverInput);
-                    boolean buttonValue = (boolean) button;
-                    return buttonValue;
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
+                return DriverInput.getButton(inputName, controllerIndex);
             }
 
             return false;
@@ -144,8 +121,26 @@ public class DriverInput {
         }
 
         enum InputType {
-            JOYSTICK, BUTTON, TRIGGER
+            BUTTON, TRIGGER
         }
+    }
+
+    public static boolean getButton(String buttonName, int controllerIndex) {
+        switch (buttonName) {
+            case "START":
+                return controllers[controllerIndex].getStartButton();
+        }
+
+        return false;
+    }
+
+    class InputHolder {
+        public ArrayList<StateSubsystem.SubsystemState> requestedSubsystemStates;
+
+        Translation2d driverLeftJoystickPosition;
+        Translation2d driverRightJoystickPosition;
+
+        boolean resetNavX;
     }
 
     public enum ControllerSide {

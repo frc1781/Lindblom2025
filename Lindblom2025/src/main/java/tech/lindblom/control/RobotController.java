@@ -2,6 +2,10 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
@@ -30,6 +34,8 @@ public class RobotController {
     private final SlewRateLimiter xControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter yControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter rotControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_ROTATION_RATE_LIMIT);
+
+    Pose2d empty = new Pose2d();
 
     public RobotController() {
         driveSystem = new Drive();
@@ -79,6 +85,12 @@ public class RobotController {
 
         for (Subsystem subsystem : subsystems) {
             subsystem.setOperatingMode(mode);
+            subsystem.init();
+        }
+
+        for (StateSubsystem subsystem : stateSubsystems) {
+            subsystem.setOperatingMode(mode);
+            subsystem.init();
         }
     }
 
@@ -89,10 +101,11 @@ public class RobotController {
                 break;
             case AUTONOMOUS:
                 visionUpdates();
+                processAutonomousInputs();
                 break;
             case TELEOP:
                 visionUpdates();
-                Logger.recordOutput("getDriverInputs", driverInput.getDriverInputs());
+                processDriverInputs();
                 break;
             case TEST:
                 break;
@@ -106,6 +119,10 @@ public class RobotController {
         for (Subsystem subsystem : subsystems) {
             subsystem.periodic();
         }
+
+        for (StateSubsystem subsystem : stateSubsystems) {
+            subsystem.getToState();
+        }
     }
 
     public void processAutonomousInputs() {
@@ -113,13 +130,44 @@ public class RobotController {
     }
 
     public void processDriverInputs() {
+        DriverInput.InputHolder holder = driverInput.getDriverInputs();
+        driverDriving(holder.driverLeftJoystickPosition, holder.driverRightJoystickPosition);
 
+        if (holder.resetNavX) {
+            driveSystem.zeroNavX();
+        }
+    }
+
+    public void driverDriving(Translation2d translation, Translation2d rotation) {
+        boolean isRed = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+        int mult = isRed ? -1 : 1;
+
+        double xVelocity = -translation.getY() * mult;
+        double yVelocity = -translation.getX() * mult;
+        double rotVelocity = -rotation.getX() * Constants.Drive.DRIVER_ROTATION_INPUT_MULTIPIER;
+
+        Logger.recordOutput("Driver/movement/x", translation.getX());
+        Logger.recordOutput("Driver/rotation/x", rotation.getX());
+
+        Logger.recordOutput("Driver/movement/y", translation.getY());
+        Logger.recordOutput("Driver/rotation/y", rotation.getY());
+
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+
+        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+                xSpeed,
+                ySpeed,
+                rotSpeed), driveSystem.getRobotRotation());
+        driveSystem.drive(speeds);
     }
 
     public void visionUpdates() {
         Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
         if (visionEstimateOptional.isPresent()) {
             Pose2d visionEstimate = visionEstimateOptional.get();
+            Logger.recordOutput("Vision/Pose", visionEstimate);
             driveSystem.updatePoseUsingVisionEstimate(
                     visionEstimate,
                     Timer.getFPGATimestamp(),
@@ -140,7 +188,7 @@ public class RobotController {
                 e.printStackTrace();
             }
         } else if (mode == EnumCollection.OperatingMode.TELEOP) {
-
+            driveSystem.setInitialPose(empty);
         }
     }
 
