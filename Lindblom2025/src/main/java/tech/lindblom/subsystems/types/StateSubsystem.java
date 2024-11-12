@@ -1,17 +1,19 @@
 package tech.lindblom.subsystems.types;
 
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class StateSubsystem {
     protected final String name;
     SubsystemState currentState;
-    protected final SubsystemState defaultState;
+    public final SubsystemState defaultState;
     protected EnumCollection.OperatingMode currentOperatingMode;
 
     protected StateSubsystem(String _name, SubsystemState _defaultState) {
         name = _name;
         defaultState = _defaultState;
         currentState = defaultState;
+        Logger.recordOutput(name + "/currentState", currentState.toString());
     }
 
     public void setOperatingMode(EnumCollection.OperatingMode mode) {
@@ -28,6 +30,13 @@ public abstract class StateSubsystem {
             return;
         }
         currentState = newState;
+        Logger.recordOutput(name + "/currentState", currentState.toString());
+    }
+    public SubsystemState getCurrentState() {
+        return currentState;
+    }
+    public void setDefaultState() {
+        setState(defaultState);
     }
 
     public interface SubsystemState {}

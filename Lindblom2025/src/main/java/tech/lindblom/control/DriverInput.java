@@ -2,23 +2,25 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
-import tech.lindblom.subsystems.types.StateSubsystem;
+import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.utils.Constants;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 public class DriverInput {
+    private RobotController robotController;
     private static XboxController[] controllers = new XboxController[] {
             new XboxController(0)
     };
 
-    private Control[] controlList = new Control[] {
+    private Control[] controlList;
 
-    };
-
-    DriverInput() throws NoSuchMethodException {
-
+    DriverInput(RobotController robotController) {
+        this.robotController = robotController;
+        this.controlList = new Control[] {
+                new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
+                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4))
+        };
     }
 
     public InputHolder getDriverInputs() {
@@ -28,6 +30,27 @@ public class DriverInput {
         driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
         driverInputHolder.resetNavX = getButton("START", 0);
+
+        ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
+
+        for (int i = 0; i < controlList.length; i++) {
+            Control control = controlList[i];
+
+            if (control.getButtonValue()) {
+                for (int j = 0; j < subsystemSettings.size(); j++) {
+                    RobotController.SubsystemSetting subsystemSetting = subsystemSettings.get(j);
+                    if (subsystemSetting.subsystem == control.requestedSetting.subsystem && subsystemSetting.weight < control.requestedSetting.weight) {
+                        subsystemSettings.add(control.requestedSetting);
+                        subsystemSettings.remove(subsystemSetting);
+                        break;
+                    }
+                }
+
+                subsystemSettings.add(control.requestedSetting);
+            }
+        }
+
+        driverInputHolder.requestedSubsystemSettings = subsystemSettings;
 
         return driverInputHolder;
     }
@@ -81,47 +104,23 @@ public class DriverInput {
     }
 
     private class Control {
-        private final DriverInput driverInput;
         private final int controllerIndex;
-        private final int weight;
         private final String inputName;
-        private final InputType inputType;
-        private final StateSubsystem.SubsystemState requestedState;
+        private final RobotController.SubsystemSetting requestedSetting;
 
-        Control(DriverInput driverInput, int controllerIndex, int weight, String input, InputType inputType) {
-            this.driverInput = driverInput;
+        Control(int controllerIndex, String input, RobotController.SubsystemSetting requestedSetting) {
             this.controllerIndex = controllerIndex;
-            this.weight = weight;
             this.inputName = input;
-            this.inputType = inputType;
 
-            this.requestedState = null;
-        }
-
-        Control(DriverInput driverInput, int controllerIndex, int weight, String input, InputType inputType, StateSubsystem.SubsystemState requestedState) {
-            this.driverInput = driverInput;
-            this.controllerIndex = controllerIndex;
-            this.weight = weight;
-            this.inputName = input;
-            this.inputType = inputType;
-
-            this.requestedState = requestedState;
+            this.requestedSetting = requestedSetting;
         }
 
         boolean getButtonValue() {
-            if (inputType == InputType.BUTTON) {
-                return DriverInput.getButton(inputName, controllerIndex);
-            }
-
-            return false;
-        }
-
-        double getWeight() {
-            return weight;
+            return DriverInput.getButton(inputName, controllerIndex);
         }
 
         enum InputType {
-            BUTTON, TRIGGER
+            BUTTON
         }
     }
 
@@ -129,13 +128,17 @@ public class DriverInput {
         switch (buttonName) {
             case "START":
                 return controllers[controllerIndex].getStartButton();
+            case "A":
+                return controllers[controllerIndex].getAButton();
+            case "B":
+                return controllers[controllerIndex].getBButton();
         }
 
         return false;
     }
 
     class InputHolder {
-        public ArrayList<StateSubsystem.SubsystemState> requestedSubsystemStates;
+        public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
 
         Translation2d driverLeftJoystickPosition;
         Translation2d driverRightJoystickPosition;
