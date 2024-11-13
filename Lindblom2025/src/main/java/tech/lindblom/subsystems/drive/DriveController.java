@@ -20,6 +20,7 @@ import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 public class DriveController extends Subsystem {
     private final Drive driveSubsystem;
     private final RobotController robotController;
+    private PathPlannerPath followingPath;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -60,7 +61,7 @@ public class DriveController extends Subsystem {
     }
 
     public void setAutoPath(PathPlannerPath path) {
-
+        this.followingPath = path;
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
