@@ -9,6 +9,8 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 public class Constants {
 
@@ -57,6 +59,10 @@ public class Constants {
                 DRIVETRAIN_TRACKWIDTH / 2);
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
+    }
+
+    public class Auto {
+        public static final ShuffleboardTab AUTONOMOUS_TAB = Shuffleboard.getTab("Autonomous");
     }
 
     public class Vision {

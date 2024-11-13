@@ -3,16 +3,13 @@ package tech.lindblom.control;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
+import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
-import tech.lindblom.subsystems.drive.Drive;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
@@ -21,17 +18,19 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 public class RobotController {
-    Drive driveSystem;
-    Vision visionSystem;
-    Auto autoSystem;
-    LEDs ledsSystem;
+    public DriveController driveController;
+    public Vision visionSystem;
+    public Auto autoSystem;
+    public LEDs ledsSystem;
 
     DriverInput driverInput;
 
+    private Action currentAction;
     private ArrayList<StateSubsystem> stateSubsystems;
     private ArrayList<Subsystem> subsystems;
 
@@ -39,30 +38,32 @@ public class RobotController {
     private final SlewRateLimiter yControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter rotControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_ROTATION_RATE_LIMIT);
 
-    Pose2d empty = new Pose2d();
+    private HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
 
     public RobotController() {
-        driveSystem = new Drive();
-        autoSystem = new Auto(
+        driveController = new DriveController(this);
+        autoSystem = new Auto(this,
                 new TestRoutine()
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
-
-        stateSubsystems = new ArrayList<>();
-
         driverInput = new DriverInput(this);
 
-        stateSubsystems.add(driveSystem);
+        stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
 
         subsystems = new ArrayList<>();
+        subsystems.add(driveController);
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
+        createActions();
     }
 
     public enum Action {
-        WAIT
+        WAIT,
+        TEST_RED,
+        TEST_BLUE,
+        TEST_GREEN
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -70,10 +71,8 @@ public class RobotController {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                    setInitialRobotPose(mode);
                 break;
             case TELEOP:
-                    setInitialRobotPose(mode);
                 break;
             case TEST:
                 break;
@@ -102,7 +101,14 @@ public class RobotController {
                 break;
             case AUTONOMOUS:
                 visionUpdates();
-                processAutonomousInputs();
+                if (currentAction != null) {
+                    SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
+                    for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) return;
+
+                        subsystemSetting.subsystem.setState(subsystemSetting.state);
+                    }
+                }
                 break;
             case TELEOP:
                 visionUpdates();
@@ -126,22 +132,17 @@ public class RobotController {
         }
     }
 
-    public void processAutonomousInputs() {
-
-    }
-
     public void processDriverInputs() {
         DriverInput.InputHolder holder = driverInput.getDriverInputs();
         driverDriving(holder.driverLeftJoystickPosition, holder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
         if (holder.resetNavX) {
-            driveSystem.zeroNavX();
+            driveController.resetNavX();
         }
 
         for (int i = 0; i < holder.requestedSubsystemSettings.size(); i++) {
             SubsystemSetting setting = holder.requestedSubsystemSettings.get(i);
-            System.out.println(setting.subsystem + " " + setting.state);
             setting.subsystem.setState(setting.state);
             setSubsystems.add(setting.subsystem);
         }
@@ -163,7 +164,6 @@ public class RobotController {
 
         Logger.recordOutput("Driver/movement/x", translation.getX());
         Logger.recordOutput("Driver/rotation/x", rotation.getX());
-
         Logger.recordOutput("Driver/movement/y", translation.getY());
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
 
@@ -171,11 +171,7 @@ public class RobotController {
         double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
 
-        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                xSpeed,
-                ySpeed,
-                rotSpeed), driveSystem.getRobotRotation());
-        driveSystem.drive(speeds);
+        driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
     public void visionUpdates() {
@@ -184,7 +180,7 @@ public class RobotController {
             Pose2d visionEstimate = visionEstimateOptional.get();
             Logger.recordOutput("RobotController/updatingUsingVision", true);
 
-            driveSystem.updatePoseUsingVisionEstimate(
+            driveController.updatePoseUsingVisionEstimate(
                     visionEstimate,
                     Timer.getFPGATimestamp(),
                     visionSystem.getEstimationStdDevs(
@@ -197,29 +193,38 @@ public class RobotController {
         Logger.recordOutput("RobotController/updatingUsingVision", false);
     }
 
-    public void setInitialRobotPose(EnumCollection.OperatingMode mode) {
-        Optional<Pose2d> visionPoseOptional = visionSystem.getFrontCameraPose();
-        PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
+    public void setAutoStep(AutoStep autoStep) {
+        if (autoStep == null) return;
 
-        if (visionPoseOptional.isPresent() && pipelineResult != null) {
-            Pose2d visionPose = visionPoseOptional.get();
-
-            if (pipelineResult.targets.size() > 1) {
-                driveSystem.setInitialPose(visionPose);
-                return;
-            }
+        switch (autoStep.getStepType()) {
+            case ACTION:
+                setAction(autoStep.getAction());
+                break;
+            case PATH:
+                driveController.setAutoPath(autoStep.getPath());
+                break;
+            case PATH_AND_ACTION:
+                driveController.setAutoPath(autoStep.getPath());
+                setAction(autoStep.getAction());
+                break;
         }
+    }
 
-        if (mode == EnumCollection.OperatingMode.AUTONOMOUS) {
-            try {
-                Pose2d poseFromPath = autoSystem.getStartPosition();
-                driveSystem.setInitialPose(poseFromPath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (mode == EnumCollection.OperatingMode.TELEOP) {
-            driveSystem.setInitialPose(empty);
-        }
+    public void setAction(Action action) {
+        currentAction = action;
+    }
+
+    public void createActions() {
+        defineAction(Action.TEST_BLUE,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 0));
+        defineAction(Action.TEST_RED,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
+        defineAction(Action.TEST_GREEN,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+    }
+
+    public void defineAction(Action action, SubsystemSetting... settings) {
+        actionMap.put(action, settings);
     }
 
     public static boolean isRed() {

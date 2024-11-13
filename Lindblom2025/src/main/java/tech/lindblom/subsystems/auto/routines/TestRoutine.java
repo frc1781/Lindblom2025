@@ -13,7 +13,9 @@ public class TestRoutine implements AutoRoutine {
     @Override
     public AutoStep[] getSteps() {
         return new AutoStep[] {
-                new AutoStep(RobotController.Action.WAIT)
+                new AutoStep(10, RobotController.Action.TEST_BLUE),
+                new AutoStep(10, RobotController.Action.TEST_RED),
+                new AutoStep(10, RobotController.Action.TEST_GREEN),
         };
     }
 }

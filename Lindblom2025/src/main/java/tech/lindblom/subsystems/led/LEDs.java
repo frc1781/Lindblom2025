@@ -43,6 +43,9 @@ public class LEDs extends StateSubsystem {
             case GREEN:
                 solid(0,255,0);
                 break;
+            case BLUE:
+                solid(0, 0, 255);
+                break;
         }
         mLedController.setData(mLedBuffer);
     }
@@ -59,6 +62,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        WHITE, RED, GREEN
+        WHITE, RED, GREEN, BLUE
     }
 }

@@ -14,11 +14,12 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.StateSubsystem;
+import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 
-public class Drive extends StateSubsystem {
+public class Drive extends Subsystem {
     private final SwerveModule mFrontLeft = new KrakenL2SwerveModule("Front Left Module",
             Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
@@ -46,15 +47,15 @@ public class Drive extends StateSubsystem {
     private final SwerveDrivePoseEstimator mPoseEstimator;
 
     public Drive() {
-        super("DriveSystem", DriveSystemState.MANUAL);
-
+        super("DriveSystem");
+        mNavX.resetDisplacement();
         mPoseEstimator = new SwerveDrivePoseEstimator(mKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
     }
 
     @Override
     public void init() {
-        switch (currentOperatingMode) {
+        switch (currentMode) {
             case AUTONOMOUS:
                 mNavX.reset();
                 mNavX.zeroYaw();
@@ -63,16 +64,12 @@ public class Drive extends StateSubsystem {
     }
 
     @Override
-    public void getToState() {
+    public void periodic() {
         updatePoseUsingOdometry();
+        Logger.recordOutput(name + "/currentPose", getRobotPose());
     }
 
     //Use velocities to drive, both the x, y and rotation
-
-    @Override
-    public boolean matchesState() {
-        return false;
-    }
 
     public void drive(ChassisSpeeds speeds) {
         SwerveModuleState[] moduleStates = mKinematics.toSwerveModuleStates(speeds);
@@ -124,9 +121,4 @@ public class Drive extends StateSubsystem {
                 mBackRight.getModulePosition()
         };
     }
-
-    public enum DriveSystemState implements SubsystemState {
-        MANUAL, AUTO_CONTROLLED
-    }
-
 }

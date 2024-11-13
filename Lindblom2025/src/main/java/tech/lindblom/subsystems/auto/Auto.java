@@ -2,34 +2,43 @@ package tech.lindblom.subsystems.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.utils.Constants;
 
 public class Auto extends Subsystem {
-    private LoggedDashboardChooser AutoChooser;
+    private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
     private boolean pathsGeneratedForRed;
     private Timer autoTimer = new Timer();
 
     private int currentAutoStepIndex = 0;
+    private final RobotController robotController;
     private AutoStep currentAutoStep;
     private AutoStep[] allAutoSteps;
 
 
-    public Auto(AutoRoutine... routines) {
+    public Auto(RobotController robotController, AutoRoutine... routines) {
         super("AutoSystem");
 
-        AutoChooser = new LoggedDashboardChooser<>("Auto Routine");
+        autoChooser = new SendableChooser<>();
         for (AutoRoutine routine : routines) {
-            AutoChooser.getSendableChooser().addOption(routine.getName(), routine);
+            autoChooser.addOption(routine.getName(), routine);
         }
+        Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
+        this.robotController = robotController;
     }
 
     @Override
     public void init() {
-        
+        autoTimer.reset();
+        currentAutoStepIndex = 0;
+        checkSelectedRoutine();
+
     }
 
     @Override
@@ -39,13 +48,34 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
+                boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < autoTimer.get() : false;
+                boolean shouldEndRoutine = timeUp;
+                System.out.println(timeUp);
 
+                if (currentAutoStepIndex == 0 || shouldEndRoutine) {
+                    autoTimer.reset();
+                    if (allAutoSteps.length - 1 == currentAutoStepIndex) {
+                        return;
+                    }
+                    currentAutoStep = allAutoSteps[currentAutoStepIndex];
+                    startStep(currentAutoStep);
+                    autoTimer.start();
+
+                    currentAutoStepIndex++;
+                }
+                break;
         }
+    }
+
+    private void startStep(AutoStep step) {
+        Logger.recordOutput(name + "/CurrentAutoStepIndex", currentAutoStepIndex);
+        robotController.setAutoStep(step);
     }
 
     public void checkSelectedRoutine() {
         boolean currentAlliance = RobotController.isRed();
-        AutoRoutine chosenRoutine = (AutoRoutine) AutoChooser.getSendableChooser().getSelected();
+        AutoRoutine chosenRoutine = (AutoRoutine) autoChooser.getSelected();
+
         if (chosenRoutine == null) return;
 
         Logger.recordOutput("Autonomous/ChosenRoutine", chosenRoutine.getName());
