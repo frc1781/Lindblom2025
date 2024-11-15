@@ -2,6 +2,7 @@ package tech.lindblom.subsystems.drive;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -20,7 +21,8 @@ import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 public class DriveController extends Subsystem {
     private final Drive driveSubsystem;
     private final RobotController robotController;
-    private PathPlannerPath followingPath;
+    private PathPlannerPath mFollowingPath;
+    private HolonomicDriveController mTrajectoryController;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -61,7 +63,15 @@ public class DriveController extends Subsystem {
     }
 
     public void setAutoPath(PathPlannerPath path) {
-        this.followingPath = path;
+        mFollowingPath = path; //The path we are following
+        ChassisSpeeds desiredChassisSpeeds; // The ChassisSpeeds generated from the following trajectory
+        //Start timer
+        //depending on the timer, look at what states the trajectory has to be in
+        //convert the specific state to chassisspeeds to follow the path
+
+        // mFollowingPath.getTrajectory(mTrajectoryController.calculate(driveSubsystem.getRobotPose(), null, null), driveSubsystem.getRobotRotation())
+
+
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
