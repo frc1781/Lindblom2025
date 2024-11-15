@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+// The robot controller, controls robot.
 public class RobotController {
     public DriveController driveController;
     public Vision visionSystem;
