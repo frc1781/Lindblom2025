@@ -1,6 +1,8 @@
 package tech.lindblom.subsystems.drive;
 
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -9,6 +11,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Timer;
+
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
@@ -23,6 +27,7 @@ public class DriveController extends Subsystem {
     private final RobotController robotController;
     private PathPlannerPath mFollowingPath;
     private HolonomicDriveController mTrajectoryController;
+    private Timer mTrajectoryTimer;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -62,16 +67,22 @@ public class DriveController extends Subsystem {
         driveSubsystem.drive(speeds);
     }
 
-    public void setAutoPath(PathPlannerPath path) {
+    public void runAutoPath(PathPlannerPath path) { 
+
         mFollowingPath = path; //The path we are following
-        ChassisSpeeds desiredChassisSpeeds; // The ChassisSpeeds generated from the following trajectory
-        //Start timer
-        //depending on the timer, look at what states the trajectory has to be in
-        //convert the specific state to chassisspeeds to follow the path
+        mTrajectoryTimer.start(); // Timer starts(if its already started it doesn't stop itself)
+        PathPlannerTrajectory mFollowingTrajectory = path.getTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation()); //getting the trajectory to follow from the path
+        PathPlannerTrajectory.State mFollowingTrajectoryState = mFollowingTrajectory.sample(mTrajectoryTimer.get()); //getting what the robot is supposed to be doing at the time of the trajectory
+        ChassisSpeeds desiredChassisSpeeds = mTrajectoryController.calculate(
+            driveSubsystem.getRobotPose(), 
+            mFollowingTrajectoryState.getTargetHolonomicPose(),
+            mFollowingTrajectoryState.velocityMps,
+            mFollowingTrajectoryState.targetHolonomicRotation
+        ); // getting the ChassisSpeeds from the state of the robot during the time of the trajectory
 
-        // mFollowingPath.getTrajectory(mTrajectoryController.calculate(driveSubsystem.getRobotPose(), null, null), driveSubsystem.getRobotRotation())
+        driveSubsystem.drive(desiredChassisSpeeds); // run the ChassisSpeeds thru the drive function!
 
-
+        Pose2d mTargetPose = mFollowingTrajectory.getEndState().getTargetHolonomicPose(); 
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {

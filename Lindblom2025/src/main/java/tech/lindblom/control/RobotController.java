@@ -201,10 +201,10 @@ public class RobotController {
                 setAction(autoStep.getAction());
                 break;
             case PATH:
-                driveController.setAutoPath(autoStep.getPath());
+                driveController.runAutoPath(autoStep.getPath());
                 break;
             case PATH_AND_ACTION:
-                driveController.setAutoPath(autoStep.getPath());
+                driveController.runAutoPath(autoStep.getPath());
                 setAction(autoStep.getAction());
                 break;
         }
