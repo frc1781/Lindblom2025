@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+// The robot controller, controls robot.
 public class RobotController {
     public DriveController driveController;
     public Vision visionSystem;
@@ -104,7 +105,7 @@ public class RobotController {
                 if (currentAction != null) {
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
-                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) return;
+                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
 
                         subsystemSetting.subsystem.setState(subsystemSetting.state);
                     }
@@ -128,7 +129,7 @@ public class RobotController {
         }
 
         for (StateSubsystem subsystem : stateSubsystems) {
-            subsystem.getToState();
+            subsystem.periodic();
         }
     }
 
@@ -149,7 +150,7 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.defaultState && !setSubsystems.contains(subsystem)) {
-                subsystem.setDefaultState();
+                subsystem.restoreToDefaultState();
             }
         }
     }
@@ -212,6 +213,15 @@ public class RobotController {
 
     public void setAction(Action action) {
         currentAction = action;
+    }
+
+    public void interruptAction() {
+        currentAction = null;
+        driveController.setAutoPath(null);
+
+        for (int i = 0; i < stateSubsystems.size(); i++) {
+            stateSubsystems.get(i).restoreToDefaultState();
+        }
     }
 
     public void createActions() {

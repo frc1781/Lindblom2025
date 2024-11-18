@@ -4,11 +4,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EnumCollection;
 
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
@@ -23,7 +22,7 @@ public class Auto extends Subsystem {
 
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
-        super("AutoSystem");
+        super("Auto");
 
         autoChooser = new SendableChooser<>();
         for (AutoRoutine routine : routines) {
@@ -35,10 +34,12 @@ public class Auto extends Subsystem {
 
     @Override
     public void init() {
-        autoTimer.reset();
-        currentAutoStepIndex = 0;
-        checkSelectedRoutine();
-
+        if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
+            autoTimer.reset();
+            currentAutoStepIndex = 0;
+            checkSelectedRoutine();
+            autoTimer.start();
+        }
     }
 
     @Override
@@ -50,13 +51,14 @@ public class Auto extends Subsystem {
             case AUTONOMOUS:
                 boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < autoTimer.get() : false;
                 boolean shouldEndRoutine = timeUp;
-                System.out.println(timeUp);
 
                 if (currentAutoStepIndex == 0 || shouldEndRoutine) {
                     autoTimer.reset();
-                    if (allAutoSteps.length - 1 == currentAutoStepIndex) {
-                        return;
+
+                    if (allAutoSteps.length == currentAutoStepIndex) {
+                        robotController.interruptAction();
                     }
+
                     currentAutoStep = allAutoSteps[currentAutoStepIndex];
                     startStep(currentAutoStep);
                     autoTimer.start();
@@ -93,7 +95,7 @@ public class Auto extends Subsystem {
         }
     }
 
-    public Pose2d getStartPosition() throws NoAutoRoutineException {
+    public Pose2d getStartPosition() throws NoStartingPositionException {
         if (currentAutoRoutine != null) {
             for (int i = 0; i < allAutoSteps.length; i++) {
                 switch (allAutoSteps[i].getStepType()) {
@@ -106,17 +108,17 @@ public class Auto extends Subsystem {
             System.out.println("Selected routine is null");
         }
 
-        throw new NoAutoRoutineException();
+        throw new NoStartingPositionException();
     }
 
-    public class NoAutoRoutineException extends Exception {
-        public NoAutoRoutineException() {
-            super("No routine!");
+    public class NoStartingPositionException extends Exception {
+        public NoStartingPositionException() {
+            super("No starting position!");
         }
 
         @Override
         public void printStackTrace() {
-            System.out.println("The routine was null or invalid. We will till we start auto.");
+            System.out.println("NoAutoRoutineException: This routine does not have a starting position, the position has been set to 0,0.");
         }
     }
 }

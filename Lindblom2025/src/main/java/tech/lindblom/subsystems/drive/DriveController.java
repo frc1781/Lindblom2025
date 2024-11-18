@@ -1,8 +1,6 @@
 package tech.lindblom.subsystems.drive;
 
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -25,6 +23,7 @@ import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 public class DriveController extends Subsystem {
     private final Drive driveSubsystem;
     private final RobotController robotController;
+    private PathPlannerPath path;
     private PathPlannerPath mFollowingPath;
     private HolonomicDriveController mTrajectoryController;
     private Timer mTrajectoryTimer;
@@ -42,6 +41,10 @@ public class DriveController extends Subsystem {
                 break;
             case AUTONOMOUS:
                 setInitialRobotPose(currentMode);
+
+                if (path != null) {
+                    //Path following logic
+                }
                 break;
             case TELEOP:
                 setInitialRobotPose(currentMode);
@@ -67,14 +70,14 @@ public class DriveController extends Subsystem {
         driveSubsystem.drive(speeds);
     }
 
-    public void runAutoPath(PathPlannerPath path) { 
+    public void runAutoPath(PathPlannerPath path) {
 
         mFollowingPath = path; //The path we are following
         mTrajectoryTimer.start(); // Timer starts(if its already started it doesn't stop itself)
         PathPlannerTrajectory mFollowingTrajectory = path.getTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation()); //getting the trajectory to follow from the path
         PathPlannerTrajectory.State mFollowingTrajectoryState = mFollowingTrajectory.sample(mTrajectoryTimer.get()); //getting what the robot is supposed to be doing at the time of the trajectory
         ChassisSpeeds desiredChassisSpeeds = mTrajectoryController.calculate(
-            driveSubsystem.getRobotPose(), 
+            driveSubsystem.getRobotPose(),
             mFollowingTrajectoryState.getTargetHolonomicPose(),
             mFollowingTrajectoryState.velocityMps,
             mFollowingTrajectoryState.targetHolonomicRotation
@@ -82,7 +85,7 @@ public class DriveController extends Subsystem {
 
         driveSubsystem.drive(desiredChassisSpeeds); // run the ChassisSpeeds thru the drive function!
 
-        Pose2d mTargetPose = mFollowingTrajectory.getEndState().getTargetHolonomicPose(); 
+        Pose2d mTargetPose = mFollowingTrajectory.getEndState().getTargetHolonomicPose();
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
@@ -108,6 +111,7 @@ public class DriveController extends Subsystem {
                 driveSubsystem.setInitialPose(poseFromPath);
             } catch (Exception e) {
                 e.printStackTrace();
+                driveSubsystem.setInitialPose(new Pose2d());
             }
         } else if (mode == TELEOP) {
             double startingDegRotation = RobotController.isRed() ? 180 : 0;

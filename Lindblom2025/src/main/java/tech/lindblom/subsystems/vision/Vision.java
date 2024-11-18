@@ -28,7 +28,7 @@ public class Vision extends Subsystem {
     private boolean areAprilTagsDetected = false;
 
     public Vision() {
-        super("VisionSystem");
+        super("Vision");
         try {
             String deployDirectoryPath = Filesystem.getDeployDirectory().getAbsolutePath();
             fieldLayout = new AprilTagFieldLayout(deployDirectoryPath + "/CrescendoFieldLayout.json");

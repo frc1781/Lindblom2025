@@ -47,7 +47,7 @@ public class Drive extends Subsystem {
     private final SwerveDrivePoseEstimator mPoseEstimator;
 
     public Drive() {
-        super("DriveSystem");
+        super("Drive");
         mNavX.resetDisplacement();
         mPoseEstimator = new SwerveDrivePoseEstimator(mKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());

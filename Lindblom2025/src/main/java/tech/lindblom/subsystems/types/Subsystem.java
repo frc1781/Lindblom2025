@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.types;
 
+import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class Subsystem {
