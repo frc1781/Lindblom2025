@@ -31,6 +31,8 @@ public class RobotController {
 
     DriverInput driverInput;
 
+    public Timer autoTimer = new Timer();
+
     private Action currentAction;
     private ArrayList<StateSubsystem> stateSubsystems;
     private ArrayList<Subsystem> subsystems;
@@ -202,10 +204,10 @@ public class RobotController {
                 setAction(autoStep.getAction());
                 break;
             case PATH:
-                driveController.runAutoPath(autoStep.getPath());
+                driveController.setAutoPath(autoStep.getPath());
                 break;
             case PATH_AND_ACTION:
-                driveController.runAutoPath(autoStep.getPath());
+                driveController.setAutoPath(autoStep.getPath());
                 setAction(autoStep.getAction());
                 break;
         }

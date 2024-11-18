@@ -4,14 +4,17 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPlannerTrajectory;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.Timer;
 
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
@@ -24,10 +27,15 @@ import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 public class DriveController extends Subsystem {
     private final Drive driveSubsystem;
     private final RobotController robotController;
-    private PathPlannerPath path;
-    private PathPlannerPath mFollowingPath;
-    private HolonomicDriveController mTrajectoryController;
-    private Timer mTrajectoryTimer;
+    private PathPlannerPath followingPath;
+    private PathPlannerTrajectory followingTrajectory;
+    private Pose2d targetPose;
+    private HolonomicDriveController trajectoryController;
+
+    private final PIDController XController = new PIDController(3, 0, 0);
+    private final PIDController YController = new PIDController(3, 0, 0);
+    private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
+            new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -42,10 +50,6 @@ public class DriveController extends Subsystem {
                 break;
             case AUTONOMOUS:
                 setInitialRobotPose(currentMode);
-
-                if (path != null) {
-                    //Path following logic
-                }
                 break;
             case TELEOP:
                 setInitialRobotPose(currentMode);
@@ -56,6 +60,19 @@ public class DriveController extends Subsystem {
     @Override
     public void periodic() {
         driveSubsystem.periodic();
+
+        switch (currentMode) {
+            case DISABLED:
+                break;
+            case AUTONOMOUS:
+                boolean hasRobotReachedTargetPose = hasRobotReachedTargetPose();
+                Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
+
+                if (followingPath != null && !hasRobotReachedTargetPose) {
+                    followPath();
+                }
+                break;
+        }
     }
 
     public void resetNavX() {
@@ -71,22 +88,49 @@ public class DriveController extends Subsystem {
         driveSubsystem.drive(speeds);
     }
 
-    public void runAutoPath(PathPlannerPath path) {
+    public void setAutoPath(PathPlannerPath path) {
+        followingPath = path;
+        followingTrajectory = path.getTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation());
 
-        mFollowingPath = path; //The path we are following
-        mTrajectoryTimer.start(); // Timer starts(if its already started it doesn't stop itself)
-        PathPlannerTrajectory mFollowingTrajectory = path.getTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation()); //getting the trajectory to follow from the path
-        PathPlannerTrajectory.State mFollowingTrajectoryState = mFollowingTrajectory.sample(mTrajectoryTimer.get()); //getting what the robot is supposed to be doing at the time of the trajectory
-        ChassisSpeeds desiredChassisSpeeds = mTrajectoryController.calculate(
+        targetPose = followingTrajectory.getEndState().getTargetHolonomicPose();
+
+        PIDController xTrajectoryController;
+        PIDController yTrajectoryController;
+        ProfiledPIDController rotTrajectoryController;
+        xTrajectoryController = new PIDController(0.7, 0.0, 0.001);
+        yTrajectoryController = new PIDController(1.5, 0.0, 0.001);
+        rotTrajectoryController = new ProfiledPIDController(5.5, 0.01, 0.01,
+                new TrapezoidProfile.Constraints(6.28, 12.14));
+        rotTrajectoryController.enableContinuousInput(0, 2 * Math.PI);
+        trajectoryController = new HolonomicDriveController(xTrajectoryController, yTrajectoryController,
+                rotTrajectoryController);
+
+
+        XController.reset();
+        YController.reset();
+        rotController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
+    }
+
+    public void followPath() {
+        PathPlannerTrajectory.State mFollowingTrajectoryState = followingTrajectory.sample(robotController.autoTimer.get());
+        ChassisSpeeds desiredChassisSpeeds = trajectoryController.calculate(
             driveSubsystem.getRobotPose(),
             mFollowingTrajectoryState.getTargetHolonomicPose(),
             mFollowingTrajectoryState.velocityMps,
             mFollowingTrajectoryState.targetHolonomicRotation
-        ); // getting the ChassisSpeeds from the state of the robot during the time of the trajectory
+        );
 
-        driveSubsystem.drive(desiredChassisSpeeds); // run the ChassisSpeeds thru the drive function!
+        driveSubsystem.drive(desiredChassisSpeeds);
+    }
 
-        Pose2d mTargetPose = mFollowingTrajectory.getEndState().getTargetHolonomicPose();
+    public boolean hasRobotReachedTargetPose() {
+        if (targetPose == null) return true;
+
+        Pose2d currentPose = driveSubsystem.getRobotPose();
+        boolean reachedTargetTranslation = currentPose.getTranslation().getDistance(targetPose.getTranslation()) < 0.1;
+        boolean reachedTargetHeading = true;
+
+        return reachedTargetHeading && reachedTargetTranslation;
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {

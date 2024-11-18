@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.auto;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -13,7 +14,6 @@ public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
     private boolean pathsGeneratedForRed;
-    private Timer autoTimer = new Timer();
 
     private int currentAutoStepIndex = 0;
     private final RobotController robotController;
@@ -35,10 +35,10 @@ public class Auto extends Subsystem {
     @Override
     public void init() {
         if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
-            autoTimer.reset();
+            robotController.autoTimer.reset();
             currentAutoStepIndex = 0;
             checkSelectedRoutine();
-            autoTimer.start();
+            robotController.autoTimer.start();
         }
     }
 
@@ -49,11 +49,11 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-                boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < autoTimer.get() : false;
+                boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
                 boolean shouldEndRoutine = timeUp;
 
                 if (currentAutoStepIndex == 0 || shouldEndRoutine) {
-                    autoTimer.reset();
+                    robotController.autoTimer.reset();
 
                     if (allAutoSteps.length == currentAutoStepIndex) {
                         robotController.interruptAction();
@@ -61,7 +61,7 @@ public class Auto extends Subsystem {
 
                     currentAutoStep = allAutoSteps[currentAutoStepIndex];
                     startStep(currentAutoStep);
-                    autoTimer.start();
+                    robotController.autoTimer.start();
 
                     currentAutoStepIndex++;
                 }
@@ -83,7 +83,7 @@ public class Auto extends Subsystem {
         Logger.recordOutput("Autonomous/ChosenRoutine", chosenRoutine.getName());
 
         if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
-            autoTimer.reset();
+            robotController.autoTimer.reset();
             currentAutoStepIndex = 0;
             currentAutoRoutine = chosenRoutine;
             allAutoSteps = currentAutoRoutine.getSteps();
@@ -109,6 +109,15 @@ public class Auto extends Subsystem {
         }
 
         throw new NoStartingPositionException();
+    }
+
+    public static PathPlannerPath getPathFromName(String name) {
+        var ret_val = PathPlannerPath.fromPathFile(name);
+        ret_val.preventFlipping = false;
+        if(RobotController.isRed()) {
+            ret_val = ret_val.flipPath();
+        }
+        return ret_val;
     }
 
     public class NoStartingPositionException extends Exception {
