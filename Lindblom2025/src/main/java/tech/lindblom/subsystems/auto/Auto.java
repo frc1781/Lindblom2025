@@ -130,7 +130,7 @@ public class Auto extends Subsystem {
 
         @Override
         public void printStackTrace() {
-            System.out.println("The routine was null or invalid. Auto will not start.");
+            System.out.println("NoAutoRoutineException: The routine was null or invalid. Auto will not start.");
         }
     }
 }
