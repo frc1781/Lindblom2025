@@ -28,7 +28,7 @@ public class LEDs extends StateSubsystem {
     }
 
     @Override
-    public void getToState() {
+    public void periodic() {
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }

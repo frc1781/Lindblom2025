@@ -4,9 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -45,7 +43,7 @@ public class Auto extends Subsystem {
     }
 
     @Override
-    public void periodic() throws RoutineOverExecption {
+    public void periodic() {
         switch (currentMode) {
             case DISABLED:
                 checkSelectedRoutine();
@@ -58,8 +56,9 @@ public class Auto extends Subsystem {
                     autoTimer.reset();
 
                     if (allAutoSteps.length == currentAutoStepIndex) {
-                        throw new RoutineOverExecption();
+                        robotController.interruptAction();
                     }
+
                     currentAutoStep = allAutoSteps[currentAutoStepIndex];
                     startStep(currentAutoStep);
                     autoTimer.start();
@@ -96,7 +95,7 @@ public class Auto extends Subsystem {
         }
     }
 
-    public Pose2d getStartPosition() throws NoAutoRoutineException {
+    public Pose2d getStartPosition() throws NoStartingPositionException {
         if (currentAutoRoutine != null) {
             for (int i = 0; i < allAutoSteps.length; i++) {
                 switch (allAutoSteps[i].getStepType()) {
@@ -109,28 +108,17 @@ public class Auto extends Subsystem {
             System.out.println("Selected routine is null");
         }
 
-        throw new NoAutoRoutineException();
+        throw new NoStartingPositionException();
     }
 
-    public class RoutineOverExecption extends Exception {
-        public RoutineOverExecption() {
-            super("Routine Ended!");
+    public class NoStartingPositionException extends Exception {
+        public NoStartingPositionException() {
+            super("No starting position!");
         }
 
         @Override
         public void printStackTrace() {
-            System.out.println("RoutineOverExecption: The Routine running was finished.");
-        }
-    }
-
-    public class NoAutoRoutineException extends Exception {
-        public NoAutoRoutineException() {
-            super("No routine!");
-        }
-
-        @Override
-        public void printStackTrace() {
-            System.out.println("NoAutoRoutineException: The routine was null or invalid. Auto will not start.");
+            System.out.println("NoAutoRoutineException: This routine does not have a starting position, the position has been set to 0,0.");
         }
     }
 }

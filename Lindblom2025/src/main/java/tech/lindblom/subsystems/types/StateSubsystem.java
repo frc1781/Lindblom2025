@@ -3,14 +3,13 @@ package tech.lindblom.subsystems.types;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.EnumCollection;
 
-public abstract class StateSubsystem {
-    protected final String name;
+public abstract class StateSubsystem extends Subsystem {
     SubsystemState currentState;
     public final SubsystemState defaultState;
     protected EnumCollection.OperatingMode currentOperatingMode;
 
     protected StateSubsystem(String _name, SubsystemState _defaultState) {
-        name = _name;
+        super(_name);
         defaultState = _defaultState;
         currentState = defaultState;
         Logger.recordOutput(name + "/currentState", currentState.toString());
@@ -22,8 +21,6 @@ public abstract class StateSubsystem {
         init();
     }
 
-    public abstract void init();
-    public abstract void getToState();
     public abstract boolean matchesState();
     public void setState(SubsystemState newState) {
         if (currentState == newState) {
@@ -35,7 +32,7 @@ public abstract class StateSubsystem {
     public SubsystemState getCurrentState() {
         return currentState;
     }
-    public void setDefaultState() {
+    public void restoreToDefaultState() {
         setState(defaultState);
     }
 

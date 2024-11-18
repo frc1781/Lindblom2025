@@ -20,6 +20,7 @@ import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 public class DriveController extends Subsystem {
     private final Drive driveSubsystem;
     private final RobotController robotController;
+    private PathPlannerPath path;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -34,6 +35,10 @@ public class DriveController extends Subsystem {
                 break;
             case AUTONOMOUS:
                 setInitialRobotPose(currentMode);
+
+                if (path != null) {
+                    //Path following logic
+                }
                 break;
             case TELEOP:
                 setInitialRobotPose(currentMode);
@@ -60,7 +65,7 @@ public class DriveController extends Subsystem {
     }
 
     public void setAutoPath(PathPlannerPath path) {
-
+        this.path = path;
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
@@ -86,6 +91,7 @@ public class DriveController extends Subsystem {
                 driveSubsystem.setInitialPose(poseFromPath);
             } catch (Exception e) {
                 e.printStackTrace();
+                driveSubsystem.setInitialPose(new Pose2d());
             }
         } else if (mode == TELEOP) {
             double startingDegRotation = RobotController.isRed() ? 180 : 0;

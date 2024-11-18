@@ -129,7 +129,7 @@ public class RobotController {
         }
 
         for (StateSubsystem subsystem : stateSubsystems) {
-            subsystem.getToState();
+            subsystem.periodic();
         }
     }
 
@@ -150,7 +150,7 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.defaultState && !setSubsystems.contains(subsystem)) {
-                subsystem.setDefaultState();
+                subsystem.restoreToDefaultState();
             }
         }
     }
@@ -213,6 +213,15 @@ public class RobotController {
 
     public void setAction(Action action) {
         currentAction = action;
+    }
+
+    public void interruptAction() {
+        currentAction = null;
+        driveController.setAutoPath(null);
+
+        for (int i = 0; i < stateSubsystems.size(); i++) {
+            stateSubsystems.get(i).restoreToDefaultState();
+        }
     }
 
     public void createActions() {
