@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.types;
 
+import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class Subsystem {
@@ -18,5 +19,5 @@ public abstract class Subsystem {
 
     public abstract void init();
 
-    public abstract void periodic();
+    public abstract void periodic() throws Auto.RoutineOverExecption;
 }

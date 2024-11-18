@@ -9,6 +9,7 @@ import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EnumCollection;
 
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
@@ -23,7 +24,7 @@ public class Auto extends Subsystem {
 
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
-        super("AutoSystem");
+        super("Auto");
 
         autoChooser = new SendableChooser<>();
         for (AutoRoutine routine : routines) {
@@ -35,14 +36,16 @@ public class Auto extends Subsystem {
 
     @Override
     public void init() {
-        autoTimer.reset();
-        currentAutoStepIndex = 0;
-        checkSelectedRoutine();
-
+        if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
+            autoTimer.reset();
+            currentAutoStepIndex = 0;
+            checkSelectedRoutine();
+            autoTimer.start();
+        }
     }
 
     @Override
-    public void periodic() {
+    public void periodic() throws RoutineOverExecption {
         switch (currentMode) {
             case DISABLED:
                 checkSelectedRoutine();
@@ -50,12 +53,12 @@ public class Auto extends Subsystem {
             case AUTONOMOUS:
                 boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < autoTimer.get() : false;
                 boolean shouldEndRoutine = timeUp;
-                System.out.println(timeUp);
 
                 if (currentAutoStepIndex == 0 || shouldEndRoutine) {
                     autoTimer.reset();
-                    if (allAutoSteps.length - 1 == currentAutoStepIndex) {
-                        return;
+
+                    if (allAutoSteps.length == currentAutoStepIndex) {
+                        throw new RoutineOverExecption();
                     }
                     currentAutoStep = allAutoSteps[currentAutoStepIndex];
                     startStep(currentAutoStep);
@@ -109,6 +112,17 @@ public class Auto extends Subsystem {
         throw new NoAutoRoutineException();
     }
 
+    public class RoutineOverExecption extends Exception {
+        public RoutineOverExecption() {
+            super("Routine Ended!");
+        }
+
+        @Override
+        public void printStackTrace() {
+            System.out.println("RoutineOverExecption: The Routine running was finished.");
+        }
+    }
+
     public class NoAutoRoutineException extends Exception {
         public NoAutoRoutineException() {
             super("No routine!");
@@ -116,7 +130,7 @@ public class Auto extends Subsystem {
 
         @Override
         public void printStackTrace() {
-            System.out.println("The routine was null or invalid. We will till we start auto.");
+            System.out.println("The routine was null or invalid. Auto will not start.");
         }
     }
 }

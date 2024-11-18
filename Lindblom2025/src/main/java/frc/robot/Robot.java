@@ -33,7 +33,6 @@ public class Robot extends LoggedRobot {
 
       new PowerDistribution(1, PowerDistribution.ModuleType.kRev);
     } else {
-      //setUseTiming(false);
       Logger.addDataReceiver(new NT4Publisher());
     }
 

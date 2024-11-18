@@ -105,7 +105,7 @@ public class RobotController {
                 if (currentAction != null) {
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
-                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) return;
+                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
 
                         subsystemSetting.subsystem.setState(subsystemSetting.state);
                     }
