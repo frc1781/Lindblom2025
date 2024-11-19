@@ -193,10 +193,10 @@ public class RobotController {
                                 pipelineResult
                         )
                 );
+            } else {
+                Logger.recordOutput("RobotController/updatingUsingVision", false);
             }
         }
-
-        Logger.recordOutput("RobotController/updatingUsingVision", false);
     }
 
     public void setAutoStep(AutoStep autoStep) {

@@ -14,8 +14,8 @@ public class TestRoutine implements AutoRoutine {
     @Override
     public AutoStep[] getSteps() {
         return new AutoStep[] {
-                new AutoStep(10, RobotController.Action.TEST_GREEN, Auto.getPathFromName("testPath")),
-                new AutoStep(10, RobotController.Action.TEST_BLUE, Auto.getPathFromName("testPath1")),
+                new AutoStep(20, RobotController.Action.TEST_GREEN, Auto.getPathFromName("testPath")),
+                new AutoStep(20, RobotController.Action.TEST_BLUE, Auto.getPathFromName("testPath1")),
         };
     }
 }

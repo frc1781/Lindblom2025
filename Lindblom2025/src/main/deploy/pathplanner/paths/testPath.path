@@ -8,64 +8,53 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.496718652479652,
-        "y": 6.568515830248884
+        "x": 3.483518888860461,
+        "y": 5.3391518262877495
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.424133554365393,
-        "y": 6.758193213957229
+        "x": 4.914100276285793,
+        "y": 4.312457114381305
       },
       "prevControl": {
-        "x": 2.1579371230601065,
-        "y": 6.9585864047394805
+        "x": 4.16636959417183,
+        "y": 4.849731903127908
       },
       "nextControl": {
-        "x": 2.80424297034831,
-        "y": 6.47204610694422
+        "x": 5.25270526885571,
+        "y": 4.069155708937814
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.8582951368434824,
-        "y": 5.414913355635863
+        "x": 8.297383355369389,
+        "y": 2.443787991998417
       },
       "prevControl": {
-        "x": 2.446349259347879,
-        "y": 5.796575383575181
-      },
-      "nextControl": {
-        "x": 3.170863544187232,
-        "y": 5.125323147956575
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 4.51,
-        "y": 5.975
-      },
-      "prevControl": {
-        "x": 3.9414512036232843,
-        "y": 5.221555529075635
+        "x": 8.239231024491277,
+        "y": 3.0456704033437974
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1,
+      "rotationDegrees": -25.51350999513899
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.3,
+    "maxVelocity": 2.0,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -82,5 +71,5 @@
     "velocity": 0,
     "rotation": 1.6861712583148032
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
