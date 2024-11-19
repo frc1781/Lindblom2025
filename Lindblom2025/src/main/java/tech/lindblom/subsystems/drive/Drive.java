@@ -65,9 +65,8 @@ public class Drive extends Subsystem {
     public void periodic() {
         updatePoseUsingOdometry();
         Logger.recordOutput(name + "/currentPose", getRobotPose());
+        Logger.recordOutput(name + "/swerveModuleStates", getModuleStates());
     }
-
-    //Use velocities to drive, both the x, y and rotation
 
     public void drive(ChassisSpeeds speeds) {
         if (currentMode == EnumCollection.OperatingMode.DISABLED) {
@@ -122,6 +121,15 @@ public class Drive extends Subsystem {
                 frontRightModule.getModulePosition(),
                 backLeftModule.getModulePosition(),
                 backRightModule.getModulePosition()
+        };
+    }
+
+    private SwerveModuleState[] getModuleStates() {
+        return new SwerveModuleState[] {
+                frontLeftModule.getCurrentState(),
+                frontRightModule.getCurrentState(),
+                backLeftModule.getCurrentState(),
+                backRightModule.getCurrentState()
         };
     }
 }
