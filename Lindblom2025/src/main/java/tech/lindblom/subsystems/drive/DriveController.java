@@ -114,7 +114,7 @@ public class DriveController extends Subsystem {
         PIDController xTrajectoryController;
         PIDController yTrajectoryController;
         ProfiledPIDController rotTrajectoryController;
-        xTrajectoryController = new PIDController(2, 0.0, 0.001);
+        xTrajectoryController = new PIDController(10, 0.0, 0.001);
         yTrajectoryController = new PIDController(10, 0.0, 0.001);
         rotTrajectoryController = new ProfiledPIDController(5.5, 0.01, 0.01,
                 new TrapezoidProfile.Constraints(6.28, 12.14));
