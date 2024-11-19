@@ -2,7 +2,6 @@ package tech.lindblom.subsystems.drive;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPlannerTrajectory;
-import com.pathplanner.lib.util.GeometryUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -53,8 +52,8 @@ public class DriveController extends Subsystem {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                driveSubsystem.mNavX.reset();
-                driveSubsystem.mNavX.zeroYaw();
+                driveSubsystem.navX.reset();
+                driveSubsystem.navX.zeroYaw();
                 setInitialRobotPose(currentMode);
                 break;
             case TELEOP:
