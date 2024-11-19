@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
@@ -181,16 +182,18 @@ public class RobotController {
         Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
         if (visionEstimateOptional.isPresent()) {
             Pose2d visionEstimate = visionEstimateOptional.get();
+            PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
             Logger.recordOutput("RobotController/updatingUsingVision", true);
-
-            driveController.updatePoseUsingVisionEstimate(
-                    visionEstimate,
-                    Timer.getFPGATimestamp(),
-                    visionSystem.getEstimationStdDevs(
-                            visionEstimate,
-                            visionSystem.getFrontCameraPipelineResult()
-                    )
-            );
+            if (pipelineResult.targets.size() > 1) {
+                driveController.updatePoseUsingVisionEstimate(
+                        visionEstimate,
+                        Timer.getFPGATimestamp(),
+                        visionSystem.getEstimationStdDevs(
+                                visionEstimate,
+                                pipelineResult
+                        )
+                );
+            }
         }
 
         Logger.recordOutput("RobotController/updatingUsingVision", false);

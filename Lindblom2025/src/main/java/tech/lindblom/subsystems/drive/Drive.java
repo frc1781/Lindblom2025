@@ -18,6 +18,7 @@ import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
     private final SwerveModule mFrontLeft = new KrakenL2SwerveModule("Front Left Module",
@@ -42,7 +43,7 @@ public class Drive extends Subsystem {
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
-    private final AHRS mNavX = new AHRS(SPI.Port.kMXP);
+    public final AHRS mNavX = new AHRS(SPI.Port.kMXP);
 
     private final SwerveDrivePoseEstimator mPoseEstimator;
 
@@ -57,8 +58,6 @@ public class Drive extends Subsystem {
     public void init() {
         switch (currentMode) {
             case AUTONOMOUS:
-                mNavX.reset();
-                mNavX.zeroYaw();
                 break;
         }
     }
@@ -72,6 +71,11 @@ public class Drive extends Subsystem {
     //Use velocities to drive, both the x, y and rotation
 
     public void drive(ChassisSpeeds speeds) {
+        if (currentMode == EnumCollection.OperatingMode.DISABLED) {
+            System.out.println("MOVING IN DISABLED");
+            return;
+        }
+
         SwerveModuleState[] moduleStates = mKinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
 
@@ -102,7 +106,7 @@ public class Drive extends Subsystem {
         return mPoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    private Rotation2d getNavXRotation() {
+    public Rotation2d getNavXRotation() {
         return new Rotation2d(-mNavX.getRotation2d().getRadians());
     }
 

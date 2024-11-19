@@ -57,6 +57,7 @@ public class Auto extends Subsystem {
 
                     if (allAutoSteps.length == currentAutoStepIndex) {
                         robotController.interruptAction();
+                        return;
                     }
 
                     currentAutoStep = allAutoSteps[currentAutoStepIndex];
