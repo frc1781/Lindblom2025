@@ -2,10 +2,10 @@ package tech.lindblom.subsystems.auto;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.auto.reaction.Reaction;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -18,6 +18,7 @@ public class Auto extends Subsystem {
     private int currentAutoStepIndex = 0;
     private final RobotController robotController;
     private AutoStep currentAutoStep;
+    private AutoStep reactionAutoStep;
     private AutoStep[] allAutoSteps;
 
 
@@ -49,8 +50,14 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-                boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
-                boolean shouldEndRoutine = timeUp;
+                boolean timeUp = currentAutoStep.getMaxTime() != 0 ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
+                boolean finishedAutoStep = robotController.hasFinishedAutoStep();
+                boolean shouldEndRoutine = timeUp || finishedAutoStep;
+
+                if (timeUp && currentAutoStep.getReaction() != null) {
+                    Reaction reaction = currentAutoStep.getReaction();
+                    
+                }
 
                 if (currentAutoStepIndex == 0 || shouldEndRoutine) {
                     robotController.autoTimer.reset();
@@ -70,6 +77,10 @@ public class Auto extends Subsystem {
         }
     }
 
+    public AutoStep getCurrentAutoStep() {
+        return this.currentAutoStep;
+    }
+
     private void startStep(AutoStep step) {
         Logger.recordOutput(name + "/CurrentAutoStepIndex", currentAutoStepIndex);
         robotController.setAutoStep(step);
@@ -81,7 +92,7 @@ public class Auto extends Subsystem {
 
         if (chosenRoutine == null) return;
 
-        Logger.recordOutput("Autonomous/ChosenRoutine", chosenRoutine.getName());
+        Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
         if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
             robotController.autoTimer.reset();
@@ -91,7 +102,6 @@ public class Auto extends Subsystem {
             currentAutoStep = currentAutoRoutine.getSteps()[0];
 
             pathsGeneratedForRed = currentAlliance;
-            Logger.recordOutput("Auto/Routine", currentAutoRoutine.getName());
             System.out.println("Cached currently selected routine");
         }
     }

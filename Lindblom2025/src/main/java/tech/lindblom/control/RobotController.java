@@ -216,6 +216,37 @@ public class RobotController {
         }
     }
 
+    public boolean hasFinishedAutoStep() {
+        AutoStep currentAutoStep = autoSystem.getCurrentAutoStep();
+        if (currentAutoStep == null) return true;
+
+        SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());
+
+        switch (currentAutoStep.getStepType()) {
+            case ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+                break;
+            case PATH:
+                return driveController.hasRobotReachedTargetPose();
+            case PATH_AND_ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+
+                return driveController.hasRobotReachedTargetPose();
+        }
+
+        return true;
+    }
+
     public void setAction(Action action) {
         currentAction = action;
     }

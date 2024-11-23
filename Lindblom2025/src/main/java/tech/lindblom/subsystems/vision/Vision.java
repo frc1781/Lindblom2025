@@ -12,9 +12,12 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class Vision extends Subsystem {
@@ -36,6 +39,7 @@ public class Vision extends Subsystem {
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, frontCamera,
                     Constants.Vision.frontCameraPositionOnRobot);
         } catch (Exception e) {
+            System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
         }
     }
@@ -48,10 +52,19 @@ public class Vision extends Subsystem {
     @Override
     public void periodic() {
         frontCameraRobotPose = frontCameraPoseEstimator.update();
-        areAprilTagsDetected = frontCameraRobotPose.isPresent();;
+        areAprilTagsDetected = frontCameraRobotPose.isPresent();
 
+        Logger.recordOutput(this.name + "/FrontCamera/AprilTagsDetected", areAprilTagsDetected);
         if (areAprilTagsDetected) {
-            Logger.recordOutput(this.name + "/FrontCameraEstimatedPose", frontCameraRobotPose.get().estimatedPose);
+            Logger.recordOutput(this.name + "/FrontCamera/EstimatedPose", frontCameraRobotPose.get().estimatedPose.toPose2d());
+            List<PhotonTrackedTarget> targetList = frontCameraRobotPose.get().targetsUsed;
+            Pose2d[] targetPoses = new Pose2d[targetList.size()];
+            for (int i = 0; i < targetList.size(); i++) {
+                PhotonTrackedTarget target = targetList.get(i);
+                targetPoses[i] = fieldLayout.getTagPose(target.getFiducialId()).get().toPose2d();
+            }
+
+            Logger.recordOutput(this.name + "/FrontCamera/TargetsUsed", targetPoses);
         }
     }
 

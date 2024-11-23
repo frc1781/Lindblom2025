@@ -93,7 +93,6 @@ public class Drive extends Subsystem {
 
     private void updatePoseUsingOdometry() {
         swerveDrivePoseEstimator.update(getNavXRotation(), getModulePositions());
-        Logger.recordOutput(this.name + "/CurrentPose", getRobotPose());
     }
 
     public Pose2d getRobotPose() {
