@@ -73,6 +73,7 @@ public class RobotController {
     public void init(EnumCollection.OperatingMode mode) {
         switch (mode) {
             case DISABLED:
+                interruptAction();
                 break;
             case AUTONOMOUS:
                 break;
