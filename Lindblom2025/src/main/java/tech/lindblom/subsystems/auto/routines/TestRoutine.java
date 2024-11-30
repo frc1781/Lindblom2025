@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.auto.routines;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoRoutine;
@@ -16,7 +17,9 @@ public class TestRoutine implements AutoRoutine {
     @Override
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
-                new DependGroup()
+                new DependGroup(new AutoStep[]{
+                        new AutoStep(10, Auto.getPathFromName("testPath"))
+                })
         };
     }
 }
