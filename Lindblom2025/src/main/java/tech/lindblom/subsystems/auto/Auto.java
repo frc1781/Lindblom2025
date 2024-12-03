@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.auto.reaction.Reaction;
+import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -15,11 +15,16 @@ public class Auto extends Subsystem {
     private AutoRoutine currentAutoRoutine;
     private boolean pathsGeneratedForRed;
 
-    private int currentAutoStepIndex = 0;
+    private int currentStepIndex = 0;
+    private int currentGroupIndex = 0;
+
     private final RobotController robotController;
+
     private AutoStep currentAutoStep;
-    private AutoStep reactionAutoStep;
-    private AutoStep[] allAutoSteps;
+    private AutoStep[] currentAutoStepGroupSteps;
+
+    private AutoStep[] reactionAutoStep;
+    private AutoStepGroup[] autoStepGroups;
 
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
@@ -37,7 +42,7 @@ public class Auto extends Subsystem {
     public void init() {
         if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
             robotController.autoTimer.reset();
-            currentAutoStepIndex = 0;
+            currentStepIndex = 0;
             checkSelectedRoutine();
             robotController.autoTimer.start();
         }
@@ -52,14 +57,29 @@ public class Auto extends Subsystem {
             case AUTONOMOUS:
                 boolean timeUp = currentAutoStep.getMaxTime() != 0 ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
                 boolean finishedAutoStep = robotController.hasFinishedAutoStep();
-                boolean shouldEndRoutine = timeUp || finishedAutoStep;
+                boolean shouldEndAutoStep = timeUp || finishedAutoStep;
 
-                if (timeUp && currentAutoStep.getReaction() != null) {
-                    Reaction reaction = currentAutoStep.getReaction();
-                    
+                if (currentStepIndex == 0 || shouldEndAutoStep) {
+                    robotController.autoTimer.reset();
+
+                    if (autoStepGroups.length == currentGroupIndex) {
+                        robotController.interruptAction();
+                        return;
+                    }
+
+                    if (currentStepIndex == currentAutoStepGroupSteps.length) {
+                        currentStepIndex = 0;
+                        currentGroupIndex++;
+                    }
+
+                    currentStepIndex++;
                 }
 
-                if (currentAutoStepIndex == 0 || shouldEndRoutine) {
+/*                if (timeUp && currentAutoStep.getReaction() != null) {
+                    Reaction reaction = currentAutoStep.getReaction();
+                }
+
+                if (currentAutoStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
 
                     if (allAutoSteps.length == currentAutoStepIndex) {
@@ -72,7 +92,7 @@ public class Auto extends Subsystem {
                     robotController.autoTimer.start();
 
                     currentAutoStepIndex++;
-                }
+                }*/
                 break;
         }
     }
@@ -82,11 +102,11 @@ public class Auto extends Subsystem {
     }
 
     private void startStep(AutoStep step) {
-        Logger.recordOutput(name + "/CurrentAutoStepIndex", currentAutoStepIndex);
+        Logger.recordOutput(name + "/CurrentAutoStepIndex", currentStepIndex);
         robotController.setAutoStep(step);
     }
 
-    public void checkSelectedRoutine() {
+/*    public void checkSelectedRoutine() {
         boolean currentAlliance = RobotController.isRed();
         AutoRoutine chosenRoutine = (AutoRoutine) autoChooser.getSelected();
 
@@ -104,16 +124,34 @@ public class Auto extends Subsystem {
             pathsGeneratedForRed = currentAlliance;
             System.out.println("Cached currently selected routine");
         }
+    }*/
+
+    public void checkSelectedRoutine() {
+        boolean currentAlliance = RobotController.isRed();
+        AutoRoutine chosenRoutine = autoChooser.getSelected();
+
+        if (chosenRoutine == null) return;
+        Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
+
+        if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
+            robotController.autoTimer.reset();
+            currentStepIndex = 0;
+            currentGroupIndex = 0;
+            currentAutoRoutine = chosenRoutine;
+            autoStepGroups = chosenRoutine.getAutoStepGroups();
+            currentAutoStep = autoStepGroups[0].getAutoSteps()[0];
+
+            pathsGeneratedForRed = currentAlliance;
+            System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
+        }
     }
 
     public Pose2d getStartPosition() throws NoStartingPositionException {
-        if (currentAutoRoutine != null) {
-            for (int i = 0; i < allAutoSteps.length; i++) {
-                switch (allAutoSteps[i].getStepType()) {
-                    case PATH_AND_ACTION:
-                    case PATH:
-                        return allAutoSteps[i].getPath().getStartingDifferentialPose();
-                }
+        if (currentAutoRoutine != null && currentStepIndex == 0) {
+            switch (currentAutoStep.getStepType()) {
+                case PATH_AND_ACTION:
+                case PATH:
+                    return currentAutoStep.getPath().getStartingDifferentialPose();
             }
         } else {
             System.out.println("Selected routine is null");
