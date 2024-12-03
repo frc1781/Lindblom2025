@@ -61,6 +61,18 @@ public class Constants {
                 -DRIVETRAIN_TRACKWIDTH / 2);
     }
 
+    public class Arm {
+        public static final int ARM_PIVOT_LEFT_MOTOR = 40;
+        public static final int ARM_PIVOT_RIGHT_MOTOR = 41;
+        public static final double ARM_POSITION_TOLERANCE = 2.0;
+        public static final double ARM_GEAR_RATIO = (1.0/125.0)*(24.0/58.0); // was (1.0/125.0)*(18.0/56.0)
+        public static final double ARM_CONVERSION_REL_TO_ANGLE = 73/56.0; //Based on emperical evidence
+        public static final double ARM_OFFSET = 0.29;
+
+        public static final double MIN_THRESHOLD_ARM = 0;
+        public static final double MAX_THRESHOLD_ARM = 90;
+    }
+
     public class Auto {
         public static final ShuffleboardTab AUTONOMOUS_TAB = Shuffleboard.getTab("Autonomous");
     }
