@@ -20,6 +20,7 @@ import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.SparkLimitSwitch.Type;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -238,19 +239,19 @@ public class Arm extends StateSubsystem {
     }
 
     private enum CURRENT_AIM_SPOT {
-        UNDEFEINED(0.0, EVector.newVector(), EVector.newVector(), 0.0),
-        SUBWOOFER(35, ConfigMap.RED_SPEAKER_LOCATION, ConfigMap.BLUE_SPEAKER_LOCATION, 2.5), // Was 32.5
-        PODIUM(50.0, ConfigMap.RED_PODIUM, ConfigMap.BLUE_PODIUM, 1), // Pos used to be 45
-        NOTE_3(48, EVector.newVector(14.5, 4.27), EVector.newVector(2.48, 4.27), 1), // was 42.4
-        NOTE_2(48, EVector.newVector(14.13, 5.53), EVector.newVector(2.48, 5.53), 0.5), // Was 50
-        NOTE_1(48, EVector.newVector(14.06, 6.74), EVector.newVector(2.48, 6.74), 0.5); // Was 50
+        UNDEFEINED(0.0, new Pose2d(0, 0, new Rotation2d(0)), new Pose2d(0, 0, new Rotation2d(0)), 0.0),
+        SUBWOOFER(35, Constants.RED_SPEAKER_LOCATION, Constants.BLUE_SPEAKER_LOCATION, 2.5), // Was 32.5
+        PODIUM(50.0, Constants.RED_PODIUM, Constants.BLUE_PODIUM, 1), // Pos used to be 45
+        NOTE_3(48, new Pose2d(14.5, 4.27, new Rotation2d(0)), new Pose2d(2.48, 4.27, new Rotation2d(0)), 1), // was 42.4
+        NOTE_2(48, new Pose2d(14.13, 5.53, new Rotation2d(0)), new Pose2d(2.48, 5.53, new Rotation2d(0)), 0.5), // Was 50
+        NOTE_1(48, new Pose2d(14.06, 6.74, new Rotation2d(0)), new Pose2d(2.48, 6.74, new Rotation2d(0)), 0.5); // Was 50
 
         private double position;
         private Pose2d redPosition;
         private Pose2d bluePosition;
         private double distanceTolerance;
 
-        private CURRENT_AIM_SPOT(double _position, EVector _redPosition, EVector _bluePosition,
+        private CURRENT_AIM_SPOT(double _position, Pose2d _redPosition, Pose2d _bluePosition,
                 double _distanceTolerance) {
             position = _position;
             redPosition = _redPosition;

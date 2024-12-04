@@ -1,5 +1,7 @@
 package tech.lindblom.utils;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -14,6 +16,13 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 public class Constants {
 
+    // Universal
+
+    public static final Pose2d RED_SPEAKER_LOCATION = new Pose2d(16.77, 5.54, new Rotation2d(0));
+    public static final Pose2d BLUE_SPEAKER_LOCATION = new Pose2d(-0.2, 5.54, new Rotation2d(0));
+
+    public static final Pose2d RED_PODIUM = new Pose2d(13.6,3.6, new Rotation2d(0));
+    public static final Pose2d BLUE_PODIUM = new Pose2d(3,4.7, new Rotation2d(0));
     public class Drive {
         // Left
         public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 21;
