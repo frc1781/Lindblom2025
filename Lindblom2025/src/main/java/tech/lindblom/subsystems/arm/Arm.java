@@ -52,6 +52,7 @@ public class Arm extends StateSubsystem {
 
     private double mDesiredPosition = 0;
     private Pose2d mRobotPose;
+    private CURRENT_AIM_SPOT mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFEINED;
     private double KICKSTAND_POSITION = 70.0; // was 73 Was 62.0
     private double mPrevAbsoluteAngle = KICKSTAND_POSITION;
     private double mPrevRecordedAngle = 0.0;
@@ -143,6 +144,83 @@ public class Arm extends StateSubsystem {
         
     }
 
+    public void setDesiredState(SubsystemState state) {
+        if (state == ArmState.SAFE && state == ArmState.MANUAL) {
+            return;
+        }
+
+        super.setState(state);
+
+        if (state != ArmState.MANUAL && state != ArmState.AUTO_ANGLE) {
+            mDesiredPosition = mPositions.get(state);
+        } else if (state == ArmState.AUTO_ANGLE) {
+            mDesiredPosition = calculateAngleFromDistance();
+        }
+    }
+
+    private void setIdleMode(IdleMode mode) {
+        if (mode == mIdleMode) {
+            return;
+        }
+
+        mLeftMotor.setIdleMode(mode);
+        mRightMotor.setIdleMode(mode);
+        System.out.println(mode);
+        mIdleMode = mode;
+    }
+
+    private void syncArm() {
+        double abs = getAngleAbsolute();
+        if(abs != mPrevRecordedAngle) {
+            mPrevRecordedAngle = abs;
+        }
+
+    }
+
+    public void updateAimSpots(Pose2d robotPose) {
+        mRobotPose = robotPose;
+    }
+
+    private double calculateAngleFromDistance() {
+        boolean foundAimSpot = false;
+
+        for (CURRENT_AIM_SPOT aimSpot : CURRENT_AIM_SPOT.values()) {
+            if (aimSpot == CURRENT_AIM_SPOT.UNDEFEINED)
+                continue;
+            if (aimSpot.atPosition(mRobotPose)) {
+                mCurrentAimSpot = aimSpot;
+                foundAimSpot = true;
+                break;
+            }
+        }
+
+        if (!foundAimSpot) {
+            mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFEINED;
+        }
+
+        if (mCurrentAimSpot != CURRENT_AIM_SPOT.UNDEFEINED) {
+            return mCurrentAimSpot.getPosition();
+        }
+
+        return CURRENT_AIM_SPOT.SUBWOOFER.getPosition();
+    }
+
+
+    public void manualAdjustAngle(double d) {
+        setDesiredState(ArmState.MANUAL);
+
+        mDesiredPosition += d;
+        if (mDesiredPosition > Constants.Arm.MAX_THRESHOLD_ARM) {
+            mDesiredPosition = Constants.Arm.MAX_THRESHOLD_ARM;
+        }
+
+        if (mDesiredPosition < Constants.Arm.MIN_THRESHOLD_ARM) {
+            mDesiredPosition = Constants.Arm.MIN_THRESHOLD_ARM;
+        }
+    }
+
+    
+
     private boolean matchesPosition() {
         return Math.abs(getAngleAbsolute() - mDesiredPosition) < 1.85;
     }
@@ -157,6 +235,38 @@ public class Arm extends StateSubsystem {
             mPrevAbsoluteAngle = 360.0 * (mArmAbsoluteEncoder.getPosition() - Constants.Arm.ARM_OFFSET); // the absolute encoder reads
         }
         return mPrevAbsoluteAngle;
+    }
+
+    private enum CURRENT_AIM_SPOT {
+        UNDEFEINED(0.0, EVector.newVector(), EVector.newVector(), 0.0),
+        SUBWOOFER(35, ConfigMap.RED_SPEAKER_LOCATION, ConfigMap.BLUE_SPEAKER_LOCATION, 2.5), // Was 32.5
+        PODIUM(50.0, ConfigMap.RED_PODIUM, ConfigMap.BLUE_PODIUM, 1), // Pos used to be 45
+        NOTE_3(48, EVector.newVector(14.5, 4.27), EVector.newVector(2.48, 4.27), 1), // was 42.4
+        NOTE_2(48, EVector.newVector(14.13, 5.53), EVector.newVector(2.48, 5.53), 0.5), // Was 50
+        NOTE_1(48, EVector.newVector(14.06, 6.74), EVector.newVector(2.48, 6.74), 0.5); // Was 50
+
+        private double position;
+        private Pose2d redPosition;
+        private Pose2d bluePosition;
+        private double distanceTolerance;
+
+        private CURRENT_AIM_SPOT(double _position, EVector _redPosition, EVector _bluePosition,
+                double _distanceTolerance) {
+            position = _position;
+            redPosition = _redPosition;
+            bluePosition = _bluePosition;
+            distanceTolerance = _distanceTolerance;
+        }
+
+        public boolean atPosition(Pose2d currentPose2d) { //Tells whether it is at the subwoofer for red or blue or not
+            Pose2d target = RobotController.isRed() ? redPosition : bluePosition;
+            double dist = Math.sqrt(Math.pow(target.getX() - currentPose2d.getX(), 2) + Math.pow(target.getY() - currentPose2d.getY(), 2));
+            return dist <= distanceTolerance;
+        }
+
+        public double getPosition() {
+            return position;
+        }
     }
 
 

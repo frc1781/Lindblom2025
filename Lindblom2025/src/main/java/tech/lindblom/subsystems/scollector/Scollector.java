@@ -31,6 +31,8 @@ import com.revrobotics.SparkMaxAlternateEncoder;
 
 public class Scollector extends Subsystem{
 
+    
+
     public Scollector() {
         super("Scollector");
     }
@@ -42,7 +44,7 @@ public class Scollector extends Subsystem{
     
     @Override
     public void periodic() {
-
+        
     }
 
 }
