@@ -23,6 +23,7 @@ public class Constants {
 
     public static final Pose2d RED_PODIUM = new Pose2d(13.6,3.6, new Rotation2d(0));
     public static final Pose2d BLUE_PODIUM = new Pose2d(3,4.7, new Rotation2d(0));
+
     public class Drive {
         // Left
         public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 21;
@@ -80,6 +81,15 @@ public class Constants {
 
         public static final double MIN_THRESHOLD_ARM = 0;
         public static final double MAX_THRESHOLD_ARM = 90;
+    }
+
+    public class Scollector {
+        public static final int BOTTOM_SCOLLECTOR_TOF = 58;
+        public static final int TOP_SCOLLECTOR_TOF = 56;
+
+        public static final int COLLECTOR_MOTOR = 57;
+        public static final int SHOOTER_TOP_MOTOR = 42;
+        public static final int SHOOTER_BOTTOM_MOTOR = 43;
     }
 
     public class Auto {

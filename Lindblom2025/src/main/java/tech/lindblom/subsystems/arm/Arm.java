@@ -47,6 +47,8 @@ public class Arm extends StateSubsystem {
 
     private ProfiledPIDController mSmallPosHold = new ProfiledPIDController(0.01, 0, 0,
             new TrapezoidProfile.Constraints(90, 450));
+
+    
     //kG
     //kS
     //kV
@@ -123,6 +125,35 @@ public class Arm extends StateSubsystem {
         FAR_SHOT
     }
 
+    public void getToState() {
+        switch ((ArmState) getCurrentState()) {
+            case AUTO_ANGLE:
+                mDesiredPosition = calculateAngleFromDistance();
+                break;
+            case MANUAL:
+                break;
+            default:
+                mDesiredPosition = mPositions.get(getCurrentState());
+                break;
+        }
+
+        double currentArmAngle = getAngle();
+        //mArmPositionEntry.setDouble(currentArmAngle);
+        if (currentArmAngle != 0.0) {
+            var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
+            // if (mSparkErrorEntry.getBoolean(false))
+            //     mSparkErrorEntry.setBoolean(false);
+
+            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) { // drop into position on ground
+                armDutyCycle = 0.0;
+            }
+
+            mLeftMotor.set(armDutyCycle);
+        } else {
+            //mSparkErrorEntry.setBoolean(true);
+        }
+    }
+
     @Override
     public boolean matchesState() {
         switch ((ArmState) getCurrentState()) {
@@ -137,12 +168,28 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
-        
+        setDesiredState(ArmState.KICKSTAND);
+        syncArm();
+        mPositionPID.reset(getAngle());
     }
 
     @Override
     public void periodic() {
-        
+        Logger.recordOutput("Arm/MatchesState", matchesDesiredState());
+        Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
+
+        // testEntry.setDouble(getAngleAbsolute());
+        if (mArmAbsoluteEncoder.getPosition() < 10) {
+            setIdleMode(IdleMode.kCoast);
+        } else {
+            setIdleMode(IdleMode.kBrake);
+        }
+
+
+        Logger.recordOutput("Arm/CurrentAimSpot",mCurrentAimSpot.toString());
+
+        //dropped to ground, reset relative encoder only when going down.
+        syncArm();
     }
 
     public void setDesiredState(SubsystemState state) {
@@ -156,6 +203,17 @@ public class Arm extends StateSubsystem {
             mDesiredPosition = mPositions.get(state);
         } else if (state == ArmState.AUTO_ANGLE) {
             mDesiredPosition = calculateAngleFromDistance();
+        }
+    }
+
+    public boolean matchesDesiredState() {
+        switch ((ArmState) getCurrentState()) {
+            case COLLECT:
+                return getAngle() < 4.0; // should fall to position of zero
+            case KICKSTAND:
+                return mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed() || matchesPosition();
+            default:
+                return matchesPosition();
         }
     }
 
@@ -220,7 +278,6 @@ public class Arm extends StateSubsystem {
         }
     }
 
-    
 
     private boolean matchesPosition() {
         return Math.abs(getAngleAbsolute() - mDesiredPosition) < 1.85;
