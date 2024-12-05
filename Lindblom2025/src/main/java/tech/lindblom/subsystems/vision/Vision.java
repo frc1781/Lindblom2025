@@ -19,9 +19,15 @@ import java.util.Optional;
 
 public class Vision extends Subsystem {
     private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
+    private Optional<EstimatedRobotPose> leftCameraRobotPose = Optional.empty();
+    private Optional<EstimatedRobotPose> rightCameraRobotPose = Optional.empty();
 
     private PhotonCamera frontCamera = new PhotonCamera(Constants.Vision.FrontCameraName);
+    private PhotonCamera leftCamera = new PhotonCamera(Constants.Vision.LeftCameraName);
+    private PhotonCamera rightCamera = new PhotonCamera(Constants.Vision.RightCameraName);
     private PhotonPoseEstimator frontCameraPoseEstimator;
+    private PhotonPoseEstimator leftCameraPoseEstimator;
+    private PhotonPoseEstimator rightCameraPoseEstimator;
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -48,10 +54,21 @@ public class Vision extends Subsystem {
     @Override
     public void periodic() {
         frontCameraRobotPose = frontCameraPoseEstimator.update();
-        areAprilTagsDetected = frontCameraRobotPose.isPresent();;
+        leftCameraRobotPose = leftCameraPoseEstimator.update();
+        rightCameraRobotPose = rightCameraPoseEstimator.update();
+
+        areAprilTagsDetected = frontCameraRobotPose.isPresent();
+        areAprilTagsDetected = leftCameraRobotPose.isPresent();
+        areAprilTagsDetected = rightCameraRobotPose.isPresent();
 
         if (areAprilTagsDetected) {
             Logger.recordOutput(this.name + "/FrontCameraEstimatedPose", frontCameraRobotPose.get().estimatedPose);
+        }
+        if (areAprilTagsDetected) {
+            Logger.recordOutput(this.name + "/LeftCameraEstimatedPose", leftCameraRobotPose.get().estimatedPose);
+        }
+        if (areAprilTagsDetected) {
+            Logger.recordOutput(this.name + "/RightCameraEstimatedPose", rightCameraRobotPose.get().estimatedPose);
         }
     }
 
@@ -63,9 +80,35 @@ public class Vision extends Subsystem {
         return Optional.empty();
     }
 
+    public Optional<Pose2d> getLeftCameraPose() {
+        if (leftCameraRobotPose.isPresent()) {
+            return Optional.of(leftCameraRobotPose.get().estimatedPose.toPose2d());
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<Pose2d> getRightCameraPose() {
+        if (rightCameraRobotPose.isPresent()) {
+            return Optional.of(rightCameraRobotPose.get().estimatedPose.toPose2d());
+        }
+
+        return Optional.empty();
+    }
+
     public PhotonPipelineResult getFrontCameraPipelineResult() {
         return frontCamera.getLatestResult();
     }
+
+    public PhotonPipelineResult getLeftCameraPipelineResult() {
+        return leftCamera.getLatestResult();
+    }
+
+    public PhotonPipelineResult getRightCameraPipelineResult() {
+        return rightCamera.getLatestResult();
+    }
+
+    
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
     public Matrix<N3, N1> getEstimationStdDevs(Pose2d estimatedPose, PhotonPipelineResult pipelineResult) {

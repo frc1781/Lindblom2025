@@ -67,10 +67,20 @@ public class Constants {
 
     public class Vision {
         public static final String FrontCameraName = "Main";
+        public static final String LeftCameraName = "Left";
+        public static final String RightCameraName = "Right";
 
         public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
                 new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
                 new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
+
+        /*public static final Transform3d leftCameraPositionOnRobot = new Transform3d(
+                new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
+                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
+
+        public static final Transform3d rightCameraPositionOnRobot = new Transform3d(
+                new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
+                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));*/
 
 
         // These values were also taken from 7525, again, thank you so much.
