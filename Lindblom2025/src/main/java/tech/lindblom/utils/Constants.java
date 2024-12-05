@@ -90,6 +90,10 @@ public class Constants {
         public static final int COLLECTOR_MOTOR = 57;
         public static final int SHOOTER_TOP_MOTOR = 42;
         public static final int SHOOTER_BOTTOM_MOTOR = 43;
+
+        public static final double MAX_SHOOTER_SPEED = 7;
+        public static final double MIN_SHOOTER_SPEED = 3.5;
+
     }
 
     public class Auto {

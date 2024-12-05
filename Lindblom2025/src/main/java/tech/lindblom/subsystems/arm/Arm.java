@@ -175,7 +175,7 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Arm/MatchesState", matchesDesiredState());
+        Logger.recordOutput("Arm/MatchesState", matchesState());
         Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
 
         // testEntry.setDouble(getAngleAbsolute());
@@ -203,17 +203,6 @@ public class Arm extends StateSubsystem {
             mDesiredPosition = mPositions.get(state);
         } else if (state == ArmState.AUTO_ANGLE) {
             mDesiredPosition = calculateAngleFromDistance();
-        }
-    }
-
-    public boolean matchesDesiredState() {
-        switch ((ArmState) getCurrentState()) {
-            case COLLECT:
-                return getAngle() < 4.0; // should fall to position of zero
-            case KICKSTAND:
-                return mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed() || matchesPosition();
-            default:
-                return matchesPosition();
         }
     }
 
