@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.auto.reaction.reactions.TestRoutine;
 
+import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.reaction.Reaction;
 import tech.lindblom.subsystems.types.Subsystem;

@@ -218,7 +218,7 @@ public class RobotController {
     }
 
     public boolean hasFinishedAutoStep() {
-        AutoStep currentAutoStep = autoSystem.getCurrentAutoStep();
+        AutoStep currentAutoStep = autoSystem.getCurrentStep();
         if (currentAutoStep == null) return true;
 
         SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());

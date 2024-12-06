@@ -20,11 +20,11 @@ public class Auto extends Subsystem {
 
     private final RobotController robotController;
 
-    private AutoStep currentAutoStep;
-    private AutoStep[] currentAutoStepGroupSteps;
+    private AutoStep currentStep;
+    private AutoStep[] currentGroupSteps;
 
-    private AutoStep[] reactionAutoStep;
-    private AutoStepGroup[] autoStepGroups;
+    private AutoStep[] reactionAutoSteps;
+    private AutoStepGroup[] stepGroups;
 
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
@@ -55,50 +55,40 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-                boolean timeUp = currentAutoStep.getMaxTime() != 0 ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
+                boolean timeUp = currentStep.getMaxTime() != 0 ? currentStep.getMaxTime() < robotController.autoTimer.get() : false;
                 boolean finishedAutoStep = robotController.hasFinishedAutoStep();
                 boolean shouldEndAutoStep = timeUp || finishedAutoStep;
 
                 if (currentStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
 
-                    if (autoStepGroups.length == currentGroupIndex) {
+                    if (stepGroups.length == currentGroupIndex) {
                         robotController.interruptAction();
                         return;
                     }
 
-                    if (currentStepIndex == currentAutoStepGroupSteps.length) {
+                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND) {
+                        //step failed
+                    }
+
+                    if (currentStepIndex == currentGroupSteps.length) {
                         currentStepIndex = 0;
+                        currentGroupSteps = stepGroups[currentGroupIndex].getAutoSteps();
                         currentGroupIndex++;
                     }
 
-                    currentStepIndex++;
-                }
-
-/*                if (timeUp && currentAutoStep.getReaction() != null) {
-                    Reaction reaction = currentAutoStep.getReaction();
-                }
-
-                if (currentAutoStepIndex == 0 || shouldEndAutoStep) {
-                    robotController.autoTimer.reset();
-
-                    if (allAutoSteps.length == currentAutoStepIndex) {
-                        robotController.interruptAction();
-                        return;
-                    }
-
-                    currentAutoStep = allAutoSteps[currentAutoStepIndex];
-                    startStep(currentAutoStep);
+                    currentStep = currentGroupSteps[currentStepIndex];
+                    startStep(currentStep);
                     robotController.autoTimer.start();
 
-                    currentAutoStepIndex++;
-                }*/
+                    currentStepIndex++;
+                }
                 break;
         }
     }
 
-    public AutoStep getCurrentAutoStep() {
-        return this.currentAutoStep;
+    public AutoStep getCurrentStep() {
+        return this.currentStep;
     }
 
     private void startStep(AutoStep step) {
@@ -138,8 +128,8 @@ public class Auto extends Subsystem {
             currentStepIndex = 0;
             currentGroupIndex = 0;
             currentAutoRoutine = chosenRoutine;
-            autoStepGroups = chosenRoutine.getAutoStepGroups();
-            currentAutoStep = autoStepGroups[0].getAutoSteps()[0];
+            stepGroups = chosenRoutine.getAutoStepGroups();
+            currentStep = stepGroups[0].getAutoSteps()[0];
 
             pathsGeneratedForRed = currentAlliance;
             System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
@@ -148,10 +138,10 @@ public class Auto extends Subsystem {
 
     public Pose2d getStartPosition() throws NoStartingPositionException {
         if (currentAutoRoutine != null && currentStepIndex == 0) {
-            switch (currentAutoStep.getStepType()) {
+            switch (currentStep.getStepType()) {
                 case PATH_AND_ACTION:
                 case PATH:
-                    return currentAutoStep.getPath().getStartingDifferentialPose();
+                    return currentStep.getPath().getStartingDifferentialPose();
             }
         } else {
             System.out.println("Selected routine is null");
