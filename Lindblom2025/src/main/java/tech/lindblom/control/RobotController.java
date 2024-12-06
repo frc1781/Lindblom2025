@@ -179,9 +179,45 @@ public class RobotController {
     }
 
     public void visionUpdates() {
-        Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
-        if (visionEstimateOptional.isPresent()) {
-            Pose2d visionEstimate = visionEstimateOptional.get();
+        Optional<Pose2d> visionEstimateOptionalFront = visionSystem.getFrontCameraPose();
+        Optional<Pose2d> visionEstimateOptionalRight = visionSystem.getRightCameraPose();
+        Optional<Pose2d> visionEstimateOptionalLeft = visionSystem.getLeftCameraPose();
+        if (visionEstimateOptionalFront.isPresent()) {
+            Pose2d visionEstimate = visionEstimateOptionalFront.get();
+            PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
+            Logger.recordOutput("RobotController/updatingUsingVision", true);
+            if (pipelineResult.targets.size() > 1) {
+                driveController.updatePoseUsingVisionEstimate(
+                        visionEstimate,
+                        Timer.getFPGATimestamp(),
+                        visionSystem.getEstimationStdDevs(
+                                visionEstimate,
+                                pipelineResult
+                        )
+                );
+            } else {
+                Logger.recordOutput("RobotController/updatingUsingVision", false);
+            }
+        }
+        if (visionEstimateOptionalRight.isPresent()) {
+            Pose2d visionEstimate = visionEstimateOptionalRight.get();
+            PhotonPipelineResult pipelineResult = visionSystem.getRightCameraPipelineResult();
+            Logger.recordOutput("RobotController/updatingUsingVision", true);
+            if (pipelineResult.targets.size() > 1) {
+                driveController.updatePoseUsingVisionEstimate(
+                        visionEstimate,
+                        Timer.getFPGATimestamp(),
+                        visionSystem.getEstimationStdDevs(
+                                visionEstimate,
+                                pipelineResult
+                        )
+                );
+            } else {
+                Logger.recordOutput("RobotController/updatingUsingVision", false);
+            }
+        }
+        if (visionEstimateOptionalLeft.isPresent()) {
+            Pose2d visionEstimate = visionEstimateOptionalLeft.get();
             PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
             Logger.recordOutput("RobotController/updatingUsingVision", true);
             if (pipelineResult.targets.size() > 1) {
