@@ -78,6 +78,10 @@ public class AutoStep {
         this.stepType = StepType.PATH_AND_ACTION;
     }
 
+    public boolean hasReaction() {
+        return reaction != null;
+    }
+
     public Reaction getReaction() {
         return reaction;
     }

@@ -17,13 +17,14 @@ public class Auto extends Subsystem {
 
     private int currentStepIndex = 0;
     private int currentGroupIndex = 0;
+    private int currentReactionIndex = 0;
 
     private final RobotController robotController;
 
     private AutoStep currentStep;
-    private AutoStep[] currentGroupSteps;
+    private AutoStep[] currentSteps;
 
-    private AutoStep[] reactionAutoSteps;
+    private AutoStep[] reactionSteps;
     private AutoStepGroup[] stepGroups;
 
 
@@ -67,17 +68,17 @@ public class Auto extends Subsystem {
                         return;
                     }
 
-                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND) {
-                        //step failed
+                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND && currentStep.hasReaction()) {
+                            reactionSteps = currentStep.getReaction().getReaction(robotController.getFailedSubsystems());
                     }
 
-                    if (currentStepIndex == currentGroupSteps.length) {
+                    if (currentStepIndex == currentSteps.length) {
                         currentStepIndex = 0;
-                        currentGroupSteps = stepGroups[currentGroupIndex].getAutoSteps();
+                        currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
                         currentGroupIndex++;
                     }
 
-                    currentStep = currentGroupSteps[currentStepIndex];
+                    currentStep = currentSteps[currentStepIndex];
                     startStep(currentStep);
                     robotController.autoTimer.start();
 

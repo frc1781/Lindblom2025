@@ -270,6 +270,18 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
     }
 
+    public ArrayList<StateSubsystem> getFailedSubsystems() {
+        ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();
+        for (int i = 0; i < stateSubsystems.size(); i++) {
+            StateSubsystem stateSubsystem = stateSubsystems.get(i);
+            if (!stateSubsystem.matchesState()) {
+                failedSubsystems.add(stateSubsystem);
+            }
+        }
+
+        return failedSubsystems;
+    }
+
     public void defineAction(Action action, SubsystemSetting... settings) {
         actionMap.put(action, settings);
     }
