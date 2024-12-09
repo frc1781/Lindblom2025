@@ -55,7 +55,7 @@ public class Arm extends StateSubsystem {
 
     private double mDesiredPosition = 0;
     private Pose2d mRobotPose;
-    private CURRENT_AIM_SPOT mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFEINED;
+    private CURRENT_AIM_SPOT mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFINED;
     private double KICKSTAND_POSITION = 70.0; // was 73 Was 62.0
     private double mPrevAbsoluteAngle = KICKSTAND_POSITION;
     private double mPrevRecordedAngle = 0.0;
@@ -233,7 +233,7 @@ public class Arm extends StateSubsystem {
         boolean foundAimSpot = false;
 
         for (CURRENT_AIM_SPOT aimSpot : CURRENT_AIM_SPOT.values()) {
-            if (aimSpot == CURRENT_AIM_SPOT.UNDEFEINED)
+            if (aimSpot == CURRENT_AIM_SPOT.UNDEFINED)
                 continue;
             if (aimSpot.atPosition(mRobotPose)) {
                 mCurrentAimSpot = aimSpot;
@@ -243,10 +243,10 @@ public class Arm extends StateSubsystem {
         }
 
         if (!foundAimSpot) {
-            mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFEINED;
+            mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFINED;
         }
 
-        if (mCurrentAimSpot != CURRENT_AIM_SPOT.UNDEFEINED) {
+        if (mCurrentAimSpot != CURRENT_AIM_SPOT.UNDEFINED) {
             return mCurrentAimSpot.getPosition();
         }
 
@@ -285,7 +285,7 @@ public class Arm extends StateSubsystem {
     }
 
     private enum CURRENT_AIM_SPOT {
-        UNDEFEINED(0.0, new Pose2d(0, 0, new Rotation2d(0)), new Pose2d(0, 0, new Rotation2d(0)), 0.0),
+        UNDEFINED(0.0, new Pose2d(0, 0, new Rotation2d(0)), new Pose2d(0, 0, new Rotation2d(0)), 0.0),
         SUBWOOFER(35, Constants.RED_SPEAKER_LOCATION, Constants.BLUE_SPEAKER_LOCATION, 2.5), // Was 32.5
         PODIUM(50.0, Constants.RED_PODIUM, Constants.BLUE_PODIUM, 1), // Pos used to be 45
         NOTE_3(48, new Pose2d(14.5, 4.27, new Rotation2d(0)), new Pose2d(2.48, 4.27, new Rotation2d(0)), 1), // was 42.4
