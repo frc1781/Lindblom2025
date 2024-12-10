@@ -59,6 +59,8 @@ public class DriveController extends Subsystem {
             case TELEOP:
                 setInitialRobotPose(currentMode);
                 break;
+            default:
+                break;
         }
     }
 
@@ -86,6 +88,8 @@ public class DriveController extends Subsystem {
                 } else {
                     Logger.recordOutput(name + "/isFollowingPath", false);
                 }
+                break;
+            default:
                 break;
         }
     }

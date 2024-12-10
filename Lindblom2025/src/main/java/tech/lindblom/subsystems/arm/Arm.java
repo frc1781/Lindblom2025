@@ -75,7 +75,7 @@ public class Arm extends StateSubsystem {
         mLeftMotor.setSmartCurrentLimit(40);
         mRightMotor.setSmartCurrentLimit(40);
         mArmAbsoluteEncoder = mRightMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
-        //mArmAbsoluteEncoder.setAverageDepth(1);
+        mArmAbsoluteEncoder.setAverageDepth(1);
         mArmAbsoluteEncoder.setInverted(true);
         mRightMotor.follow(mLeftMotor, true);
 
@@ -87,8 +87,8 @@ public class Arm extends StateSubsystem {
 
         mLeftMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, false);
         mLeftMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, false);
-       // mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 80);
-       // mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, -10);
+        mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 80);
+        mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, -10);
         mLeftMotor.burnFlash();
         mRightMotor.burnFlash();
 

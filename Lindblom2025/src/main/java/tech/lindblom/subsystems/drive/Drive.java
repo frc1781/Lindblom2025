@@ -58,14 +58,23 @@ public class Drive extends Subsystem {
         switch (currentMode) {
             case AUTONOMOUS:
                 break;
+            default:
+                break;
         }
     }
 
     @Override
     public void periodic() {
         updatePoseUsingOdometry();
-        Logger.recordOutput(name + "/currentPose", getRobotPose());
+        Logger.recordOutput(name + "/robotPose", getRobotPose());
         Logger.recordOutput(name + "/swerveModuleStates", getModuleStates());
+        Logger.recordOutput(name + "/robotRotation", getRobotRotation());
+        Logger.recordOutput(name + "/robotVelocity", getRobotChassisSpeeds());
+
+        Logger.recordOutput(name + "/robotX", Math.abs(getRobotPose().getX()));
+        Logger.recordOutput(name + "/robotY", Math.abs(getRobotPose().getY()));
+        Logger.recordOutput(name + "/speedX", Math.abs(getRobotChassisSpeeds().vxMetersPerSecond));
+        Logger.recordOutput(name + "/speedY", Math.abs(getRobotChassisSpeeds().vyMetersPerSecond));
     }
 
     public void drive(ChassisSpeeds speeds) {
@@ -98,6 +107,10 @@ public class Drive extends Subsystem {
 
     public Pose2d getRobotPose() {
         return swerveDrivePoseEstimator.getEstimatedPosition();
+    }
+
+    public ChassisSpeeds getRobotChassisSpeeds() {
+        return swerveDriveKinematics.toChassisSpeeds(getModuleStates());
     }
 
     public Rotation2d getRobotRotation() {
