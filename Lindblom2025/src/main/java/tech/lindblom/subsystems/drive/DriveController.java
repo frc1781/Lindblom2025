@@ -18,8 +18,10 @@ import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
+import tech.lindblom.utils.Limelight;
 
 import java.util.Optional;
 
@@ -130,6 +132,14 @@ public class DriveController extends Subsystem {
     }
 
     public void followPath() {
+        double distanceFromEndPose = driveSubsystem.getRobotPose().getTranslation().getDistance(mDesiredPosition.getTranslation());
+        final double END_DIST_TOLERANCE = 2.5; // in meters when we start seeking a note
+        final double seenNoteOffset = Limelight.getTX(Constants.Vision.NOTE_LIMELIGHT); // if 0.0 then no note seen
+        final double noteAreaInView = Limelight.getTA(Constants.Vision.NOTE_LIMELIGHT); // % of the area of the camera's output
+        final boolean seesNote = seenNoteOffset != 0.0;
+        final boolean noteTooSmall = noteAreaInView < .1;
+        final boolean noteTooFar = Math.abs(seenNoteOffset) > 18;
+
         if (hasRobotReachedTargetPose() || followingPath == null) return;
 
         PathPlannerTrajectory.State pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
@@ -143,8 +153,7 @@ public class DriveController extends Subsystem {
             pathplannerState.velocityMps,
                 targetOrientation
         );
-
-        driveSubsystem.drive(desiredChassisSpeeds);
+        
     }
 
     public boolean hasRobotReachedTargetPose() {
