@@ -77,7 +77,7 @@ public class DriveController extends Subsystem {
 
 
                 if (hasRobotReachedTargetPose()) {
-                    //setAutoPath(null);
+                    //  setAutoPath(null);
                     driveSubsystem.drive(zeroSpeed);
                 }
 
@@ -92,6 +92,8 @@ public class DriveController extends Subsystem {
             default:
                 break;
         }
+
+                
     }
 
     public void resetNavX() {

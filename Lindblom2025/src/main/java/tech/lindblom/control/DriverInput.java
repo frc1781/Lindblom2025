@@ -2,7 +2,9 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
+import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.led.LEDs;
+import tech.lindblom.subsystems.scollector.Scollector;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -18,8 +20,13 @@ public class DriverInput {
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
         this.controlList = new Control[] {
-                new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
-                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4))
+                new Control(0, "A", new RobotController.SubsystemSetting[] {
+                        new RobotController.SubsystemSetting(robotController.scollectorSystem, Scollector.ScollectorState.COLLECT, 2),
+                        new RobotController.SubsystemSetting(robotController.armSystem, Arm.ArmState.COLLECT,2),
+                }),
+                new Control(0, "B", new RobotController.SubsystemSetting[]{
+                        new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4)
+                }),
         };
     }
 
@@ -37,21 +44,24 @@ public class DriverInput {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
-                for (int j = 0; j < subsystemSettings.size(); j++) {
-                    RobotController.SubsystemSetting subsystemSetting = subsystemSettings.get(j);
-                    if (subsystemSetting.subsystem == control.requestedSetting.subsystem && subsystemSetting.weight < control.requestedSetting.weight) {
-                        subsystemSettings.add(control.requestedSetting);
-                        subsystemSettings.remove(subsystemSetting);
-                        break;
-                    }
-                }
+                for (int t = 0; t < controlList[i].requestedSettings.length; t++) {
+                    RobotController.SubsystemSetting controlSetting = controlList[i].requestedSettings[t];
 
-                subsystemSettings.add(control.requestedSetting);
+                    for (int j = 0; j < subsystemSettings.size(); j++) {
+                        RobotController.SubsystemSetting subsystemSetting = subsystemSettings.get(j);
+                        if (subsystemSetting.subsystem == controlSetting.subsystem && subsystemSetting.weight < controlSetting.weight) {
+                            subsystemSettings.add(controlSetting);
+                            subsystemSettings.remove(subsystemSetting);
+                            break;
+                        }
+                    }
+
+                    subsystemSettings.add(controlSetting);
+                }
             }
         }
 
         driverInputHolder.requestedSubsystemSettings = subsystemSettings;
-
         return driverInputHolder;
     }
 
@@ -106,21 +116,17 @@ public class DriverInput {
     private class Control {
         private final int controllerIndex;
         private final String inputName;
-        private final RobotController.SubsystemSetting requestedSetting;
+        private final RobotController.SubsystemSetting[] requestedSettings;
 
-        Control(int controllerIndex, String input, RobotController.SubsystemSetting requestedSetting) {
+        Control(int controllerIndex, String input, RobotController.SubsystemSetting[] requestedSetting) {
             this.controllerIndex = controllerIndex;
             this.inputName = input;
 
-            this.requestedSetting = requestedSetting;
+            this.requestedSettings = requestedSetting;
         }
 
         boolean getButtonValue() {
             return DriverInput.getButton(inputName, controllerIndex);
-        }
-
-        enum InputType {
-            BUTTON
         }
     }
 

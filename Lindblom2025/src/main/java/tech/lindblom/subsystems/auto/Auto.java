@@ -44,6 +44,8 @@ public class Auto extends Subsystem {
 
     @Override
     public void periodic() {
+        Logger.recordOutput(this.name + "/Arm Angle", 0);
+
         switch (currentMode) {
             case DISABLED:
                 checkSelectedRoutine();

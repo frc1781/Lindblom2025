@@ -7,11 +7,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
+import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
+import tech.lindblom.subsystems.scollector.Scollector;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
@@ -29,6 +31,8 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Scollector scollectorSystem;
+    public Arm armSystem;
 
     DriverInput driverInput;
 
@@ -51,10 +55,15 @@ public class RobotController {
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
+        scollectorSystem = new Scollector();
+        armSystem = new Arm();
+
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
+        stateSubsystems.add(scollectorSystem);
+        stateSubsystems.add(armSystem);
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
