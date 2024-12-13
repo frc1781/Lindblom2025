@@ -1,54 +1,33 @@
 package tech.lindblom.subsystems.arm;
 
 import tech.lindblom.subsystems.types.StateSubsystem;
-import tech.lindblom.utils.EnumCollection;
-import tech.lindblom.utils.EnumCollection.OperatingMode;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.REVLibError;
-import com.revrobotics.RelativeEncoder;
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
-import com.revrobotics.SparkLimitSwitch.Type;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 import tech.lindblom.control.RobotController;
 import tech.lindblom.utils.Constants;
 
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.PowerDistribution;
-
 import com.revrobotics.SparkLimitSwitch;
-import com.revrobotics.SparkMaxAlternateEncoder;
 
 public class Arm extends StateSubsystem {
     private CANSparkMax mRightMotor, mLeftMotor;
 
     private AbsoluteEncoder mArmAbsoluteEncoder;
-    private ProfiledPIDController mPositionPID = new ProfiledPIDController(0.03, 0, 0,
+    private ProfiledPIDController mPositionPID = new ProfiledPIDController(0.01, 0, 0,
             new TrapezoidProfile.Constraints(90, 450));
     private HashMap<ArmState, Double> mPositions = new HashMap<>();
 
-    private ProfiledPIDController mSmallPosHold = new ProfiledPIDController(0.01, 0, 0,
-            new TrapezoidProfile.Constraints(90, 450));
-
-    
     //kG
     //kS
     //kV
@@ -125,40 +104,11 @@ public class Arm extends StateSubsystem {
         FAR_SHOT
     }
 
-    public void getToState() {
-        switch ((ArmState) getCurrentState()) {
-            case AUTO_ANGLE:
-                mDesiredPosition = calculateAngleFromDistance();
-                break;
-            case MANUAL:
-                break;
-            default:
-                mDesiredPosition = mPositions.get(getCurrentState());
-                break;
-        }
-
-        double currentArmAngle = getAngle();
-        //mArmPositionEntry.setDouble(currentArmAngle);
-        if (currentArmAngle != 0.0) {
-            var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
-            // if (mSparkErrorEntry.getBoolean(false))
-            //     mSparkErrorEntry.setBoolean(false);
-
-            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) { // drop into position on ground
-                armDutyCycle = 0.0;
-            }
-
-            mLeftMotor.set(armDutyCycle);
-        } else {
-            //mSparkErrorEntry.setBoolean(true);
-        }
-    }
-
     @Override
     public boolean matchesState() {
         switch ((ArmState) getCurrentState()) {
             case COLLECT:
-                return getAngle() < 4.0; // should fall to position of zero
+                return getAngle() < 4.0; 
             case KICKSTAND:
                 return mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed() || matchesPosition();
             default:
@@ -178,7 +128,6 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput("Arm/MatchesState", matchesState());
         Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
 
-        // testEntry.setDouble(getAngleAbsolute());
         if (mArmAbsoluteEncoder.getPosition() < 10) {
             setIdleMode(IdleMode.kCoast);
         } else {
@@ -186,9 +135,27 @@ public class Arm extends StateSubsystem {
         }
 
 
-        Logger.recordOutput("Arm/CurrentAimSpot",mCurrentAimSpot.toString());
+        Logger.recordOutput("Arm/CurrentAimSpot", mCurrentAimSpot.toString());
 
-        //dropped to ground, reset relative encoder only when going down.
+        switch ((ArmState) getCurrentState()) {
+            case MANUAL:
+                break;
+            default:
+                mDesiredPosition = mPositions.get(getCurrentState());
+                break;
+        }
+
+        double currentArmAngle = getAngle();
+        if (currentArmAngle != 0.0) {
+            var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
+            
+            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) {
+                armDutyCycle = 0.0;
+            }
+
+            mLeftMotor.set(armDutyCycle);
+        }
+
         syncArm();
     }
 

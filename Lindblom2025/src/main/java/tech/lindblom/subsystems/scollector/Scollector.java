@@ -99,7 +99,7 @@ public class Scollector extends StateSubsystem{
         System.out.println("top motor faults: " + mTopShooterMotor.getFaults());
         System.out.println("top motor faults: " + mBottomShooterMotor.getFaults());
 
-        Logger.recordOutput( this.name + "/MatchesState", "true");
+        Logger.recordOutput( this.name + "/MatchesState", true);
     }
 
     public enum ScollectorState implements SubsystemState {
