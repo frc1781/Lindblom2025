@@ -18,6 +18,7 @@ import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
@@ -32,7 +33,9 @@ public class DriveController extends Subsystem {
     private final RobotController robotController;
     private PathPlannerPath followingPath;
     private PathPlannerTrajectory followingTrajectory;
+    private Pose2d mDesiredPosition = new Pose2d();
     private Pose2d targetPose;
+    
     private HolonomicDriveController trajectoryController;
 
     private final PIDController XController = new PIDController(3, 0, 0);
@@ -132,6 +135,7 @@ public class DriveController extends Subsystem {
     }
 
     public void followPath() {
+       
         double distanceFromEndPose = driveSubsystem.getRobotPose().getTranslation().getDistance(mDesiredPosition.getTranslation());
         final double END_DIST_TOLERANCE = 2.5; // in meters when we start seeking a note
         final double seenNoteOffset = Limelight.getTX(Constants.Vision.NOTE_LIMELIGHT); // if 0.0 then no note seen
@@ -139,7 +143,7 @@ public class DriveController extends Subsystem {
         final boolean seesNote = seenNoteOffset != 0.0;
         final boolean noteTooSmall = noteAreaInView < .1;
         final boolean noteTooFar = Math.abs(seenNoteOffset) > 18;
-
+        double newYVelocity = 0.0;
         if (hasRobotReachedTargetPose() || followingPath == null) return;
 
         PathPlannerTrajectory.State pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
@@ -153,6 +157,11 @@ public class DriveController extends Subsystem {
             pathplannerState.velocityMps,
                 targetOrientation
         );
+        if (getCurrentState() == DriveSystemState.DRIVE_TRAJECTORY_NOTE && distanceFromEndPose < END_DIST_TOLERANCE && seesNote && !noteTooSmall && !noteTooFar) {
+            final double kP = .02; //super low for testing
+            int sideFlip = RobotController.isRed() ? -1 : -1;//1
+            newYVelocity = seenNoteOffset * kP * sideFlip;
+        }
         
     }
 
