@@ -157,11 +157,11 @@ public class DriveController extends Subsystem {
             pathplannerState.velocityMps,
                 targetOrientation
         );
-        if (getCurrentState() == DriveSystemState.DRIVE_TRAJECTORY_NOTE && distanceFromEndPose < END_DIST_TOLERANCE && seesNote && !noteTooSmall && !noteTooFar) {
+        //if (getCurrentState() == DriveSystemState.DRIVE_TRAJECTORY_NOTE && distanceFromEndPose < END_DIST_TOLERANCE && seesNote && !noteTooSmall && !noteTooFar) {
             final double kP = .02; //super low for testing
             int sideFlip = RobotController.isRed() ? -1 : -1;//1
             newYVelocity = seenNoteOffset * kP * sideFlip;
-        }
+       // }
         
     }
 
