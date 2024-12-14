@@ -51,6 +51,7 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
+
                 boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
                 boolean shouldEndRoutine = timeUp;
 

@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.led;
 
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -10,8 +11,8 @@ public class LEDs extends StateSubsystem {
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
 
-    public LEDs() {
-        super("LEDs", LEDState.WHITE);
+    public LEDs(RobotController robotController) {
+        super("LEDs", LEDState.WHITE, robotController);
     }
 
 

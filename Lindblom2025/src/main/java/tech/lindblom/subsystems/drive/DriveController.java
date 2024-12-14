@@ -75,12 +75,9 @@ public class DriveController extends Subsystem {
                 boolean hasRobotReachedTargetPose = hasRobotReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
 
-
                 if (hasRobotReachedTargetPose()) {
-                    //  setAutoPath(null);
                     driveSubsystem.drive(zeroSpeed);
                 }
-
 
                 if (followingPath != null && !hasRobotReachedTargetPose) {
                     Logger.recordOutput(name + "/isFollowingPath", true);

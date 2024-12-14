@@ -25,8 +25,16 @@ public class DriverInput {
                         new RobotController.SubsystemSetting(robotController.armSystem, Arm.ArmState.COLLECT,2),
                 }),
                 new Control(0, "B", new RobotController.SubsystemSetting[]{
-                        new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4)
+                        new RobotController.SubsystemSetting(robotController.scollectorSystem, Scollector.ScollectorState.RAMP_SHOOTER, 2),
+                        new RobotController.SubsystemSetting(robotController.armSystem, Arm.ArmState.SUBWOOFER,2),
                 }),
+                new Control(0, "X", new RobotController.SubsystemSetting[]{
+                        new RobotController.SubsystemSetting(robotController.scollectorSystem, Scollector.ScollectorState.SHOOT, 3),
+                }),
+                new Control(0, "Y", new RobotController.SubsystemSetting[]{
+                        new RobotController.SubsystemSetting(robotController.scollectorSystem, Scollector.ScollectorState.COLLECT_AUTO_SHOOT, 2),
+                        new RobotController.SubsystemSetting(robotController.armSystem, Arm.ArmState.COLLECT, 2)
+                })
         };
     }
 
@@ -138,6 +146,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getAButton();
             case "B":
                 return controllers[controllerIndex].getBButton();
+            case "X":
+                return controllers[controllerIndex].getXButton();
+            case "Y":
+                return  controllers[controllerIndex].getYButton();
         }
 
         return false;

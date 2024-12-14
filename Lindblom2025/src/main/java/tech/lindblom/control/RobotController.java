@@ -10,6 +10,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
+import tech.lindblom.subsystems.auto.routines.Test4Note;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
@@ -51,12 +52,13 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine()
+                new TestRoutine(),
+                new Test4Note()
         );
         visionSystem = new Vision();
-        ledsSystem = new LEDs();
-        scollectorSystem = new Scollector();
-        armSystem = new Arm();
+        ledsSystem = new LEDs(this);
+        scollectorSystem = new Scollector(this);
+        armSystem = new Arm(this);
 
         driverInput = new DriverInput(this);
 
@@ -76,7 +78,12 @@ public class RobotController {
         WAIT,
         TEST_RED,
         TEST_BLUE,
-        TEST_GREEN
+        TEST_GREEN,
+        SUB_SHOOT,
+        COLLECT,
+        ONE_NOTE,
+        TWO_NOTE,
+        THIRD_NOTE
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -143,6 +150,10 @@ public class RobotController {
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
         }
+    }
+
+    public boolean isArmInPosition() {
+        return armSystem.matchesState();
     }
 
     public void processDriverInputs() {
@@ -245,6 +256,21 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
         defineAction(Action.TEST_GREEN,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+        defineAction(Action.SUB_SHOOT,
+                new SubsystemSetting(armSystem, Arm.ArmState.SUBWOOFER, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.COLLECT, 0));
+        defineAction(Action.ONE_NOTE,
+                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_ONE, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP,0));
+        defineAction(Action.TWO_NOTE,
+                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_TWO, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
+        defineAction(Action.THIRD_NOTE,
+                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_THREE, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
     }
 
     public void defineAction(Action action, SubsystemSetting... settings) {

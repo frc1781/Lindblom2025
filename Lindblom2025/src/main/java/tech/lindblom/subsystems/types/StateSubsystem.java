@@ -1,17 +1,20 @@
 package tech.lindblom.subsystems.types;
 
 import org.littletonrobotics.junction.Logger;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class StateSubsystem extends Subsystem {
     SubsystemState currentState;
     public final SubsystemState defaultState;
     protected EnumCollection.OperatingMode currentOperatingMode;
+    protected RobotController robotController;
 
-    protected StateSubsystem(String _name, SubsystemState _defaultState) {
+    protected StateSubsystem(String _name, SubsystemState _defaultState, RobotController robotController) {
         super(_name);
         defaultState = _defaultState;
         currentState = defaultState;
+        this.robotController = robotController;
         Logger.recordOutput(name + "/currentState", currentState.toString());
     }
 

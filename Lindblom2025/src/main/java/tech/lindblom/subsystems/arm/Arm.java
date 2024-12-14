@@ -41,12 +41,9 @@ public class Arm extends StateSubsystem {
     private CANSparkMax mRightMotor, mLeftMotor;
 
     private AbsoluteEncoder mArmAbsoluteEncoder;
-    private ProfiledPIDController mPositionPID = new ProfiledPIDController(0.03, 0, 0,
+    private ProfiledPIDController mPositionPID = new ProfiledPIDController(0.06, 0, 0,
             new TrapezoidProfile.Constraints(90, 450));
     private HashMap<ArmState, Double> mPositions = new HashMap<>();
-
-    private ProfiledPIDController mSmallPosHold = new ProfiledPIDController(0.01, 0, 0,
-            new TrapezoidProfile.Constraints(90, 450));
 
     
     //kG
@@ -62,8 +59,8 @@ public class Arm extends StateSubsystem {
     private IdleMode mIdleMode;
 
     private double armDutyCycle;
-    public Arm() {
-        super("Arm", ArmState.SAFE);
+    public Arm(RobotController robotController) {
+        super("Arm", ArmState.SAFE, robotController);
         mRightMotor = new CANSparkMax(
                 Constants.Arm.ARM_PIVOT_RIGHT_MOTOR,
                 CANSparkMax.MotorType.kBrushless);
@@ -125,40 +122,11 @@ public class Arm extends StateSubsystem {
         FAR_SHOT
     }
 
-    public void getToState() {
-        switch ((ArmState) getCurrentState()) {
-            case AUTO_ANGLE:
-                mDesiredPosition = calculateAngleFromDistance();
-                break;
-            case MANUAL:
-                break;
-            default:
-                mDesiredPosition = mPositions.get(getCurrentState());
-                break;
-        }
-
-        double currentArmAngle = getAngle();
-        //mArmPositionEntry.setDouble(currentArmAngle);
-        if (currentArmAngle != 0.0) {
-            var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
-            // if (mSparkErrorEntry.getBoolean(false))
-            //     mSparkErrorEntry.setBoolean(false);
-
-            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) { // drop into position on ground
-                armDutyCycle = 0.0;
-            }
-
-            mLeftMotor.set(armDutyCycle);
-        } else {
-            //mSparkErrorEntry.setBoolean(true);
-        }
-    }
-
     @Override
     public boolean matchesState() {
         switch ((ArmState) getCurrentState()) {
             case COLLECT:
-                return getAngle() < 4.0; // should fall to position of zero
+                return getAngle() < 4.0;
             case KICKSTAND:
                 return mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed() || matchesPosition();
             default:
@@ -178,7 +146,6 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput("Arm/MatchesState", matchesState());
         Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
 
-        // testEntry.setDouble(getAngleAbsolute());
         if (mArmAbsoluteEncoder.getPosition() < 10) {
             setIdleMode(IdleMode.kCoast);
         } else {
@@ -188,7 +155,28 @@ public class Arm extends StateSubsystem {
 
         Logger.recordOutput("Arm/CurrentAimSpot",mCurrentAimSpot.toString());
 
-        //dropped to ground, reset relative encoder only when going down.
+        switch ((ArmState) getCurrentState()) {
+            case AUTO_ANGLE:
+                mDesiredPosition = calculateAngleFromDistance();
+                break;
+            case MANUAL:
+                break;
+            default:
+                mDesiredPosition = mPositions.get(getCurrentState());
+                break;
+        }
+
+        double currentArmAngle = getAngle();
+
+        if (currentArmAngle != 0.0) {
+            var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
+            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) { // drop into position on ground
+                armDutyCycle = 0.0;
+            }
+
+            mLeftMotor.set(armDutyCycle);
+        }
+
         syncArm();
     }
 

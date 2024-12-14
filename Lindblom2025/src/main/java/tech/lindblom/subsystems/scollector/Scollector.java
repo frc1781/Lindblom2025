@@ -57,11 +57,10 @@ public class Scollector extends StateSubsystem{
     private TimeOfFlight mTopTof = new TimeOfFlight(Constants.Scollector.TOP_SCOLLECTOR_TOF);
     private TimeOfFlight mBottomTof = new TimeOfFlight(Constants.Scollector.BOTTOM_SCOLLECTOR_TOF);
 
-    private boolean mArmInPosition = false;
     private Timer mShooterTimer = new Timer();
 
-    public Scollector() {
-        super("Scollector", ScollectorState.IDLE);
+    public Scollector(RobotController robotController) {
+        super("Scollector", ScollectorState.IDLE, robotController);
         mCollectorMotor.setIdleMode(IdleMode.kBrake);
         mBottomShooterMotor.setIdleMode(IdleMode.kCoast);
         mTopShooterMotor.setIdleMode(IdleMode.kCoast);
@@ -99,7 +98,7 @@ public class Scollector extends StateSubsystem{
         System.out.println("top motor faults: " + mTopShooterMotor.getFaults());
         System.out.println("top motor faults: " + mBottomShooterMotor.getFaults());
 
-        Logger.recordOutput( this.name + "/MatchesState", "true");
+        Logger.recordOutput( this.name + "/MatchesState", true);
     }
 
     public enum ScollectorState implements SubsystemState {
@@ -109,7 +108,6 @@ public class Scollector extends StateSubsystem{
 
     @Override
     public void init() {
-        mArmInPosition = false;
         mShooterTimer.reset();
         mShooterTimer.stop();
     }
@@ -149,15 +147,9 @@ public class Scollector extends StateSubsystem{
                 shoot();
                 break;
             case COLLECT_AUTO_SHOOT:
-                if (!hasNote()) {
-                    collect();
-                } else if (mArmInPosition && (noteCloseToShooter() || hasNote()) && shooterAtSpeed()) {
-                    shoot();
-                } else {
-                    mCollectorMotor.set(0);
-                }
-
+                collect();
                 driveMotors();
+                shoot();
                 break;
             case COLLECT_AUTO_LOB:
                 driveMotors();
@@ -170,7 +162,7 @@ public class Scollector extends StateSubsystem{
                 driveMotors(Constants.Scollector.MIN_SHOOTER_SPEED);
                 break;
             case SHOOT_ASAP:
-                if (mArmInPosition) {
+                if (robotController.isArmInPosition()) {
                     shoot();
                 }
 
