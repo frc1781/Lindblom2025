@@ -102,6 +102,8 @@ public class Constants {
 
     public class Vision {
         public static final String FrontCameraName = "Main";
+        public static final String NOTE_LIMELIGHT = "limelight-front";
+
 
         public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
                 new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
@@ -115,7 +117,6 @@ public class Constants {
         public static final Matrix<N3, N1> MULTI_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds,  if you see multiple tags, ie more accuracy/trust so lower values bc we trust it
 
         public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
-
     }
 
     public class Controls {

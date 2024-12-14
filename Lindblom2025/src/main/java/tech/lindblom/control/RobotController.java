@@ -43,6 +43,8 @@ public class RobotController {
     private ArrayList<StateSubsystem> stateSubsystems;
     private ArrayList<Subsystem> subsystems;
 
+    public boolean shouldTargetNote = false;
+
     private final SlewRateLimiter xControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter yControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter rotControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_ROTATION_RATE_LIMIT);
@@ -83,7 +85,8 @@ public class RobotController {
         COLLECT,
         ONE_NOTE,
         TWO_NOTE,
-        THIRD_NOTE
+        THIRD_NOTE,
+        NOTE
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -122,6 +125,8 @@ public class RobotController {
             case AUTONOMOUS:
                 visionUpdates();
                 if (currentAction != null) {
+                    shouldTargetNote = currentAction == Action.NOTE;
+
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
                         if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
@@ -302,6 +307,9 @@ public class RobotController {
         defineAction(Action.THIRD_NOTE,
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
+        defineAction(Action.NOTE,
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
+                new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.COLLECT, 0));
     }
 
     public void defineAction(Action action, SubsystemSetting... settings) {

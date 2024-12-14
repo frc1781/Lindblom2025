@@ -139,7 +139,6 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
-        System.out.println(mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed());
         Logger.recordOutput("Arm/MatchesState", matchesState());
         Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
 

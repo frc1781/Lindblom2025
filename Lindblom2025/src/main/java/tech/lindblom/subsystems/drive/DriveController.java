@@ -18,8 +18,10 @@ import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
+import tech.lindblom.utils.Limelight;
 
 import java.util.Optional;
 
@@ -141,11 +143,35 @@ public class DriveController extends Subsystem {
         Logger.recordOutput(name + "/TrajectoryPose", targetPose);
 
         ChassisSpeeds desiredChassisSpeeds = trajectoryController.calculate(
-            driveSubsystem.getRobotPose(),
-            targetPose,
-            pathplannerState.velocityMps,
+                driveSubsystem.getRobotPose(),
+                targetPose,
+                pathplannerState.velocityMps,
                 targetOrientation
         );
+
+        if (robotController.shouldTargetNote) {
+            double distanceFromEndPose = driveSubsystem.getRobotPose().getTranslation().getDistance(targetPose.getTranslation());
+            final double END_DIST_TOLERANCE = 2.5; // in meters when we start seeking a note
+            final double seenNoteOffset = Limelight.getTX(Constants.Vision.NOTE_LIMELIGHT); // if 0.0 then no note seen
+            final double noteAreaInView = Limelight.getTA(Constants.Vision.NOTE_LIMELIGHT); // % of the area of the camera's output
+            final boolean seesNote = seenNoteOffset != 0.0;
+            final boolean noteTooSmall = noteAreaInView < .1;
+            final boolean noteTooFar = Math.abs(seenNoteOffset) > 18;
+
+            if (distanceFromEndPose < END_DIST_TOLERANCE && seesNote && !noteTooSmall && !noteTooFar) {
+                double newYVelocity = 0.0;
+                Logger.recordOutput(this.name + "/NoteOffest", seenNoteOffset);
+
+                final double kP = .1; //super low for testing
+                newYVelocity = seenNoteOffset * kP;
+
+                Logger.recordOutput(this.name + "/NoteRequestedVelocity", newYVelocity);
+                Logger.recordOutput(this.name + "/AdjustingToNote", true);
+                desiredChassisSpeeds.vyMetersPerSecond = newYVelocity;
+            } else {
+                Logger.recordOutput(this.name + "/AdjustingToNote", false);
+            }
+        }
 
         driveSubsystem.drive(desiredChassisSpeeds);
     }

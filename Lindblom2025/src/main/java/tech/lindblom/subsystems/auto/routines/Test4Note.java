@@ -21,7 +21,7 @@ public class Test4Note implements AutoRoutine {
                 new AutoStep(20, RobotController.Action.ONE_NOTE),
                 new AutoStep(20, RobotController.Action.COLLECT, Auto.getPathFromName("n1;n3")),
                 new AutoStep(20, RobotController.Action.THIRD_NOTE),
-                new AutoStep(20, RobotController.Action.COLLECT, Auto.getPathFromName("n3;c1")),
+                new AutoStep(20, RobotController.Action.NOTE, Auto.getPathFromName("n3;c1")),
                 new AutoStep(20, RobotController.Action.TEST_GREEN, Auto.getPathFromName("c1;n3")),
                 new AutoStep(20, RobotController.Action.THIRD_NOTE),
         };
