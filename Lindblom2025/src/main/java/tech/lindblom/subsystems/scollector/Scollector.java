@@ -162,7 +162,7 @@ public class Scollector extends StateSubsystem{
                 driveMotors(Constants.Scollector.MIN_SHOOTER_SPEED);
                 break;
             case SHOOT_ASAP:
-                if (robotController.isArmInPosition()) {
+                if (robotController.isArmInPosition() && shooterAtSpeed()) {
                     shoot();
                 }
 

@@ -51,9 +51,9 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-
+                boolean autoStepFinished = robotController.hasFinishedAutoStep();
                 boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < robotController.autoTimer.get() : false;
-                boolean shouldEndRoutine = timeUp;
+                boolean shouldEndRoutine = timeUp || autoStepFinished;
 
                 if (currentAutoStepIndex == 0 || shouldEndRoutine) {
                     robotController.autoTimer.reset();
@@ -71,6 +71,11 @@ public class Auto extends Subsystem {
                 }
                 break;
         }
+    }
+
+
+    public AutoStep getCurrentAutoStep() {
+        return currentAutoStep;
     }
 
     private void startStep(AutoStep step) {

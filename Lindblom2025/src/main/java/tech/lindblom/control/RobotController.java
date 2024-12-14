@@ -178,6 +178,37 @@ public class RobotController {
         }
     }
 
+    public boolean hasFinishedAutoStep() {
+        AutoStep currentAutoStep = autoSystem.getCurrentAutoStep();
+        if (currentAutoStep == null) return true;
+
+        SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());
+
+        switch (currentAutoStep.getStepType()) {
+            case ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+                break;
+            case PATH:
+                return driveController.hasRobotReachedTargetPose();
+            case PATH_AND_ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+
+                return driveController.hasRobotReachedTargetPose();
+        }
+
+        return true;
+    }
+
     public void driverDriving(Translation2d translation, Translation2d rotation) {
         boolean isRed = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
         int flipForRed = isRed ? -1 : 1;
@@ -257,19 +288,19 @@ public class RobotController {
         defineAction(Action.TEST_GREEN,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
         defineAction(Action.SUB_SHOOT,
-                new SubsystemSetting(armSystem, Arm.ArmState.SUBWOOFER, 0),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
         defineAction(Action.COLLECT,
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.COLLECT, 0));
         defineAction(Action.ONE_NOTE,
-                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_ONE, 0),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP,0));
         defineAction(Action.TWO_NOTE,
-                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_TWO, 0),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
         defineAction(Action.THIRD_NOTE,
-                new SubsystemSetting(armSystem, Arm.ArmState.NOTE_THREE, 0),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0),
                 new SubsystemSetting(scollectorSystem, Scollector.ScollectorState.SHOOT_ASAP, 0));
     }
 

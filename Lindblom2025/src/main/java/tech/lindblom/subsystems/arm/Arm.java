@@ -45,20 +45,13 @@ public class Arm extends StateSubsystem {
             new TrapezoidProfile.Constraints(90, 450));
     private HashMap<ArmState, Double> mPositions = new HashMap<>();
 
-    
-    //kG
-    //kS
-    //kV
-
     private double mDesiredPosition = 0;
-    private Pose2d mRobotPose;
     private CURRENT_AIM_SPOT mCurrentAimSpot = CURRENT_AIM_SPOT.UNDEFINED;
     private double KICKSTAND_POSITION = 70.0; // was 73 Was 62.0
     private double mPrevAbsoluteAngle = KICKSTAND_POSITION;
     private double mPrevRecordedAngle = 0.0;
     private IdleMode mIdleMode;
 
-    private double armDutyCycle;
     public Arm(RobotController robotController) {
         super("Arm", ArmState.SAFE, robotController);
         mRightMotor = new CANSparkMax(
@@ -80,12 +73,15 @@ public class Arm extends StateSubsystem {
         mRightMotor.setIdleMode(mIdleMode);
         mLeftMotor.setIdleMode(mIdleMode);
       
-        mRightMotor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 10); //important for absoulte encoder to respond quicky
+        mRightMotor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 10);
 
         mLeftMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, false);
         mLeftMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, false);
-        mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 80);
-        mLeftMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, -10);
+        mRightMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, false);
+        mRightMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, false);
+
+
+
         mLeftMotor.burnFlash();
         mRightMotor.burnFlash();
 
@@ -136,29 +132,25 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
-        setDesiredState(ArmState.KICKSTAND);
+        setState(ArmState.KICKSTAND);
         syncArm();
         mPositionPID.reset(getAngle());
     }
 
     @Override
     public void periodic() {
+        System.out.println(mLeftMotor.getForwardLimitSwitch(SparkLimitSwitch.Type.kNormallyOpen).isPressed());
         Logger.recordOutput("Arm/MatchesState", matchesState());
         Logger.recordOutput("Arm/RawAbsoluteArm", getAngleAbsolute());
 
-        if (mArmAbsoluteEncoder.getPosition() < 10) {
-            setIdleMode(IdleMode.kCoast);
-        } else {
-            setIdleMode(IdleMode.kBrake);
+        if (currentOperatingMode == OperatingMode.DISABLED) {
+            return;
         }
 
-
-        Logger.recordOutput("Arm/CurrentAimSpot",mCurrentAimSpot.toString());
-
         switch ((ArmState) getCurrentState()) {
-            case AUTO_ANGLE:
+/*            case AUTO_ANGLE:
                 mDesiredPosition = calculateAngleFromDistance();
-                break;
+                break;*/
             case MANUAL:
                 break;
             default:
@@ -170,17 +162,31 @@ public class Arm extends StateSubsystem {
 
         if (currentArmAngle != 0.0) {
             var armDutyCycle = mPositionPID.calculate(currentArmAngle, mDesiredPosition);
-            if (getCurrentState() == ArmState.COLLECT && getAngle() < 10.0) { // drop into position on ground
+            Logger.recordOutput(this.name + "/DesiredPosition", mDesiredPosition);
+
+            if (getCurrentState() == ArmState.COLLECT && getAngle() > 10.0) { // drop into position on ground
                 armDutyCycle = 0.0;
+            } else if (getCurrentState() == ArmState.COLLECT && getAngle() > 10.0) {
+                armDutyCycle = -1.0;
             }
 
+            Logger.recordOutput(this.name + "/ArmDutyCycle", armDutyCycle);
             mLeftMotor.set(armDutyCycle);
         }
 
+        if (getAngle() < 10 || getCurrentState() == ArmState.COLLECT) {
+            setIdleMode(IdleMode.kCoast);
+        } else {
+            setIdleMode(IdleMode.kBrake);
+        }
+
+        Logger.recordOutput("Arm/CurrentAimSpot", mCurrentAimSpot.toString());
+        Logger.recordOutput(this.name + "/LeftMotorDutyCycle", mLeftMotor.getOutputCurrent());
         syncArm();
     }
 
-    public void setDesiredState(SubsystemState state) {
+    @Override
+    public void setState(SubsystemState state) {
         if (state == ArmState.SAFE && state == ArmState.MANUAL) {
             return;
         }
@@ -189,10 +195,11 @@ public class Arm extends StateSubsystem {
 
         if (state != ArmState.MANUAL && state != ArmState.AUTO_ANGLE) {
             mDesiredPosition = mPositions.get(state);
-        } else if (state == ArmState.AUTO_ANGLE) {
+        } /*else if (state == ArmState.AUTO_ANGLE) {
             mDesiredPosition = calculateAngleFromDistance();
-        }
+        }*/
     }
+
 
     private void setIdleMode(IdleMode mode) {
         if (mode == mIdleMode) {
@@ -203,6 +210,7 @@ public class Arm extends StateSubsystem {
         mRightMotor.setIdleMode(mode);
         System.out.println(mode);
         mIdleMode = mode;
+        Logger.recordOutput(this.name  + "/IdleMode", mode);
     }
 
     private void syncArm() {
@@ -210,14 +218,9 @@ public class Arm extends StateSubsystem {
         if(abs != mPrevRecordedAngle) {
             mPrevRecordedAngle = abs;
         }
-
     }
 
-    public void updateAimSpots(Pose2d robotPose) {
-        mRobotPose = robotPose;
-    }
-
-    private double calculateAngleFromDistance() {
+    /*private double calculateAngleFromDistance() {
         boolean foundAimSpot = false;
 
         for (CURRENT_AIM_SPOT aimSpot : CURRENT_AIM_SPOT.values()) {
@@ -239,22 +242,7 @@ public class Arm extends StateSubsystem {
         }
 
         return CURRENT_AIM_SPOT.SUBWOOFER.getPosition();
-    }
-
-
-    public void manualAdjustAngle(double d) {
-        setDesiredState(ArmState.MANUAL);
-
-        mDesiredPosition += d;
-        if (mDesiredPosition > Constants.Arm.MAX_THRESHOLD_ARM) {
-            mDesiredPosition = Constants.Arm.MAX_THRESHOLD_ARM;
-        }
-
-        if (mDesiredPosition < Constants.Arm.MIN_THRESHOLD_ARM) {
-            mDesiredPosition = Constants.Arm.MIN_THRESHOLD_ARM;
-        }
-    }
-
+    }*/
 
     private boolean matchesPosition() {
         return Math.abs(getAngleAbsolute() - mDesiredPosition) < 1.85;
