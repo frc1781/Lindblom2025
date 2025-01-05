@@ -38,14 +38,6 @@ public class KrakenL2SwerveModule extends SwerveModule {
     private final RelativeEncoder mTurnEncoder;
     private final CANcoder mTurnAbsoluteEncoder;
 
-    private double totalDutyCycles = 0;
-    private double totalMPS = 0;
-
-    private double totalNumerator = 0;
-    private double totalAccerlation = 0;
-
-    private double prevTime = 0;
-    private double prevVelocity = 0;
 
     public KrakenL2SwerveModule(String name,int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset) {
         super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
@@ -110,17 +102,17 @@ public class KrakenL2SwerveModule extends SwerveModule {
 
         mTurnMotor.burnFlash();
 
-        Logger.recordOutput(name + "/Offset", cancoderOffset);
-        Logger.recordOutput(name + "/Offset", cancoderOffset);
+        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
+        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
 
-        Logger.recordOutput(name + "/Drive Motor Velocity", 0.0);
-        Logger.recordOutput(name + "/Drive Motor Position", 0.0);
-        Logger.recordOutput(name + "/Turning Motor Position", 0.0);
-        Logger.recordOutput(name + "/CANCoder Position", 0.0);
-        Logger.recordOutput(name + "/Turning Motor CANCoder Difference", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Velocity", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turning Motor Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turning Motor CANCoder Difference", 0.0);
 
-        Logger.recordOutput(name + "/Drive Requested Velocity", 0.0);
-        Logger.recordOutput(name + "/Turn Requested Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Drive Requested Velocity", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turn Requested Position", 0.0);
     }
 
     public Rotation2d getAbsoluteAngle() {
@@ -144,22 +136,22 @@ public class KrakenL2SwerveModule extends SwerveModule {
 
     public void runDesiredModuleState(SwerveModuleState desiredState) {
         SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
-        Logger.recordOutput(this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
-        Logger.recordOutput(this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
 
         mTurnPID.setReference(optimizedState.angle.getRadians(), ControlType.kPosition);
 
         //mDriveVelocity.Velocity = Conversions.MPSToRPS(optimizedState.speedMetersPerSecond, ConfigMap.WHEEL_CIRCUMFERENCE);
         //mDriveVelocity.Velocity = optimizedState.speedMetersPerSecond;
         double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
-        Logger.recordOutput(this.name + "/FeedForwardOutput", FF);
+        Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
         //mDriveVelocity.FeedForward = driveFF.calculate(optimizedState.speedMetersPerSecond);
 
         mDriveMotor.set(FF);
 
-        Logger.recordOutput(this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
-        Logger.recordOutput(this.name + "/Drive Motor Position", getDriveMotorPosition());
-        Logger.recordOutput(this.name + "/Turning Motor Position", mTurnEncoder.getPosition());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
+        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnEncoder.getPosition());
 
         mDesiredState = optimizedState;
         syncRelativeToAbsoluteEncoder();
@@ -181,8 +173,8 @@ public class KrakenL2SwerveModule extends SwerveModule {
         double turnEncoderPosition = mTurnEncoder.getPosition();
         double diff = getAbsoluteAngle().getRadians() - turnEncoderPosition;
 
-        Logger.recordOutput(name + "/CANCoder Position", turnEncoderPosition);
-        Logger.recordOutput(this.name + "/Turning Motor CANCoder Difference", diff);
+        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", turnEncoderPosition);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor CANCoder Difference", diff);
         if(Math.abs(diff) > 0.02) {
             mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
         }

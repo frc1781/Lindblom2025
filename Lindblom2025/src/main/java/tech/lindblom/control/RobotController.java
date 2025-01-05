@@ -67,7 +67,7 @@ public class RobotController {
         WAIT,
         TEST_RED,
         TEST_BLUE,
-        TEST_GREEN
+        EXPECTED_LED_FAIL, TEST_GREEN
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -268,6 +268,8 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
         defineAction(Action.TEST_GREEN,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+        defineAction(Action.EXPECTED_LED_FAIL,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {

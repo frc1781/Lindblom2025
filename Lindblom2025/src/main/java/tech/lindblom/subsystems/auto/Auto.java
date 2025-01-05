@@ -46,6 +46,13 @@ public class Auto extends Subsystem {
             currentStepIndex = 0;
             checkSelectedRoutine();
             robotController.autoTimer.start();
+
+            currentGroupIndex = 0;
+            currentReactionIndex = 0;
+            currentStepIndex = 0;
+
+            currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
+            currentGroupIndex++;
         }
     }
 
@@ -56,23 +63,29 @@ public class Auto extends Subsystem {
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-                boolean timeUp = currentStep.getMaxTime() != 0 ? currentStep.getMaxTime() < robotController.autoTimer.get() : false;
+                boolean timeUp = currentStep.getMaxTime() != 0 && currentStep.getMaxTime() < robotController.autoTimer.get();
                 boolean finishedAutoStep = robotController.hasFinishedAutoStep();
                 boolean shouldEndAutoStep = timeUp || finishedAutoStep;
 
                 if (currentStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
 
-                    if (stepGroups.length == currentGroupIndex) {
-                        robotController.interruptAction();
-                        return;
-                    }
-
-                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND && currentStep.hasReaction()) {
+                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND) {
+                        if (currentStep.hasReaction()) {
                             reactionSteps = currentStep.getReaction().getReaction(robotController.getFailedSubsystems());
+                        } else {
+                            currentStepIndex = 0;
+                            currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
+                            currentGroupIndex++;
+                        }
                     }
 
                     if (currentStepIndex == currentSteps.length) {
+                        if (stepGroups.length == currentGroupIndex) {
+                            robotController.interruptAction();
+                            return;
+                        }
+
                         currentStepIndex = 0;
                         currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
                         currentGroupIndex++;
@@ -83,6 +96,12 @@ public class Auto extends Subsystem {
                     robotController.autoTimer.start();
 
                     currentStepIndex++;
+
+                    Logger.recordOutput(name + "/CurrentGroupIndex", currentGroupIndex);
+                    Logger.recordOutput(name + "/CurrentStepIndex", currentStepIndex);
+                    Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
+
+                    Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
                 }
                 break;
         }
@@ -93,7 +112,6 @@ public class Auto extends Subsystem {
     }
 
     private void startStep(AutoStep step) {
-        Logger.recordOutput(name + "/CurrentAutoStepIndex", currentStepIndex);
         robotController.setAutoStep(step);
     }
 
@@ -167,7 +185,7 @@ public class Auto extends Subsystem {
 
         @Override
         public void printStackTrace() {
-            System.out.println("NoAutoRoutineException: This routine does not have a starting position, the position has been set to 0,0.");
+            System.out.println("NoAutoRoutineException: This routine does not have a starting position, the position has been set to 0,0. We will not be moving in this AUTO period.");
         }
     }
 }
