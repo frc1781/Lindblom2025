@@ -27,6 +27,8 @@ public class Auto extends Subsystem {
     private AutoStep[] reactionSteps;
     private AutoStepGroup[] stepGroups;
 
+    private boolean isReacting = false;
+
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
         super("Auto");
@@ -67,17 +69,48 @@ public class Auto extends Subsystem {
                 boolean finishedAutoStep = robotController.hasFinishedAutoStep();
                 boolean shouldEndAutoStep = timeUp || finishedAutoStep;
 
+                Logger.recordOutput(name + "/CurrentGroupIndex", currentGroupIndex);
+                Logger.recordOutput(name + "/CurrentStepIndex", currentStepIndex);
+                Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
+
+                Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
+
                 if (currentStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
 
                     if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND) {
                         if (currentStep.hasReaction()) {
                             reactionSteps = currentStep.getReaction().getReaction(robotController.getFailedSubsystems());
+                            currentReactionIndex = 0;
+                            currentStep = reactionSteps[currentReactionIndex];
+                            currentReactionIndex++;
+                            isReacting = true;
+
+                            startStep(currentStep);
+                            robotController.autoTimer.start();
+                            return;
                         } else {
                             currentStepIndex = 0;
                             currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
                             currentGroupIndex++;
                         }
+                    }
+
+                    if (isReacting) {
+                        if (currentReactionIndex == reactionSteps.length) {
+                            currentSteps = stepGroups[currentGroupIndex - 1].getAutoSteps();
+                            currentStep = currentSteps[currentStepIndex - 1];
+                            currentStepIndex++;
+                            isReacting = false;
+                            startStep(currentStep);
+                            robotController.autoTimer.start();
+                            return;
+                        }
+
+                        currentStep = reactionSteps[currentReactionIndex];
+                        currentStepIndex++;
+                        startStep(currentStep);
+                        robotController.autoTimer.start();
                     }
 
                     if (currentStepIndex == currentSteps.length) {
@@ -96,12 +129,6 @@ public class Auto extends Subsystem {
                     robotController.autoTimer.start();
 
                     currentStepIndex++;
-
-                    Logger.recordOutput(name + "/CurrentGroupIndex", currentGroupIndex);
-                    Logger.recordOutput(name + "/CurrentStepIndex", currentStepIndex);
-                    Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
-
-                    Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
                 }
                 break;
         }
@@ -114,26 +141,6 @@ public class Auto extends Subsystem {
     private void startStep(AutoStep step) {
         robotController.setAutoStep(step);
     }
-
-/*    public void checkSelectedRoutine() {
-        boolean currentAlliance = RobotController.isRed();
-        AutoRoutine chosenRoutine = (AutoRoutine) autoChooser.getSelected();
-
-        if (chosenRoutine == null) return;
-
-        Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
-
-        if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
-            robotController.autoTimer.reset();
-            currentAutoStepIndex = 0;
-            currentAutoRoutine = chosenRoutine;
-            allAutoSteps = currentAutoRoutine.getSteps();
-            currentAutoStep = currentAutoRoutine.getSteps()[0];
-
-            pathsGeneratedForRed = currentAlliance;
-            System.out.println("Cached currently selected routine");
-        }
-    }*/
 
     public void checkSelectedRoutine() {
         boolean currentAlliance = RobotController.isRed();
