@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.0538747530478936,
+        "y": 1.0708040336509805
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.0821504335898857,
+        "y": 1.6460735620901505
+      },
+      "isLocked": false,
+      "linkedName": "Collect South"
+    },
+    {
+      "anchor": {
+        "x": 3.8072522312015677,
+        "y": 2.882140027083359
+      },
+      "prevControl": {
+        "x": 3.0889948290826843,
+        "y": 2.2159898486759912
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "CD"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 4.3,
+    "maxAcceleration": 6.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 59.004060239959806
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 56.06541767424971
+  },
+  "useDefaultConstraints": true
+}
