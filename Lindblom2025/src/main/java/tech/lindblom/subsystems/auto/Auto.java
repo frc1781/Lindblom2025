@@ -2,6 +2,7 @@ package tech.lindblom.subsystems.auto;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
@@ -9,6 +10,8 @@ import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
+
+import java.nio.file.Path;
 
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
@@ -177,12 +180,16 @@ public class Auto extends Subsystem {
     }
 
     public static PathPlannerPath getPathFromName(String name) {
-        var ret_val = PathPlannerPath.fromPathFile(name);
-        ret_val.preventFlipping = false;
-        if(RobotController.isRed()) {
-            ret_val = ret_val.flipPath();
+        try {
+            var ret_val = PathPlannerPath.fromPathFile(name);
+            ret_val.preventFlipping = false;
+            if(RobotController.isRed()) {
+                ret_val = ret_val.flipPath();
+            }
+            return ret_val;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return ret_val;
     }
 
     public class NoStartingPositionException extends Exception {

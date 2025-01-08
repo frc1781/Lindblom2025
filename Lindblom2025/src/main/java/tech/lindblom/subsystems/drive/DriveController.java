@@ -1,7 +1,9 @@
 package tech.lindblom.subsystems.drive;
 
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -39,6 +41,7 @@ public class DriveController extends Subsystem {
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
+    private RobotConfig robotConfig;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -60,6 +63,12 @@ public class DriveController extends Subsystem {
                 setInitialRobotPose(currentMode);
                 break;
         }
+
+        try{
+            robotConfig = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -73,12 +82,9 @@ public class DriveController extends Subsystem {
                 boolean hasRobotReachedTargetPose = hasRobotReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
 
-
                 if (hasRobotReachedTargetPose()) {
-                    //setAutoPath(null);
                     driveSubsystem.drive(zeroSpeed);
                 }
-
 
                 if (followingPath != null && !hasRobotReachedTargetPose) {
                     Logger.recordOutput(name + "/isFollowingPath", true);
@@ -107,9 +113,9 @@ public class DriveController extends Subsystem {
         followingPath = path;
         if (path == null) return;
 
-        followingTrajectory = path.getTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation());
+        followingTrajectory = path.generateTrajectory(new ChassisSpeeds(), driveSubsystem.getRobotRotation(), robotConfig);
 
-        targetPose = followingTrajectory.getEndState().getTargetHolonomicPose();
+        targetPose = followingTrajectory.getEndState().pose;
         Logger.recordOutput(name + "/TargetPose", targetPose);
 
         PIDController xTrajectoryController;
@@ -132,15 +138,15 @@ public class DriveController extends Subsystem {
     public void followPath() {
         if (hasRobotReachedTargetPose() || followingPath == null) return;
 
-        PathPlannerTrajectory.State pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
-        Pose2d targetPose = new Pose2d(pathplannerState.positionMeters, pathplannerState.heading);
-        Rotation2d targetOrientation = EEGeometeryUtil.normalizeAngle(pathplannerState.getTargetHolonomicPose().getRotation());
+        PathPlannerTrajectoryState pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
+        Pose2d targetPose = new Pose2d(pathplannerState.pose.getTranslation(), pathplannerState.heading);
+        Rotation2d targetOrientation = EEGeometeryUtil.normalizeAngle(pathplannerState.pose.getRotation());
         Logger.recordOutput(name + "/TrajectoryPose", targetPose);
 
         ChassisSpeeds desiredChassisSpeeds = trajectoryController.calculate(
             driveSubsystem.getRobotPose(),
             targetPose,
-            pathplannerState.velocityMps,
+            pathplannerState.linearVelocity,
                 targetOrientation
         );
 

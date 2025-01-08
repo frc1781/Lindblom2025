@@ -6,15 +6,15 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -27,14 +27,14 @@ import tech.lindblom.utils.SwerveModuleConfiguration;
 public class KrakenL2SwerveModule extends SwerveModule { 
     private SwerveModuleState mDesiredState = new SwerveModuleState();
     private final TalonFX mDriveMotor;
-    private final CANSparkMax mTurnMotor;
-    private final SparkPIDController mTurnPID;
+    private final SparkMax mTurnMotor;
     private final VelocityVoltage mDriveVelocity = new VelocityVoltage(0);
     private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
         moduleConfiguration().drivingKS,
         moduleConfiguration().drivingKV,
         moduleConfiguration().drivingKA
-    ); 
+    );
+
     private final RelativeEncoder mTurnEncoder;
     private final CANcoder mTurnAbsoluteEncoder;
 
@@ -54,8 +54,8 @@ public class KrakenL2SwerveModule extends SwerveModule {
         /* Current Limiting */
         driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
-        driveConfig.CurrentLimits.SupplyCurrentThreshold = 60;
-        driveConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+        driveConfig.CurrentLimits.withSupplyCurrentLimit(60);
+        driveConfig.CurrentLimits.withSupplyCurrentLowerTime(0.1);
         driveConfig.Slot0.kP = moduleConfiguration().drivingP; //need to be tuned
         driveConfig.Slot0.kI = moduleConfiguration().drivingI;
         driveConfig.Slot0.kD = moduleConfiguration().drivingD;
@@ -66,41 +66,40 @@ public class KrakenL2SwerveModule extends SwerveModule {
         
         mDriveMotor.getConfigurator().apply(driveConfig);
 
-        mTurnMotor = new CANSparkMax(turnMotorID, MotorType.kBrushless);
-        
-        mTurnMotor.restoreFactoryDefaults();
-        mTurnMotor.setSmartCurrentLimit(30);
-        mTurnMotor.setInverted(true);
+        mTurnMotor = new SparkMax(turnMotorID, SparkLowLevel.MotorType.kBrushless);
 
-        mTurnPID = mTurnMotor.getPIDController();
-        mTurnPID.setPositionPIDWrappingMaxInput(2 * Math.PI);
-        mTurnPID.setPositionPIDWrappingMinInput(0);
-        mTurnPID.setPositionPIDWrappingEnabled(true);
-        mTurnEncoder = mTurnMotor.getEncoder();
+        SparkMaxConfig turnMotorConfig = new SparkMaxConfig();
 
-        
-        mTurnPID.setFeedbackDevice(mTurnEncoder);
+        //Motor Config
+        turnMotorConfig.smartCurrentLimit(30);
+        turnMotorConfig.inverted(true);
+
+        //PID Config
+        turnMotorConfig.closedLoop.p(moduleConfiguration().drivingP);
+        turnMotorConfig.closedLoop.i(moduleConfiguration().drivingI);
+        turnMotorConfig.closedLoop.d(moduleConfiguration().drivingD);
+        turnMotorConfig.closedLoop.velocityFF(moduleConfiguration().drivingFF);
+        turnMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+        turnMotorConfig.closedLoop.positionWrappingEnabled(true);
+        turnMotorConfig.closedLoop.positionWrappingMaxInput(2 * Math.PI);
+        turnMotorConfig.closedLoop.positionWrappingMinInput(0);
+        turnMotorConfig.closedLoop.outputRange(moduleConfiguration().minDrivingMotorVoltage, moduleConfiguration().maxDrivingMotorVoltage);
+
+        //Encoder Config
+        turnMotorConfig.encoder.positionConversionFactor(moduleConfiguration().radiansPerRevolution);
+        turnMotorConfig.encoder.velocityConversionFactor(moduleConfiguration().radiansPerSecond);
+
+        mTurnMotor.configure(turnMotorConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 
         mTurnAbsoluteEncoder = new CANcoder(cancoderID);
+
         StatusCode statusCode = mTurnAbsoluteEncoder.getConfigurator().apply(absoluteEncoderConfiguration(cancoderOffset));
         if(statusCode != StatusCode.OK) {
             DriverStation.reportError("Could not configure CANcoder with ID: " + cancoderID, false);
         }
 
-        mTurnPID.setP(moduleConfiguration().turningP);
-        mTurnPID.setI(moduleConfiguration().turningI);
-        mTurnPID.setD(moduleConfiguration().turningD);
-        mTurnPID.setFF(moduleConfiguration().turningFF);
-
-        mTurnEncoder.setPositionConversionFactor(moduleConfiguration().radiansPerRevolution);
-        mTurnEncoder.setVelocityConversionFactor(moduleConfiguration().radiansPerSecond);
-
-        mTurnPID.setFF(moduleConfiguration().turningFF);
-
-        mTurnPID.setOutputRange(moduleConfiguration().minTurningMotorVoltage, moduleConfiguration().maxTurningMotorVoltage);
+        mTurnEncoder = mTurnMotor.getEncoder();
         mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
-
-        mTurnMotor.burnFlash();
 
         Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
         Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
@@ -139,13 +138,10 @@ public class KrakenL2SwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
 
-        mTurnPID.setReference(optimizedState.angle.getRadians(), ControlType.kPosition);
+        mTurnMotor.getClosedLoopController().setReference(optimizedState.angle.getRadians(), SparkBase.ControlType.kPosition);
 
-        //mDriveVelocity.Velocity = Conversions.MPSToRPS(optimizedState.speedMetersPerSecond, ConfigMap.WHEEL_CIRCUMFERENCE);
-        //mDriveVelocity.Velocity = optimizedState.speedMetersPerSecond;
         double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
-        //mDriveVelocity.FeedForward = driveFF.calculate(optimizedState.speedMetersPerSecond);
 
         mDriveMotor.set(FF);
 
@@ -188,9 +184,6 @@ public class KrakenL2SwerveModule extends SwerveModule {
         ret_val.velocityConversion = ret_val.metersPerRevolution / 60.0;
         ret_val.radiansPerSecond = ret_val.radiansPerRevolution / 60.0;
 
-        //MUST TUNE ALL OF THESE AND DO SYSID
-        //need kA still, but KS and KV are good
-        // is pid the kA replacement
         ret_val.drivingP = 0;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
@@ -215,7 +208,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
     static CANcoderConfiguration absoluteEncoderConfiguration(double magnetOffset) {
         CANcoderConfiguration ret_val = new CANcoderConfiguration(); 
 
-        ret_val.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
         ret_val.MagnetSensor.MagnetOffset = magnetOffset;
         ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
 

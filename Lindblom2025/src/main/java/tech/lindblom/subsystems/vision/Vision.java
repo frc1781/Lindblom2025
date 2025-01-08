@@ -36,7 +36,7 @@ public class Vision extends Subsystem {
             String deployDirectoryPath = Filesystem.getDeployDirectory().getAbsolutePath();
             fieldLayout = new AprilTagFieldLayout(deployDirectoryPath + "/CrescendoFieldLayout.json");
             frontCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, frontCamera,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.frontCameraPositionOnRobot);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
@@ -51,7 +51,11 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        frontCameraRobotPose = frontCameraPoseEstimator.update();
+        List<PhotonPipelineResult> unreadResults = frontCamera.getAllUnreadResults();
+        if (!unreadResults.isEmpty()) {
+            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.getFirst());
+        }
+
         areAprilTagsDetected = frontCameraRobotPose.isPresent();
 
         Logger.recordOutput(this.name + "/FrontCamera/AprilTagsDetected", areAprilTagsDetected);
@@ -69,15 +73,12 @@ public class Vision extends Subsystem {
     }
 
     public Optional<Pose2d> getFrontCameraPose() {
-        if (frontCameraRobotPose.isPresent()) {
-            return Optional.of(frontCameraRobotPose.get().estimatedPose.toPose2d());
-        }
+        return frontCameraRobotPose.map(estimatedRobotPose -> estimatedRobotPose.estimatedPose.toPose2d());
 
-        return Optional.empty();
     }
 
     public PhotonPipelineResult getFrontCameraPipelineResult() {
-        return frontCamera.getLatestResult();
+        return frontCamera.getAllUnreadResults().getFirst();
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
