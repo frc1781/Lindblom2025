@@ -74,12 +74,19 @@ public class KrakenL2SwerveModule extends SwerveModule {
         turnMotorConfig.smartCurrentLimit(30);
         turnMotorConfig.inverted(true);
 
+        mTurnAbsoluteEncoder = new CANcoder(cancoderID);
+
+        StatusCode statusCode = mTurnAbsoluteEncoder.getConfigurator().apply(absoluteEncoderConfiguration(cancoderOffset));
+        if(statusCode != StatusCode.OK) {
+            DriverStation.reportError("Could not configure CANcoder with ID: " + cancoderID, false);
+        }
+
         //PID Config
         turnMotorConfig.closedLoop.p(moduleConfiguration().drivingP);
         turnMotorConfig.closedLoop.i(moduleConfiguration().drivingI);
         turnMotorConfig.closedLoop.d(moduleConfiguration().drivingD);
         turnMotorConfig.closedLoop.velocityFF(moduleConfiguration().drivingFF);
-        turnMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+        turnMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kNoSensor);
         turnMotorConfig.closedLoop.positionWrappingEnabled(true);
         turnMotorConfig.closedLoop.positionWrappingMaxInput(2 * Math.PI);
         turnMotorConfig.closedLoop.positionWrappingMinInput(0);
@@ -90,13 +97,6 @@ public class KrakenL2SwerveModule extends SwerveModule {
         turnMotorConfig.encoder.velocityConversionFactor(moduleConfiguration().radiansPerSecond);
 
         mTurnMotor.configure(turnMotorConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
-
-        mTurnAbsoluteEncoder = new CANcoder(cancoderID);
-
-        StatusCode statusCode = mTurnAbsoluteEncoder.getConfigurator().apply(absoluteEncoderConfiguration(cancoderOffset));
-        if(statusCode != StatusCode.OK) {
-            DriverStation.reportError("Could not configure CANcoder with ID: " + cancoderID, false);
-        }
 
         mTurnEncoder = mTurnMotor.getEncoder();
         mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
