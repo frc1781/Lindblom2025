@@ -13,6 +13,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.AbsoluteEncoderConfig;
+import com.revrobotics.spark.config.AlternateEncoderConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -82,11 +84,11 @@ public class KrakenL2SwerveModule extends SwerveModule {
         }
 
         //PID Config
-        turnMotorConfig.closedLoop.p(moduleConfiguration().drivingP);
-        turnMotorConfig.closedLoop.i(moduleConfiguration().drivingI);
-        turnMotorConfig.closedLoop.d(moduleConfiguration().drivingD);
-        turnMotorConfig.closedLoop.velocityFF(moduleConfiguration().drivingFF);
-        turnMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kNoSensor);
+        turnMotorConfig.closedLoop.p(moduleConfiguration().turningP);
+        turnMotorConfig.closedLoop.i(moduleConfiguration().turningI);
+        turnMotorConfig.closedLoop.d(moduleConfiguration().turningD);
+        turnMotorConfig.closedLoop.velocityFF(moduleConfiguration().turningFF);
+        turnMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder);
         turnMotorConfig.closedLoop.positionWrappingEnabled(true);
         turnMotorConfig.closedLoop.positionWrappingMaxInput(2 * Math.PI);
         turnMotorConfig.closedLoop.positionWrappingMinInput(0);
@@ -150,7 +152,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnEncoder.getPosition());
 
         mDesiredState = optimizedState;
-        syncRelativeToAbsoluteEncoder();
+            syncRelativeToAbsoluteEncoder();
     }
 
     private double getDriveMotorSpeed() {
@@ -165,16 +167,21 @@ public class KrakenL2SwerveModule extends SwerveModule {
         if(mTurnEncoder.getVelocity() >= 0.5) {
             return;
         }
-
+        
         double turnEncoderPosition = mTurnEncoder.getPosition();
-        double diff = getAbsoluteAngle().getRadians() - turnEncoderPosition;
+        double absoluteEncoderPosition = getAbsoluteAngle().getRadians();
+        double diff = absoluteEncoderPosition - turnEncoderPosition;
 
-        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", turnEncoderPosition);
+        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", absoluteEncoderPosition);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Encoder Position", turnEncoderPosition);
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor CANCoder Difference", diff);
+        
         if(Math.abs(diff) > 0.02) {
+            Logger.recordOutput("DriveModule/" + this.name + "/IsUpdatingEncoder", true);
             mTurnEncoder.setPosition(getAbsoluteAngle().getRadians());
+        } else {
+            Logger.recordOutput("DriveModule/" + this.name + "/IsUpdatingEncoder", false);
         }
-
     }
 
     static SwerveModuleConfiguration moduleConfiguration() {
@@ -208,7 +215,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
     static CANcoderConfiguration absoluteEncoderConfiguration(double magnetOffset) {
         CANcoderConfiguration ret_val = new CANcoderConfiguration(); 
 
-        ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
+        ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
         ret_val.MagnetSensor.MagnetOffset = magnetOffset;
         ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
 

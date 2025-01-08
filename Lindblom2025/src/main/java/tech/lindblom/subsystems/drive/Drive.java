@@ -77,6 +77,8 @@ public class Drive extends Subsystem {
         SwerveModuleState[] moduleStates = swerveDriveKinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
 
+        Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
+
         frontLeftModule.runDesiredModuleState(moduleStates[0]);
         frontRightModule.runDesiredModuleState(moduleStates[1]);
         backLeftModule.runDesiredModuleState(moduleStates[2]);

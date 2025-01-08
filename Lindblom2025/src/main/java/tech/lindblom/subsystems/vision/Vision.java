@@ -78,7 +78,11 @@ public class Vision extends Subsystem {
     }
 
     public PhotonPipelineResult getFrontCameraPipelineResult() {
-        return frontCamera.getAllUnreadResults().get(0);
+        List<PhotonPipelineResult> unreadResults = frontCamera.getAllUnreadResults();
+        if (!unreadResults.isEmpty()) {
+            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.get(0));
+        }
+        return new PhotonPipelineResult();
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
