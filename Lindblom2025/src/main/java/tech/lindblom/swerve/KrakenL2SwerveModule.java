@@ -152,7 +152,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnEncoder.getPosition());
 
         mDesiredState = optimizedState;
-            syncRelativeToAbsoluteEncoder();
+        syncRelativeToAbsoluteEncoder();
     }
 
     private double getDriveMotorSpeed() {
