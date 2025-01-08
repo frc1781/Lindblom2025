@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
@@ -30,6 +31,8 @@ public class RobotController {
     public LEDs ledsSystem;
 
     DriverInput driverInput;
+
+    public Timer autoTimer = new Timer();
 
     private Action currentAction;
     private ArrayList<StateSubsystem> stateSubsystems;
@@ -64,12 +67,13 @@ public class RobotController {
         WAIT,
         TEST_RED,
         TEST_BLUE,
-        TEST_GREEN
+        EXPECTED_LED_FAIL, TEST_GREEN
     }
 
     public void init(EnumCollection.OperatingMode mode) {
         switch (mode) {
             case DISABLED:
+                interruptAction();
                 break;
             case AUTONOMOUS:
                 break;
@@ -129,7 +133,7 @@ public class RobotController {
         }
 
         for (StateSubsystem subsystem : stateSubsystems) {
-            subsystem.getToState();
+            subsystem.periodic();
         }
     }
 
@@ -150,7 +154,7 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.defaultState && !setSubsystems.contains(subsystem)) {
-                subsystem.setDefaultState();
+                subsystem.restoreToDefaultState();
             }
         }
     }
@@ -179,19 +183,21 @@ public class RobotController {
         Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
         if (visionEstimateOptional.isPresent()) {
             Pose2d visionEstimate = visionEstimateOptional.get();
+            PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
             Logger.recordOutput("RobotController/updatingUsingVision", true);
-
-            driveController.updatePoseUsingVisionEstimate(
-                    visionEstimate,
-                    Timer.getFPGATimestamp(),
-                    visionSystem.getEstimationStdDevs(
-                            visionEstimate,
-                            visionSystem.getFrontCameraPipelineResult()
-                    )
-            );
+            if (pipelineResult.targets.size() > 1) {
+                driveController.updatePoseUsingVisionEstimate(
+                        visionEstimate,
+                        Timer.getFPGATimestamp(),
+                        visionSystem.getEstimationStdDevs(
+                                visionEstimate,
+                                pipelineResult
+                        )
+                );
+            } else {
+                Logger.recordOutput("RobotController/updatingUsingVision", false);
+            }
         }
-
-        Logger.recordOutput("RobotController/updatingUsingVision", false);
     }
 
     public void setAutoStep(AutoStep autoStep) {
@@ -211,8 +217,48 @@ public class RobotController {
         }
     }
 
+    public boolean hasFinishedAutoStep() {
+        AutoStep currentAutoStep = autoSystem.getCurrentStep();
+        if (currentAutoStep == null) return true;
+
+        SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());
+
+        switch (currentAutoStep.getStepType()) {
+            case ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+                break;
+            case PATH:
+                return driveController.hasRobotReachedTargetPose();
+            case PATH_AND_ACTION:
+                for (int i = 0; i < subsystemSettings.length; i++) {
+                    SubsystemSetting subsystemSetting = subsystemSettings[i];
+                    if (!subsystemSetting.subsystem.matchesState()) {
+                        return false;
+                    }
+                }
+
+                return driveController.hasRobotReachedTargetPose();
+        }
+
+        return true;
+    }
+
     public void setAction(Action action) {
         currentAction = action;
+    }
+
+    public void interruptAction() {
+        currentAction = null;
+        driveController.setAutoPath(null);
+
+        for (int i = 0; i < stateSubsystems.size(); i++) {
+            stateSubsystems.get(i).restoreToDefaultState();
+        }
     }
 
     public void createActions() {
@@ -222,6 +268,20 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
         defineAction(Action.TEST_GREEN,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+        defineAction(Action.EXPECTED_LED_FAIL,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+    }
+
+    public ArrayList<StateSubsystem> getFailedSubsystems() {
+        ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();
+        for (int i = 0; i < stateSubsystems.size(); i++) {
+            StateSubsystem stateSubsystem = stateSubsystems.get(i);
+            if (!stateSubsystem.matchesState()) {
+                failedSubsystems.add(stateSubsystem);
+            }
+        }
+
+        return failedSubsystems;
     }
 
     public void defineAction(Action action, SubsystemSetting... settings) {

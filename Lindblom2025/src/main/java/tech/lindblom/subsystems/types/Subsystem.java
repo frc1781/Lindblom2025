@@ -19,5 +19,5 @@ public abstract class Subsystem {
 
     public abstract void init();
 
-    public abstract void periodic() throws Auto.RoutineOverExecption;
+    public abstract void periodic();
 }

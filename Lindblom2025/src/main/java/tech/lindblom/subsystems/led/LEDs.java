@@ -28,7 +28,7 @@ public class LEDs extends StateSubsystem {
     }
 
     @Override
-    public void getToState() {
+    public void periodic() {
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }
@@ -58,10 +58,10 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        return false;
+        return this.getCurrentState() != LEDState.EXPECTED_FAIL;
     }
 
     public enum LEDState implements SubsystemState{
-        WHITE, RED, GREEN, BLUE
+        WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
     }
 }
