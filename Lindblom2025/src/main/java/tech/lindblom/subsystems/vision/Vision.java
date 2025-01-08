@@ -53,7 +53,7 @@ public class Vision extends Subsystem {
     public void periodic() {
         List<PhotonPipelineResult> unreadResults = frontCamera.getAllUnreadResults();
         if (!unreadResults.isEmpty()) {
-            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.getFirst());
+            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.get(0));
         }
 
         areAprilTagsDetected = frontCameraRobotPose.isPresent();
@@ -78,7 +78,7 @@ public class Vision extends Subsystem {
     }
 
     public PhotonPipelineResult getFrontCameraPipelineResult() {
-        return frontCamera.getAllUnreadResults().getFirst();
+        return frontCamera.getAllUnreadResults().get(0);
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
