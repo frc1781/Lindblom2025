@@ -1,26 +1,36 @@
 package tech.lindblom.subsystems.auto;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.types.StateSubsystem;
+import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
+
+import java.nio.file.Path;
 
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
     private boolean pathsGeneratedForRed;
-    private Timer autoTimer = new Timer();
 
-    private int currentAutoStepIndex = 0;
+    private int currentStepIndex = 0;
+    private int currentGroupIndex = 0;
+    private int currentReactionIndex = 0;
+
     private final RobotController robotController;
-    private AutoStep currentAutoStep;
-    private AutoStep[] allAutoSteps;
+
+    private AutoStep currentStep;
+    private AutoStep[] currentSteps;
+
+    private AutoStep[] reactionSteps;
+    private AutoStepGroup[] stepGroups;
+
+    private boolean isReacting = false;
 
 
     public Auto(RobotController robotController, AutoRoutine... routines) {
@@ -37,100 +47,159 @@ public class Auto extends Subsystem {
     @Override
     public void init() {
         if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
-            autoTimer.reset();
-            currentAutoStepIndex = 0;
+            robotController.autoTimer.reset();
+            currentStepIndex = 0;
             checkSelectedRoutine();
-            autoTimer.start();
+            robotController.autoTimer.start();
+
+            currentGroupIndex = 0;
+            currentReactionIndex = 0;
+            currentStepIndex = 0;
+
+            currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
+            currentGroupIndex++;
         }
     }
 
     @Override
-    public void periodic() throws RoutineOverExecption {
+    public void periodic() {
         switch (currentMode) {
             case DISABLED:
                 checkSelectedRoutine();
                 break;
             case AUTONOMOUS:
-                boolean timeUp = currentAutoStep.hasTimeLimit() ? currentAutoStep.getMaxTime() < autoTimer.get() : false;
-                boolean shouldEndRoutine = timeUp;
+                boolean timeUp = currentStep.getMaxTime() != 0 && currentStep.getMaxTime() < robotController.autoTimer.get();
+                boolean finishedAutoStep = robotController.hasFinishedAutoStep();
+                boolean shouldEndAutoStep = timeUp || finishedAutoStep;
 
-                if (currentAutoStepIndex == 0 || shouldEndRoutine) {
-                    autoTimer.reset();
+                Logger.recordOutput(name + "/CurrentGroupIndex", currentGroupIndex);
+                Logger.recordOutput(name + "/CurrentStepIndex", currentStepIndex);
+                Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
 
-                    if (allAutoSteps.length == currentAutoStepIndex) {
-                        throw new RoutineOverExecption();
+                Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
+
+                if (currentStepIndex == 0 || shouldEndAutoStep) {
+                    robotController.autoTimer.reset();
+
+                    if (timeUp && stepGroups[currentGroupIndex].getGroupType() == AutoStepGroup.GroupType.DEPEND) {
+                        if (currentStep.hasReaction()) {
+                            reactionSteps = currentStep.getReaction().getReaction(robotController.getFailedSubsystems());
+                            currentReactionIndex = 0;
+                            currentStep = reactionSteps[currentReactionIndex];
+                            currentReactionIndex++;
+                            isReacting = true;
+
+                            startStep(currentStep);
+                            robotController.autoTimer.start();
+                            return;
+                        } else {
+                            currentStepIndex = 0;
+                            currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
+                            currentGroupIndex++;
+                        }
                     }
-                    currentAutoStep = allAutoSteps[currentAutoStepIndex];
-                    startStep(currentAutoStep);
-                    autoTimer.start();
 
-                    currentAutoStepIndex++;
+                    if (isReacting) {
+                        if (currentReactionIndex == reactionSteps.length) {
+                            currentSteps = stepGroups[currentGroupIndex - 1].getAutoSteps();
+                            currentStep = currentSteps[currentStepIndex - 1];
+                            currentStepIndex++;
+                            isReacting = false;
+                            startStep(currentStep);
+                            robotController.autoTimer.start();
+                            return;
+                        }
+
+                        currentStep = reactionSteps[currentReactionIndex];
+                        currentStepIndex++;
+                        startStep(currentStep);
+                        robotController.autoTimer.start();
+                    }
+
+                    if (currentStepIndex == currentSteps.length) {
+                        if (stepGroups.length == currentGroupIndex) {
+                            robotController.interruptAction();
+                            return;
+                        }
+
+                        currentStepIndex = 0;
+                        currentSteps = stepGroups[currentGroupIndex].getAutoSteps();
+                        currentGroupIndex++;
+                    }
+
+                    currentStep = currentSteps[currentStepIndex];
+                    startStep(currentStep);
+                    robotController.autoTimer.start();
+
+                    currentStepIndex++;
                 }
                 break;
         }
     }
 
+    public AutoStep getCurrentStep() {
+        return this.currentStep;
+    }
+
     private void startStep(AutoStep step) {
-        Logger.recordOutput(name + "/CurrentAutoStepIndex", currentAutoStepIndex);
         robotController.setAutoStep(step);
     }
 
     public void checkSelectedRoutine() {
         boolean currentAlliance = RobotController.isRed();
-        AutoRoutine chosenRoutine = (AutoRoutine) autoChooser.getSelected();
+        AutoRoutine chosenRoutine = autoChooser.getSelected();
 
         if (chosenRoutine == null) return;
-
-        Logger.recordOutput("Autonomous/ChosenRoutine", chosenRoutine.getName());
+        Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
         if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
-            autoTimer.reset();
-            currentAutoStepIndex = 0;
+            robotController.autoTimer.reset();
+            currentStepIndex = 0;
+            currentGroupIndex = 0;
             currentAutoRoutine = chosenRoutine;
-            allAutoSteps = currentAutoRoutine.getSteps();
-            currentAutoStep = currentAutoRoutine.getSteps()[0];
+            stepGroups = chosenRoutine.getAutoStepGroups();
+            currentStep = stepGroups[0].getAutoSteps()[0];
 
             pathsGeneratedForRed = currentAlliance;
-            Logger.recordOutput("Auto/Routine", currentAutoRoutine.getName());
-            System.out.println("Cached currently selected routine");
+            System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
         }
     }
 
-    public Pose2d getStartPosition() throws NoAutoRoutineException {
-        if (currentAutoRoutine != null) {
-            for (int i = 0; i < allAutoSteps.length; i++) {
-                switch (allAutoSteps[i].getStepType()) {
-                    case PATH_AND_ACTION:
-                    case PATH:
-                        return allAutoSteps[i].getPath().getStartingDifferentialPose();
-                }
+    public Pose2d getStartPosition() throws NoStartingPositionException {
+        if (currentAutoRoutine != null && currentStepIndex == 0) {
+            switch (currentStep.getStepType()) {
+                case PATH_AND_ACTION:
+                case PATH:
+                    return currentStep.getPath().getStartingDifferentialPose();
             }
         } else {
             System.out.println("Selected routine is null");
         }
 
-        throw new NoAutoRoutineException();
+        throw new NoStartingPositionException();
     }
 
-    public class RoutineOverExecption extends Exception {
-        public RoutineOverExecption() {
-            super("Routine Ended!");
+    public static PathPlannerPath getPathFromName(String name) {
+        try {
+            var ret_val = PathPlannerPath.fromPathFile(name);
+            ret_val.preventFlipping = false;
+            if(RobotController.isRed()) {
+                ret_val = ret_val.flipPath();
+            }
+            return ret_val;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public class NoStartingPositionException extends Exception {
+        public NoStartingPositionException() {
+            super("No starting position!");
         }
 
         @Override
         public void printStackTrace() {
-            System.out.println("RoutineOverExecption: The Routine running was finished.");
-        }
-    }
-
-    public class NoAutoRoutineException extends Exception {
-        public NoAutoRoutineException() {
-            super("No routine!");
-        }
-
-        @Override
-        public void printStackTrace() {
-            System.out.println("NoAutoRoutineException: The routine was null or invalid. Auto will not start.");
+            System.out.println("NoAutoRoutineException: This routine does not have a starting position, the position has been set to 0,0. We will not be moving in this AUTO period.");
         }
     }
 }
