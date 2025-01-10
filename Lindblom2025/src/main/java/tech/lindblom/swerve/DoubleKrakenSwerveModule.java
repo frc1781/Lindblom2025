@@ -1,112 +1,111 @@
 package tech.lindblom.swerve;
 
-import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DriverStation;
-import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
 
 public class DoubleKrakenSwerveModule extends SwerveModule {
-    private final TalonFX mDriveMotor;
-    private final TalonFX mTurnMotor;
+    private final TalonFX driveMotor;
+    private final TalonFX steerMotor;
+    private final CANcoder steerEncoder;
 
-    private final CANcoder mTurnAbsoluteEncoder;
-    private boolean isInverted;
+    private final StatusSignal<Angle> drivePosition;
+    private final StatusSignal<AngularVelocity> driveVelocity;
+    private final StatusSignal<Angle> steerPosition;
+    private final StatusSignal<AngularVelocity> steerVelocity;
+    private final BaseStatusSignal[] signals;
+    private double driveRotationsPerMeter = 0;
 
-    private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
-            moduleConfiguration().drivingKS,
-            moduleConfiguration().drivingKV,
-            moduleConfiguration().drivingKA
-    );
+    private final PositionVoltage angleSetter = new PositionVoltage(0);
+    private final VelocityTorqueCurrentFOC velocitySetter = new VelocityTorqueCurrentFOC(0);
 
-    private final ProfiledPIDController turningController = new ProfiledPIDController(
-            moduleConfiguration().turningP,
-            moduleConfiguration().turningI,
-            moduleConfiguration().turningD,
-            new TrapezoidProfile.Constraints(
-                    moduleConfiguration().minTurningMotorVoltage, moduleConfiguration().maxTurningMotorVoltage
-            )
-    );
+    private final SwerveModulePosition internalState = new SwerveModulePosition();
 
+    public DoubleKrakenSwerveModule(String name, int driveMotorID, int steerMotorId, int cancoderId, double cancoderOffset, boolean isInverted) {
+        super(name, driveMotorID, steerMotorId, cancoderId, cancoderOffset);
+        driveMotor = new TalonFX(driveMotorID);
+        steerMotor = new TalonFX(steerMotorId);
+        steerEncoder = new CANcoder(cancoderId);
 
-    public DoubleKrakenSwerveModule(String name, int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset, boolean inverted) {
-        super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
-        this.isInverted = inverted;
+        TalonFXConfiguration talonConfigs = new TalonFXConfiguration();
 
-        mDriveMotor = new TalonFX(driveMotorID);
-        TalonFXConfiguration driveConfig = new TalonFXConfiguration();
+        talonConfigs.Slot0.kP = moduleConfiguration().drivingP;
+        talonConfigs.Slot0.kI = moduleConfiguration().drivingI;
+        talonConfigs.Slot0.kD = moduleConfiguration().drivingD;
+        talonConfigs.Slot0.kV = moduleConfiguration().drivingKV;
+        talonConfigs.Slot0.kA = moduleConfiguration().drivingKA;
+        talonConfigs.Slot0.kS = moduleConfiguration().drivingKS;
+        talonConfigs.TorqueCurrent.PeakForwardTorqueCurrent = 400;
+        talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -400;
+        driveMotor.getConfigurator().apply(talonConfigs);
 
-        driveConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        driveConfig.Feedback.SensorToMechanismRatio = moduleConfiguration().metersPerRevolution; // not sure
-        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
-        driveConfig.CurrentLimits.withSupplyCurrentLimit(60);
-        driveConfig.CurrentLimits.withSupplyCurrentLowerTime(0.1);
-        driveConfig.Slot0.kP = moduleConfiguration().drivingP; //need to be tuned
-        driveConfig.Slot0.kI = moduleConfiguration().drivingI;
-        driveConfig.Slot0.kD = moduleConfiguration().drivingD;
-        driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0;  //need to be investigated
-        driveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0;
-        driveConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0;
-        driveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0;
-        mDriveMotor.getConfigurator().apply(driveConfig);
+        /* Undo changes for torqueCurrent */
+        talonConfigs.TorqueCurrent = new TorqueCurrentConfigs();
 
-        mTurnAbsoluteEncoder = new CANcoder(cancoderID);
+        talonConfigs.Slot0 = new Slot0Configs();
+        talonConfigs.Slot0.kP = moduleConfiguration().turningP;
+        talonConfigs.Slot0.kI = moduleConfiguration().turningI;
+        talonConfigs.Slot0.kD = moduleConfiguration().turningD;
 
-        StatusCode statusCode = mTurnAbsoluteEncoder.getConfigurator().apply(absoluteEncoderConfiguration(cancoderOffset));
-        if(statusCode != StatusCode.OK) {
-            DriverStation.reportError("Could not configure CANcoder with ID: " + cancoderID, false);
-        }
+        // Modify configuration to use remote CANcoder fused
+        talonConfigs.Feedback.FeedbackRemoteSensorID = cancoderId;
+        talonConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        talonConfigs.Feedback.RotorToSensorRatio = 1;
 
-        mTurnMotor = new TalonFX(turnMotorID);
-        TalonFXConfiguration turnConfig = new TalonFXConfiguration();
-        if (inverted) {
-            turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        } else {
-            turnConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        }
-        turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        turnConfig.CurrentLimits.SupplyCurrentLimit = 35;
-        turnConfig.CurrentLimits.withSupplyCurrentLimit(60);
-        turnConfig.CurrentLimits.withSupplyCurrentLowerTime(0.1);
-        turnConfig.Feedback.FeedbackRemoteSensorID = cancoderID;
-        turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        talonConfigs.ClosedLoopGeneral.ContinuousWrap =
+                true; // Enable continuous wrap for swerve modules
 
-        mTurnMotor.getConfigurator().apply(turnConfig);
-        mTurnMotor.setPosition(getAbsoluteAngle().getRadians());
-        turningController.enableContinuousInput(0, 2 * Math.PI);
-        turningController.reset(getAbsoluteAngle().getRadians());
+        talonConfigs.MotorOutput.Inverted =
+                isInverted
+                        ? InvertedValue.Clockwise_Positive
+                        : InvertedValue.CounterClockwise_Positive;
+        steerMotor.getConfigurator().apply(talonConfigs);
 
-        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
-        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
+        CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
+        cancoderConfigs.MagnetSensor.MagnetOffset = cancoderOffset;
+        steerEncoder.getConfigurator().apply(cancoderConfigs);
 
-        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Velocity", 0.0);
-        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Position", 0.0);
-        Logger.recordOutput("DriveModule/" + name + "/Turning Motor Position", 0.0);
-        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", 0.0);
-        Logger.recordOutput("DriveModule/" + name + "/Turning Motor CANCoder Difference", 0.0);
+        drivePosition = driveMotor.getPosition();
+        driveVelocity = driveMotor.getVelocity();
+        steerPosition = steerEncoder.getAbsolutePosition();
+        steerVelocity = steerEncoder.getVelocity();
 
-        Logger.recordOutput("DriveModule/" + name + "/Drive Requested Velocity", 0.0);
-        Logger.recordOutput("DriveModule/" + name + "/Turn Requested Position", 0.0);
+        signals = new BaseStatusSignal[4];
+        signals[0] = drivePosition;
+        signals[1] = driveVelocity;
+        signals[2] = steerPosition;
+        signals[3] = steerVelocity;
+
+        double rotationsPerWheelRotation = moduleConfiguration().radiansPerRevolution;
+        double metersPerWheelRotation = moduleConfiguration().metersPerRevolution;
+        driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
     }
 
+    BaseStatusSignal[] getSignals() {
+        return signals;
+    }
+
+    @Override
     public Rotation2d getAbsoluteAngle() {
-        double reportedVal = mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
+        double reportedVal = steerEncoder.getAbsolutePosition().getValueAsDouble();
 
         reportedVal = reportedVal % 1.0;
         if(reportedVal < 0) {
@@ -116,48 +115,42 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         return new Rotation2d(reportedVal * 2 * Math.PI);
     }
 
-    public SwerveModuleState getCurrentState() {
-        Logger.recordOutput("DriveModule/" + this.name + "/Turn CAN" ,getAbsoluteAngle().getRadians());
-        return new SwerveModuleState(getDriveMotorSpeed(), getAbsoluteAngle());
-    }
-
+    @Override
     public SwerveModulePosition getModulePosition() {
-        return new SwerveModulePosition(getDriveMotorPosition(), getAbsoluteAngle());
+        drivePosition.refresh();
+        driveVelocity.refresh();
+        steerPosition.refresh();
+        steerVelocity.refresh();
+
+        Measure<AngleUnit> drive_rot =
+                BaseStatusSignal.getLatencyCompensatedValue(drivePosition, driveVelocity);
+        Measure<AngleUnit> angle_rot =
+                BaseStatusSignal.getLatencyCompensatedValue(steerPosition, steerVelocity);
+
+        internalState.distanceMeters = drive_rot.baseUnitMagnitude() / driveRotationsPerMeter;
+        internalState.angle = Rotation2d.fromRotations(angle_rot.baseUnitMagnitude());
+
+        return internalState;
     }
 
-    public void runDesiredModuleState(SwerveModuleState desiredState) {
-        SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
-        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
-
-        double turningControllerOutput = turningController.calculate(new Rotation2d(mTurnMotor.getPosition().getValue()).getRadians(), optimizedState.angle.getRadians());
-
-        Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
-
-        mTurnMotor.set(turningControllerOutput);
-
-        double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
-
-        Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
-
-        mDriveMotor.set(FF);
-
-        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
-        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
-        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
+    @Override
+    public SwerveModuleState getCurrentState() {
+        return new SwerveModuleState(driveVelocity.getValueAsDouble(), Rotation2d.fromDegrees(steerPosition.getValueAsDouble()));
     }
 
-    private double getDriveMotorSpeed() {
-        return mDriveMotor.getVelocity().getValueAsDouble();
-    }
+    @Override
+    public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
+        sentDesiredState.optimize(internalState.angle);
 
-    private double getDriveMotorPosition() {
-        return mDriveMotor.getPosition().getValueAsDouble();
+        double angleToSetDeg = sentDesiredState.angle.getRotations();
+        steerMotor.setControl(angleSetter.withPosition(angleToSetDeg));
+        double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
+        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
     }
 
     @Override
     void syncRelativeToAbsoluteEncoder() {
-        return;
+
     }
 
     static SwerveModuleConfiguration moduleConfiguration() {
@@ -175,29 +168,15 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = .2;
-        ret_val.turningI = 0.01;
-        ret_val.turningD = 0;
+        ret_val.turningP = 1;
+        ret_val.turningI = 0.0;
+        ret_val.turningD = 0.01;
         ret_val.turningFF = 0.0;
 
         ret_val.minDrivingMotorVoltage = -1;
         ret_val.maxDrivingMotorVoltage = 1;
         ret_val.minTurningMotorVoltage = -1;
         ret_val.maxTurningMotorVoltage = 1;
-
-        return ret_val;
-    }
-
-    CANcoderConfiguration absoluteEncoderConfiguration(double magnetOffset) {
-        CANcoderConfiguration ret_val = new CANcoderConfiguration();
-
-        ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
-        ret_val.MagnetSensor.MagnetOffset = magnetOffset;
-        if (isInverted) {
-            ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-        } else {
-            ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-        }
 
         return ret_val;
     }
