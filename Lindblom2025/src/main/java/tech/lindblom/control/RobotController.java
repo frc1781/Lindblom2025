@@ -10,6 +10,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
+import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -29,6 +30,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Climber climberSystem;
 
     DriverInput driverInput;
 
@@ -51,10 +53,12 @@ public class RobotController {
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
+        climberSystem = new Climber();
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
+        stateSubsystems.add(climberSystem);
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);

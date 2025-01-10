@@ -88,7 +88,7 @@ public class Constants {
     }
 
     public class Climber {
-        public static final int LEFT_ARM = 1; //pending change
-        public static final int RIGHT_ARM = 2; //pending change
+        public static final int LEFT_ARM = 62;
+        public static final int RIGHT_ARM = 2;
     }
 }

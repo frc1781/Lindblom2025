@@ -4,6 +4,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
@@ -19,6 +20,9 @@ public class Climber extends StateSubsystem{
         super("Climber", ClimberState.IDLE);
         mLeftArm = new SparkMax(Constants.Climber.LEFT_ARM, SparkLowLevel.MotorType.kBrushless);
         mRightArm = new SparkMax(Constants.Climber.RIGHT_ARM, SparkLowLevel.MotorType.kBrushless);
+
+        mRightArm.setInverted(true);
+        mLeftArm.setInverted(true);
 
         mLeftEncoder = mLeftArm.getEncoder();
         mRightEncoder = mRightArm.getEncoder();
@@ -62,12 +66,12 @@ public class Climber extends StateSubsystem{
                 
                 break;
             case WAIT:
-                mLeftArm.set(0);
-                mRightArm.set(0);
+                mLeftArm.set(-0.1);
+                mRightArm.set(-0.1);
                 break;
             case LIFT:
-                mLeftArm.set(0);
-                mRightArm.set(0);
+                mLeftArm.set(0.1);
+                mRightArm.set(0.1);
                 break;
             default:
                 mLeftArm.set(0);

@@ -2,6 +2,7 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
+import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.utils.Constants;
 
@@ -19,7 +20,9 @@ public class DriverInput {
         this.robotController = robotController;
         this.controlList = new Control[] {
                 new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
-                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4))
+                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4)),
+                new Control(0, "X", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.LIFT, 3)),
+                new Control(0, "Y", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.WAIT, 3))
         };
     }
 
@@ -132,6 +135,11 @@ public class DriverInput {
                 return controllers[controllerIndex].getAButton();
             case "B":
                 return controllers[controllerIndex].getBButton();
+            case "X":
+                return controllers[controllerIndex].getXButton();
+                case "Y":
+                    return controllers[controllerIndex].getYButton();
+
         }
 
         return false;
