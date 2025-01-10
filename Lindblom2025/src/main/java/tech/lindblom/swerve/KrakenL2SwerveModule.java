@@ -26,11 +26,10 @@ import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
 
-public class KrakenL2SwerveModule extends SwerveModule { 
+public class KrakenL2SwerveModule extends SwerveModule {
     private SwerveModuleState mDesiredState = new SwerveModuleState();
     private final TalonFX mDriveMotor;
     private final SparkMax mTurnMotor;
-    private final VelocityVoltage mDriveVelocity = new VelocityVoltage(0);
     private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
         moduleConfiguration().drivingKS,
         moduleConfiguration().drivingKV,
@@ -44,13 +43,13 @@ public class KrakenL2SwerveModule extends SwerveModule {
     public KrakenL2SwerveModule(String name,int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset) {
         super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
 
-        //DRIVE MOTOR CREATE AND CONFIGURE 
+        //DRIVE MOTOR CREATE AND CONFIGURE
         mDriveMotor = new TalonFX(driveMotorID);
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
         
         driveConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        // Gear Ratio Config: using metersPerRevolution but not sure if that is correct here, should be 
+        // Gear Ratio Config: using metersPerRevolution but not sure if that is correct here, should be
         //gear ratio
         driveConfig.Feedback.SensorToMechanismRatio = moduleConfiguration().metersPerRevolution; // not sure
         /* Current Limiting */

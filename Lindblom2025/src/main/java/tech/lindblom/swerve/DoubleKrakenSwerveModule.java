@@ -1,132 +1,165 @@
 package tech.lindblom.swerve;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DriverStation;
+import org.littletonrobotics.junction.Logger;
+import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
 
 public class DoubleKrakenSwerveModule extends SwerveModule {
-    private TalonFX driveMotor;
-    private TalonFX steerMotor;
-    private CANcoder cancoder;
+    private final TalonFX mDriveMotor;
+    private final TalonFX mTurnMotor;
 
-    private StatusSignal<Angle> drivePosition;
-    private StatusSignal<AngularVelocity> driveVelocity;
-    private StatusSignal<Angle> steerPosition;
-    private StatusSignal<AngularVelocity> steerVelocity;
-    private BaseStatusSignal[] signals;
-    private double driveRotationsPerMeter = 0;
+    private final CANcoder mTurnAbsoluteEncoder;
 
-    private PositionVoltage angleSetter = new PositionVoltage(0);
-    private VelocityTorqueCurrentFOC velocitySetter = new VelocityTorqueCurrentFOC(0);
+    private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
+            moduleConfiguration().drivingKS,
+            moduleConfiguration().drivingKV,
+            moduleConfiguration().drivingKA
+    );
 
-    private SwerveModulePosition internalState = new SwerveModulePosition();
+    private final ProfiledPIDController turningController = new ProfiledPIDController(
+            moduleConfiguration().turningP,
+            moduleConfiguration().turningI,
+            moduleConfiguration().turningD,
+            new TrapezoidProfile.Constraints(
+                    moduleConfiguration().minTurningMotorVoltage, moduleConfiguration().maxTurningMotorVoltage
+            )
+    );
 
-    public DoubleKrakenSwerveModule(String _name, int driveMotorID, int turnMotorID, int cancoderId, double cancoderOffset) {
-        super(_name, driveMotorID, turnMotorID, cancoderId, cancoderOffset);
 
-        driveMotor = new TalonFX(driveMotorID);
-        steerMotor = new TalonFX(turnMotorID);
-        cancoder = new CANcoder(cancoderId);
+    public DoubleKrakenSwerveModule(String name, int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset) {
+        super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
 
-        TalonFXConfiguration talonConfigs = new TalonFXConfiguration();
+        mDriveMotor = new TalonFX(driveMotorID);
+        TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 
-        talonConfigs.Slot0 = constants.DriveMotorGains;
-        talonConfigs.TorqueCurrent.PeakForwardTorqueCurrent = constants.SlipCurrent;
-        talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
+        driveConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        driveConfig.Feedback.SensorToMechanismRatio = moduleConfiguration().metersPerRevolution; // not sure
+        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
+        driveConfig.CurrentLimits.withSupplyCurrentLimit(60);
+        driveConfig.CurrentLimits.withSupplyCurrentLowerTime(0.1);
+        driveConfig.Slot0.kP = moduleConfiguration().drivingP; //need to be tuned
+        driveConfig.Slot0.kI = moduleConfiguration().drivingI;
+        driveConfig.Slot0.kD = moduleConfiguration().drivingD;
+        driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0;  //need to be investigated
+        driveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0;
+        driveConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0;
+        driveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0;
+        mDriveMotor.getConfigurator().apply(driveConfig);
 
-        driveMotor.getConfigurator().apply(talonConfigs);
+        mTurnAbsoluteEncoder = new CANcoder(cancoderID);
 
-        /* Undo changes for torqueCurrent */
-        talonConfigs.TorqueCurrent = new TorqueCurrentConfigs();
+        StatusCode statusCode = mTurnAbsoluteEncoder.getConfigurator().apply(absoluteEncoderConfiguration(cancoderOffset));
+        if(statusCode != StatusCode.OK) {
+            DriverStation.reportError("Could not configure CANcoder with ID: " + cancoderID, false);
+        }
 
-        talonConfigs.Slot0 = constants.SteerMotorGains;
-        // Modify configuration to use remote CANcoder fused
-        talonConfigs.Feedback.FeedbackRemoteSensorID = cancoderId;
-        talonConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        talonConfigs.Feedback.RotorToSensorRatio = constants.SteerMotorGearRatio;
+        mTurnMotor = new TalonFX(turnMotorID);
+        TalonFXConfiguration turnConfig = new TalonFXConfiguration();
+        turnConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        turnConfig.CurrentLimits.SupplyCurrentLimit = 35;
+        turnConfig.CurrentLimits.withSupplyCurrentLimit(60);
+        turnConfig.CurrentLimits.withSupplyCurrentLowerTime(0.1);
+        turnConfig.Feedback.FeedbackRemoteSensorID = cancoderID;
+        turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
 
-        talonConfigs.ClosedLoopGeneral.ContinuousWrap = true;
+        mTurnMotor.getConfigurator().apply(turnConfig);
+        mTurnMotor.setPosition(getAbsoluteAngle().getRadians());
+        turningController.enableContinuousInput(-Math.PI, Math.PI);
+        turningController.reset(getAbsoluteAngle().getRadians());
 
-        talonConfigs.MotorOutput.Inverted =   InvertedValue.Clockwise_Positive;
-        steerMotor.getConfigurator().apply(talonConfigs);
+        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
+        Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
 
-        CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
-        cancoderConfigs.MagnetSensor.MagnetOffset = cancoderOffset;
-        cancoder.getConfigurator().apply(cancoderConfigs);
+        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Velocity", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Drive Motor Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turning Motor Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/CANCoder Position", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turning Motor CANCoder Difference", 0.0);
 
-        drivePosition = driveMotor.getPosition();
-        driveVelocity = driveMotor.getVelocity();
-        steerPosition = cancoder.getPosition();
-        steerVelocity = cancoder.getVelocity();
-
-        signals = new BaseStatusSignal[4];
-        signals[0] = drivePosition;
-        signals[1] = driveVelocity;
-        signals[2] = steerPosition;
-        signals[3] = steerVelocity;
-
-        /* Calculate the ratio of drive motor rotation to meter on ground */
-        double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
-        double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
-        driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
+        Logger.recordOutput("DriveModule/" + name + "/Drive Requested Velocity", 0.0);
+        Logger.recordOutput("DriveModule/" + name + "/Turn Requested Position", 0.0);
     }
 
-    @Override
     public Rotation2d getAbsoluteAngle() {
-        return null;
+        double reportedVal = mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
+
+        reportedVal = reportedVal % 1.0;
+        if(reportedVal < 0) {
+            reportedVal += 1.0;
+        }
+
+        return new Rotation2d(reportedVal * 2 * Math.PI);
     }
 
-    @Override
-    public SwerveModulePosition getModulePosition() {
-        /* Refresh all signals */
-        drivePosition.refresh();
-        driveVelocity.refresh();
-        steerPosition.refresh();
-
-        /* Now latency-compensate our signals */
-        double drive_rot =
-                BaseStatusSignal.getLatencyCompensatedValue(drivePosition, driveVelocity).baseUnitMagnitude();
-        double angle_rot =
-                BaseStatusSignal.getLatencyCompensatedValue(steerPosition, steerVelocity).baseUnitMagnitude();
-
-        /* And push them into a SwerveModuleState object to return */
-        internalState.distanceMeters = drive_rot / driveRotationsPerMeter;
-        /* Angle is already in terms of steer rotations */
-        internalState.angle = Rotation2d.fromRotations(angle_rot);
-
-        return internalState;
-    }
-
-    @Override
     public SwerveModuleState getCurrentState() {
-        return new SwerveModuleState(driveVelocity.getValueAsDouble(), new Rotation2d(steerPosition.getValue()));
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn CAN" ,getAbsoluteAngle().getRadians());
+        return new SwerveModuleState(getDriveMotorSpeed(), getAbsoluteAngle());
+    }
+
+    public SwerveModulePosition getModulePosition() {
+        return new SwerveModulePosition(getDriveMotorPosition(), getAbsoluteAngle());
+    }
+
+    public void runDesiredModuleState(SwerveModuleState desiredState) {
+        SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
+
+        double turningControllerOutput = turningController.calculate(getAbsoluteAngle().getRadians(), optimizedState.angle.getRadians());
+
+        Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
+
+        mTurnMotor.set(turningControllerOutput);
+
+        double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
+
+        Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
+
+        mDriveMotor.set(FF);
+
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
+        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
+    }
+
+    private double getDriveMotorSpeed() {
+        return mDriveMotor.getVelocity().getValueAsDouble();
+    }
+
+    private double getDriveMotorPosition() {
+        return mDriveMotor.getPosition().getValueAsDouble();
     }
 
     @Override
-    public void runDesiredModuleState(SwerveModuleState state) {
-        state.optimize(internalState.angle);
-
-        double angleToSetDeg = state.angle.getRotations();
-        steerMotor.setControl(angleSetter.withPosition(angleToSetDeg));
-        double velocityToSet = state.speedMetersPerSecond * driveRotationsPerMeter;
-        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+    void syncRelativeToAbsoluteEncoder() {
+        return;
     }
 
     static SwerveModuleConfiguration moduleConfiguration() {
@@ -144,9 +177,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = 1;
+        ret_val.turningP = .1;
         ret_val.turningI = 0.0;
-        ret_val.turningD = 0.01;
+        ret_val.turningD = 0.0;
         ret_val.turningFF = 0.0;
 
         ret_val.minDrivingMotorVoltage = -1;
@@ -157,8 +190,13 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         return ret_val;
     }
 
-    @Override
-    void syncRelativeToAbsoluteEncoder() {
-        return;
+    static CANcoderConfiguration absoluteEncoderConfiguration(double magnetOffset) {
+        CANcoderConfiguration ret_val = new CANcoderConfiguration();
+
+        ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
+        ret_val.MagnetSensor.MagnetOffset = magnetOffset;
+        ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+
+        return ret_val;
     }
 }
