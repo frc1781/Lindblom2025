@@ -12,6 +12,8 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -69,7 +71,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         // Modify configuration to use remote CANcoder fused
         talonConfigs.Feedback.FeedbackRemoteSensorID = cancoderId;
         talonConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        talonConfigs.Feedback.RotorToSensorRatio = 1;
+        talonConfigs.Feedback.RotorToSensorRatio = (14.0 / 50.0) * (10.0 / 60.0); // or this over (14.0 / 50.0) * (10.0 / 60.0)
 
         talonConfigs.ClosedLoopGeneral.ContinuousWrap =
                 true; // Enable continuous wrap for swerve modules
@@ -82,7 +84,10 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
         cancoderConfigs.MagnetSensor.MagnetOffset = cancoderOffset;
-        steerEncoder.getConfigurator().apply(cancoderConfigs);
+        cancoderConfigs.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
+        cancoderConfigs.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+        
+        steerEncoder.getConfigurator().apply(cancoderConfigs); 
 
         drivePosition = driveMotor.getPosition();
         driveVelocity = driveMotor.getVelocity();
