@@ -19,6 +19,7 @@ import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
 
@@ -141,11 +142,14 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     @Override
     public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
         sentDesiredState.optimize(internalState.angle);
+        Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
 
-        double angleToSetDeg = sentDesiredState.angle.getRotations();
+        double angleToSetDeg = sentDesiredState.angle.getRadians();
+        Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
         steerMotor.setControl(angleSetter.withPosition(angleToSetDeg));
         double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
-        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+        Logger.recordOutput("DriveModules/" + this.name + "/Requested Velocity", velocityToSet);
+        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet).withFeedForward(moduleConfiguration().drivingFF));
     }
 
     @Override
@@ -160,7 +164,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.velocityConversion = ret_val.metersPerRevolution / 60.0;
         ret_val.radiansPerSecond = ret_val.radiansPerRevolution / 60.0;
 
-        ret_val.drivingP = 0;
+        ret_val.drivingP = 10;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
         ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
@@ -168,7 +172,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = 1;
+        ret_val.turningP = 10;
         ret_val.turningI = 0.0;
         ret_val.turningD = 0.01;
         ret_val.turningFF = 0.0;
