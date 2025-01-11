@@ -30,7 +30,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
-    public Climber climberSystem;
+    //public Climber climberSystem;
 
     DriverInput driverInput;
 
@@ -53,12 +53,12 @@ public class RobotController {
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
-        climberSystem = new Climber();
+        //climberSystem = new Climber();
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
-        stateSubsystems.add(climberSystem);
+        //stateSubsystems.add(climberSystem);
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
@@ -169,7 +169,7 @@ public class RobotController {
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
-        double rotVelocity = -rotation.getX() * 1;
+        double rotVelocity = -rotation.getX() * Constants.Drive.DRIVER_ROTATION_INPUT_MULTIPIER;
 
         Logger.recordOutput("Driver/movement/x", translation.getX());
         Logger.recordOutput("Driver/rotation/x", rotation.getX());

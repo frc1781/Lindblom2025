@@ -18,8 +18,8 @@ public class Climber extends StateSubsystem{
 
     public Climber() {
         super("Climber", ClimberState.IDLE);
-        mLeftArm = new SparkMax(Constants.Climber.LEFT_ARM, SparkLowLevel.MotorType.kBrushless);
-        mRightArm = new SparkMax(Constants.Climber.RIGHT_ARM, SparkLowLevel.MotorType.kBrushless);
+        mLeftArm = new SparkMax(1, SparkLowLevel.MotorType.kBrushless);
+        mRightArm = new SparkMax(1, SparkLowLevel.MotorType.kBrushless);
 
         mRightArm.setInverted(true);
         mLeftArm.setInverted(true);

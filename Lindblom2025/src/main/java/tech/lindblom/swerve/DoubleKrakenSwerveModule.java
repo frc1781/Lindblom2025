@@ -79,6 +79,7 @@ public class DoubleKrakenSwerveModule {
 
         CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
         cancoderConfigs.MagnetSensor.MagnetOffset = constants.EncoderOffset;
+        cancoderConfigs.MagnetSensor.SensorDirection = constants.EncoderInverted ? SensorDirectionValue.CounterClockwise_Positive : SensorDirectionValue.Clockwise_Positive;
         steerEncoder.getConfigurator().apply(cancoderConfigs);
 
         drivePosition = driveMotor.getPosition();
@@ -135,16 +136,16 @@ public class DoubleKrakenSwerveModule {
     }
 
     public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
-        sentDesiredState.optimize(internalState.angle);
+        sentDesiredState.optimize(getAbsoluteAngle());
 
         double angleToSetDeg = sentDesiredState.angle.getRotations();
-        steerMotor.setControl(angleSetter.withPosition(angleToSetDeg));
-        double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
-        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+        steerMotor.setControl(new PositionVoltage(angleToSetDeg));
+        //double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
+        //driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
 
         Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
         Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
-        Logger.recordOutput("DriveModules/" + this.name + "/Requested Velocity", velocityToSet);
+        //Logger.recordOutput("DriveModules/" + this.name + "/Requested Velocity", velocityToSet);
         Logger.recordOutput("DriveModules/" + this.name + "/Drive Voltage", driveMotor.getMotorVoltage().getValueAsDouble());
         Logger.recordOutput("DriveModules/" + this.name + "/Turn Voltage", steerMotor.getMotorVoltage().getValueAsDouble()
         );

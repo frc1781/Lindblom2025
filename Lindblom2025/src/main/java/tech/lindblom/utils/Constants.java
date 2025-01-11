@@ -5,9 +5,12 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveModule;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -26,7 +29,7 @@ public class Constants {
 
     public class Drive {
         public static Slot0Configs steerGains = new Slot0Configs()
-                .withKP(100).withKI(0).withKD(0.5)
+                .withKP(0.6).withKI(0).withKD(0)
                 .withKS(0.1).withKV(0).withKA(0)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
@@ -53,13 +56,17 @@ public class Constants {
 
         public static CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
 
+        public static final double DRIVER_TRANSLATION_RATE_LIMIT = 1.2;
+        public static final double DRIVER_ROTATION_RATE_LIMIT = 1.2;
+        public static final double DRIVER_ROTATION_INPUT_MULTIPIER = 0.5;
+
         public static double speedAt12Volts = 4.2;
 
         public static double coupleRatio = (double) 150 / 7;
         public static double driveGearRatio = 6.75;
         public static double steerGearRatio = (double) 150 / 7;
 
-        public static double wheelRadius = 4; //Inches
+        public static double wheelRadius = Units.inchesToMeters(4); //Inches
 
         public static boolean invertLeftSide = false;
         public static boolean invertRightSide = true;
@@ -99,8 +106,8 @@ public class Constants {
         public static boolean frontLeftSteerMotorInverted = false;
         public static boolean frontLeftEncoderInverted = true;
 
-        public static double frontLeftXPos = 11.375;
-        public static double frontLeftYPos = 11.375;
+        public static double frontLeftXPos = Units.inchesToMeters(11.375);
+        public static double frontLeftYPos = Units.inchesToMeters(11.375);
 
         // Front Right
         public static int frontRightDriveMotorId = 26;
@@ -110,8 +117,8 @@ public class Constants {
         public static boolean frontRightSteerMotorInverted = false;
         public static boolean frontRightEncoderInverted = true;
 
-        public static double frontRightXPos = 11.375;
-        public static double frontRightYPos = -11.375;
+        public static double frontRightXPos = Units.inchesToMeters(11.375);
+        public static double frontRightYPos = -Units.inchesToMeters(-11.375);
 
         // Back Left
         public static int backLeftDriveMotorId = 23;
@@ -121,8 +128,8 @@ public class Constants {
         public static boolean backLeftSteerMotorInverted = false;
         public static boolean backLeftEncoderInverted = true;
 
-        public static double backLeftXPos = 11.375;
-        public static double backLeftYPos = 11.375;
+        public static double backLeftXPos = Units.inchesToMeters(-11.375);
+        public static double backLeftYPos = Units.inchesToMeters(11.375);
 
         // Back Right
         public static int backRightDriveMotorId = 28;
@@ -132,8 +139,8 @@ public class Constants {
         public static boolean backRightSteerMotorInverted = false;
         public static boolean backRightEncoderInverted = true;
 
-        public static double backRightXPos = -11.375;
-        public static double backRightYPos = -11.375;
+        public static double backRightXPos = Units.inchesToMeters(-11.375);
+        public static double backRightYPos = Units.inchesToMeters(-11.375);
 
         public static SwerveModuleConstants FrontLeft = ConstantCreator
                 .createModuleConstants
@@ -186,6 +193,103 @@ public class Constants {
                                 backRightSteerMotorInverted,
                                 backRightEncoderInverted
                         );
+    }
+
+    public static final SwerveDrivetrainConstants drivetrainConstants = new SwerveDrivetrainConstants()
+            .withCANBusName(kCANBus.getName())
+            .withPigeon2Id(kPigeonId)
+            .withPigeon2Configs(pigeonConfigs);
+
+    /**
+     * Creates a CommandSwerveDrivetrain instance.
+     * This should only be called once in your robot program,.
+     */
+    public static TunerSwerveDrivetrain createDrivetrain() {
+        return new TunerSwerveDrivetrain(
+                DrivetrainConstants, Drive.FrontLeft, Drive.FrontRight, Drive.BackLeft, Drive.BackRight
+        );
+    }
+
+    /**
+     * Swerve Drive class utilizing CTR Electronics' Phoenix 6 API with the selected device types.
+     */
+    public static class TunerSwerveDrivetrain extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder> {
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants   Drivetrain-wide constants for the swerve drive
+         * @param modules               Constants for each specific module
+         */
+        public TunerSwerveDrivetrain(
+                SwerveDrivetrainConstants drivetrainConstants,
+                SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(
+                    TalonFX::new, TalonFX::new, CANcoder::new,
+                    drivetrainConstants, modules
+            );
+        }
+
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants     Drivetrain-wide constants for the swerve drive
+         * @param odometryUpdateFrequency The frequency to run the odometry loop. If
+         *                                unspecified or set to 0 Hz, this is 250 Hz on
+         *                                CAN FD, and 100 Hz on CAN 2.0.
+         * @param modules                 Constants for each specific module
+         */
+        public TunerSwerveDrivetrain(
+                SwerveDrivetrainConstants drivetrainConstants,
+                double odometryUpdateFrequency,
+                SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(
+                    TalonFX::new, TalonFX::new, CANcoder::new,
+                    drivetrainConstants, odometryUpdateFrequency, modules
+            );
+        }
+
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants       Drivetrain-wide constants for the swerve drive
+         * @param odometryUpdateFrequency   The frequency to run the odometry loop. If
+         *                                  unspecified or set to 0 Hz, this is 250 Hz on
+         *                                  CAN FD, and 100 Hz on CAN 2.0.
+         * @param odometryStandardDeviation The standard deviation for odometry calculation
+         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  and radians
+         * @param visionStandardDeviation   The standard deviation for vision calculation
+         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  and radians
+         * @param modules                   Constants for each specific module
+         */
+        public TunerSwerveDrivetrain(
+                SwerveDrivetrainConstants drivetrainConstants,
+                double odometryUpdateFrequency,
+                Matrix<N3, N1> odometryStandardDeviation,
+                Matrix<N3, N1> visionStandardDeviation,
+                SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(
+                    TalonFX::new, TalonFX::new, CANcoder::new,
+                    drivetrainConstants, odometryUpdateFrequency,
+                    odometryStandardDeviation, visionStandardDeviation, modules
+            );
+        }
     }
 
     public class Auto {
