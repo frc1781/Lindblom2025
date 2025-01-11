@@ -21,8 +21,8 @@ public class Climber extends StateSubsystem{
         mLeftArm = new SparkMax(Constants.Climber.LEFT_ARM, SparkLowLevel.MotorType.kBrushless);
         mRightArm = new SparkMax(Constants.Climber.RIGHT_ARM, SparkLowLevel.MotorType.kBrushless);
 
-        mRightArm.setInverted(true);
-        mLeftArm.setInverted(true);
+        //mRightArm.setInverted(true);
+        //mLeftArm.setInverted(true);
 
         mLeftEncoder = mLeftArm.getEncoder();
         mRightEncoder = mRightArm.getEncoder();
@@ -63,15 +63,16 @@ public class Climber extends StateSubsystem{
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                
+                mLeftArm.set(0);
+                mRightArm.set(0);
                 break;
             case WAIT:
-                mLeftArm.set(-0.1);
-                mRightArm.set(-0.1);
+                mLeftArm.set(-0.5);
+                mRightArm.set(-0.5);
                 break;
             case LIFT:
-                mLeftArm.set(0.1);
-                mRightArm.set(0.1);
+                mLeftArm.set(.6);
+                mRightArm.set(.6);
                 break;
             default:
                 mLeftArm.set(0);
