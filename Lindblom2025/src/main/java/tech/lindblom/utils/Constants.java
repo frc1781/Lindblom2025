@@ -90,6 +90,6 @@ public class Constants {
 
     public class Climber {
         public static final int LEFT_ARM = 62;
-        public static final int RIGHT_ARM = 2;
+        public static final int RIGHT_ARM = 61;
     }
 }

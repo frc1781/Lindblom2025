@@ -21,8 +21,8 @@ public class DriverInput {
         this.controlList = new Control[] {
                 new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
                 new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4)),
-                new Control(0, "X", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.LIFT, 3)),
-                new Control(0, "Y", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.WAIT, 3))
+                //new Control(0, "X", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.LIFT, 3)),
+                //new Control(0, "Y", new RobotController.SubsystemSetting(robotController.climberSystem, Climber.ClimberState.WAIT, 3))
         };
     }
 
