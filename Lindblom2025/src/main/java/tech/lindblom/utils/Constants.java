@@ -1,5 +1,15 @@
 package tech.lindblom.utils;
 
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveModule;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
+import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,51 +25,167 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 public class Constants {
 
     public class Drive {
-        // Left
-        public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 21;
-        public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 20;
-        public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 23;
-        public static final int BACK_LEFT_MODULE_STEER_MOTOR = 22;
+        public static Slot0Configs steerGains = new Slot0Configs()
+                .withKP(100).withKI(0).withKD(0.5)
+                .withKS(0.1).withKV(0).withKA(0)
+                .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
-        // Right
-        public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 26;
-        public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 25;
-        public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 28;
-        public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 27;
+        public static Slot0Configs driveGains = new Slot0Configs()
+                .withKP(0.1).withKI(0).withKD(0)
+                .withKS(0).withKV(0.124);
 
-        // Encoders
-        public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 60;
-        public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 62;
-        public static final int BACK_LEFT_MODULE_STEER_ENCODER = 61;
-        public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 59;
+        public static SwerveModuleConstants.ClosedLoopOutputType steerClosedLoopOutput = SwerveModuleConstants.ClosedLoopOutputType.Voltage;
+        public static SwerveModuleConstants.ClosedLoopOutputType driveClosedLoopOutput = SwerveModuleConstants.ClosedLoopOutputType.Voltage;
 
-        //Drive motor offsets
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -0.038818359375;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.220947265625;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -0.009765625;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -0.290771484375;
+        public static SwerveModuleConstants.DriveMotorArrangement driveMotorType = SwerveModuleConstants.DriveMotorArrangement.TalonFX_Integrated;
+        public static SwerveModuleConstants.SteerMotorArrangement steerMotorType = SwerveModuleConstants.SteerMotorArrangement.TalonFX_Integrated;
+        public static SwerveModuleConstants.SteerFeedbackType steerFeedbackType = SwerveModuleConstants.SteerFeedbackType.FusedCANcoder;
+        public static double slipCurrent = 120;
 
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
-        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(22.75);
-        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.75);
+        public static TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
 
-        public static final double WHEEL_RADIUS = 0.1016;
+        public static TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs()
+                                .withStatorCurrentLimit(60)
+                                .withSupplyCurrentLimitEnable(true)
+                );
 
-        public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
-                (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
+        public static CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
 
-        public static final double DRIVER_TRANSLATION_RATE_LIMIT = 1.2;
-        public static final double DRIVER_ROTATION_RATE_LIMIT = 1.2;
-        public static final double DRIVER_ROTATION_INPUT_MULTIPIER = 0.5;
+        public static double speedAt12Volts = 4.2;
 
-        public static Translation2d FRONT_LEFT_MODULE_POSITION = new Translation2d(DRIVETRAIN_WHEELBASE / 2,
-                DRIVETRAIN_TRACKWIDTH / 2);
-        public static Translation2d FRONT_RIGHT_MODULE_POSITION = new Translation2d(DRIVETRAIN_WHEELBASE / 2,
-                -DRIVETRAIN_TRACKWIDTH / 2);
-        public static Translation2d BACK_LEFT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
-                DRIVETRAIN_TRACKWIDTH / 2);
-        public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
-                -DRIVETRAIN_TRACKWIDTH / 2);
+        public static double coupleRatio = (double) 150 / 7;
+        public static double driveGearRatio = 6.75;
+        public static double steerGearRatio = (double) 150 / 7;
+
+        public static double wheelRadius = 4; //Inches
+
+        public static boolean invertLeftSide = false;
+        public static boolean invertRightSide = true;
+
+        public static double steerInertia = 0.01;
+        public static double driveInertia = 0.01;
+
+        public static double steerFrictionVoltage = 0.2;
+        public static double driveFrictionVoltage = 0.2;
+
+        public static SwerveModuleConstantsFactory ConstantCreator = new SwerveModuleConstantsFactory()
+                .withDriveMotorGearRatio(driveGearRatio)
+                .withSteerMotorGearRatio(steerGearRatio)
+                .withCouplingGearRatio(coupleRatio)
+                .withWheelRadius(wheelRadius)
+                .withSteerMotorGains(steerGains)
+                .withDriveMotorGains(driveGains)
+                .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)
+                .withDriveMotorClosedLoopOutput(driveClosedLoopOutput)
+                .withSlipCurrent(slipCurrent)
+                .withSpeedAt12Volts(speedAt12Volts)
+                .withDriveMotorType(driveMotorType)
+                .withSteerMotorType(steerMotorType)
+                .withFeedbackSource(steerFeedbackType)
+                .withDriveMotorInitialConfigs(driveInitialConfigs)
+                .withSteerMotorInitialConfigs(steerInitialConfigs)
+                .withSteerInertia(steerInertia)
+                .withDriveInertia(driveInertia)
+                .withSteerFrictionVoltage(steerFrictionVoltage)
+                .withDriveFrictionVoltage(driveFrictionVoltage);
+
+        // Front Left
+        public static int frontLeftDriveMotorId = 21;
+        public static int frontLeftSteerMotorId = 20;
+        public static int frontLeftEncoderId = 60;
+        public static double frontLeftEncoderOffset = -0.454345703125;
+        public static boolean frontLeftSteerMotorInverted = false;
+        public static boolean frontLeftEncoderInverted = true;
+
+        public static double frontLeftXPos = 11.375;
+        public static double frontLeftYPos = 11.375;
+
+        // Front Right
+        public static int frontRightDriveMotorId = 26;
+        public static int frontRightSteerMotorId = 25;
+        public static int frontRightEncoderId = 62;
+        public static double frontRightEncoderOffset = 0.21728515625;
+        public static boolean frontRightSteerMotorInverted = false;
+        public static boolean frontRightEncoderInverted = true;
+
+        public static double frontRightXPos = 11.375;
+        public static double frontRightYPos = -11.375;
+
+        // Back Left
+        public static int backLeftDriveMotorId = 23;
+        public static int backLeftSteerMotorId = 22;
+        public static int backLeftEncoderId = 61;
+        public static double backLeftEncoderOffset = -0.484619140625;
+        public static boolean backLeftSteerMotorInverted = false;
+        public static boolean backLeftEncoderInverted = true;
+
+        public static double backLeftXPos = 11.375;
+        public static double backLeftYPos = 11.375;
+
+        // Back Right
+        public static int backRightDriveMotorId = 28;
+        public static int backRightSteerMotorId = 27;
+        public static int backRightEncoderId = 59;
+        public static double backRightEncoderOffset = 0.286865234375;
+        public static boolean backRightSteerMotorInverted = false;
+        public static boolean backRightEncoderInverted = true;
+
+        public static double backRightXPos = -11.375;
+        public static double backRightYPos = -11.375;
+
+        public static SwerveModuleConstants FrontLeft = ConstantCreator
+                .createModuleConstants
+                        (frontLeftSteerMotorId,
+                                frontLeftDriveMotorId,
+                                frontLeftEncoderId,
+                                frontLeftEncoderOffset,
+                                frontLeftXPos,
+                                frontLeftYPos,
+                                invertLeftSide,
+                                frontLeftSteerMotorInverted,
+                                frontLeftEncoderInverted
+                        );
+
+        public static SwerveModuleConstants FrontRight = ConstantCreator
+                .createModuleConstants
+                        (frontRightSteerMotorId,
+                                frontRightDriveMotorId,
+                                frontRightEncoderId,
+                                frontRightEncoderOffset,
+                                frontRightXPos,
+                                frontRightYPos,
+                                invertRightSide,
+                                frontRightSteerMotorInverted,
+                                frontRightEncoderInverted
+                        );
+
+        public static SwerveModuleConstants backLeft = ConstantCreator
+                .createModuleConstants
+                        (backLeftSteerMotorId,
+                                backLeftDriveMotorId,
+                                backLeftEncoderId,
+                                backLeftEncoderOffset,
+                                backLeftXPos,
+                                backLeftYPos,
+                                invertLeftSide,
+                                backLeftSteerMotorInverted,
+                                backLeftEncoderInverted
+                        );
+
+        public static SwerveModuleConstants backRight = ConstantCreator
+                .createModuleConstants
+                        (backRightSteerMotorId,
+                                backRightDriveMotorId,
+                                backRightEncoderId,
+                                backRightEncoderOffset,
+                                backRightXPos,
+                                backRightYPos,
+                                invertRightSide,
+                                backRightSteerMotorInverted,
+                                backRightEncoderInverted
+                        );
     }
 
     public class Auto {
@@ -86,10 +212,5 @@ public class Constants {
 
     public class Controls {
         public static final double DEADZONE = 0.1;
-    }
-
-    public class Climber {
-        public static final int LEFT_ARM = 62;
-        public static final int RIGHT_ARM = 61;
     }
 }

@@ -5,6 +5,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -21,27 +22,15 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
-    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
-            Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
-            Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
-    private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
-            Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
-            Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, true);
-    private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
-            Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
-            Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, false);
-    private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
-            Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
-            Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, true);
+    private final DoubleKrakenSwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module", Constants.Drive.FrontLeft);
+    private final DoubleKrakenSwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module", Constants.Drive.FrontRight);
+    private final DoubleKrakenSwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module", Constants.Drive.backLeft);
+    private final DoubleKrakenSwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module", Constants.Drive.backRight);
 
     // Odometry & Kinematics
-    public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
-            Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
-            Constants.Drive.BACK_RIGHT_MODULE_POSITION);
+    public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(new Translation2d(Constants.Drive.frontLeftXPos, Constants.Drive.frontLeftYPos),
+            new Translation2d(Constants.Drive.frontRightXPos, Constants.Drive.frontRightYPos), new Translation2d(Constants.Drive.backLeftXPos, Constants.Drive.backLeftYPos),
+            new Translation2d(Constants.Drive.backRightXPos, Constants.Drive.backRightYPos));
 
     public final AHRS navX = new AHRS(SPI.Port.kMXP);
 
@@ -76,7 +65,7 @@ public class Drive extends Subsystem {
         }
 
         SwerveModuleState[] moduleStates = swerveDriveKinematics.toSwerveModuleStates(speeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.speedAt12Volts);
 
         Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
 

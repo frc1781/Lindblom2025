@@ -15,9 +15,11 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
@@ -26,7 +28,9 @@ import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
 
-public class DoubleKrakenSwerveModule extends SwerveModule {
+public class DoubleKrakenSwerveModule {
+    private String name;
+
     private final TalonFX driveMotor;
     private final TalonFX steerMotor;
     private final CANcoder steerEncoder;
@@ -43,57 +47,39 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
     private final SwerveModulePosition internalState = new SwerveModulePosition();
 
-    public DoubleKrakenSwerveModule(String name, int driveMotorID, int steerMotorId, int cancoderId, double cancoderOffset, boolean isInverted) {
-        super(name, driveMotorID, steerMotorId, cancoderId, cancoderOffset);
-        driveMotor = new TalonFX(driveMotorID);
-        steerMotor = new TalonFX(steerMotorId);
-        steerEncoder = new CANcoder(cancoderId);
+    public DoubleKrakenSwerveModule(String name, SwerveModuleConstants constants) {
+        this.name = name;
+        driveMotor = new TalonFX(constants.DriveMotorId);
+        steerMotor = new TalonFX(constants.SteerMotorId);
+        steerEncoder = new CANcoder(constants.EncoderId);
 
         TalonFXConfiguration talonConfigs = new TalonFXConfiguration();
 
-        talonConfigs.Slot0.kP = moduleConfiguration().drivingP;
-        talonConfigs.Slot0.kI = moduleConfiguration().drivingI;
-        talonConfigs.Slot0.kD = moduleConfiguration().drivingD;
-        talonConfigs.Slot0.kV = moduleConfiguration().drivingKV;
-        talonConfigs.Slot0.kA = moduleConfiguration().drivingKA;
-        talonConfigs.Slot0.kS = moduleConfiguration().drivingKS;
-        talonConfigs.TorqueCurrent.PeakForwardTorqueCurrent = 400;
-        talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -400;
+        talonConfigs.Slot0 = constants.DriveMotorGains;
+        talonConfigs.TorqueCurrent.PeakForwardTorqueCurrent = constants.SlipCurrent;
+        talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
         driveMotor.getConfigurator().apply(talonConfigs);
 
-        /* Undo changes for torqueCurrent */
         talonConfigs.TorqueCurrent = new TorqueCurrentConfigs();
 
-        talonConfigs.Slot0 = new Slot0Configs();
-        talonConfigs.Slot0.kP = moduleConfiguration().turningP;
-        talonConfigs.Slot0.kI = moduleConfiguration().turningI;
-        talonConfigs.Slot0.kD = moduleConfiguration().turningD;
+        talonConfigs.Slot0 = constants.SteerMotorGains;
 
-        // Modify configuration to use remote CANcoder fused
-        talonConfigs.Feedback.FeedbackRemoteSensorID = cancoderId;
-        talonConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        talonConfigs.Feedback.SensorToMechanismRatio = moduleConfiguration().metersPerRevolution;
+        talonConfigs.Feedback.FeedbackRemoteSensorID = constants.EncoderId;
         talonConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        talonConfigs.Feedback.RotorToSensorRatio = (1 / (14.0 / 50.0) * (10.0 / 60.0)); // or this over (14.0 / 50.0) * (10.0 / 60.0)
+        talonConfigs.Feedback.RotorToSensorRatio = constants.SteerMotorGearRatio;
 
         talonConfigs.ClosedLoopGeneral.ContinuousWrap =
-                true; // Enable continuous wrap for swerve modules
+                true;
 
         talonConfigs.MotorOutput.Inverted =
-                isInverted
+                constants.SteerMotorInverted
                         ? InvertedValue.Clockwise_Positive
                         : InvertedValue.CounterClockwise_Positive;
         steerMotor.getConfigurator().apply(talonConfigs);
 
         CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
-        cancoderConfigs.MagnetSensor.MagnetOffset = cancoderOffset;
-        cancoderConfigs.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
-        cancoderConfigs.MagnetSensor.SensorDirection = 
-            isInverted
-                ? SensorDirectionValue.Clockwise_Positive
-                : SensorDirectionValue.CounterClockwise_Positive;
-        
-        steerEncoder.getConfigurator().apply(cancoderConfigs); 
+        cancoderConfigs.MagnetSensor.MagnetOffset = constants.EncoderOffset;
+        steerEncoder.getConfigurator().apply(cancoderConfigs);
 
         drivePosition = driveMotor.getPosition();
         driveVelocity = driveMotor.getVelocity();
@@ -106,8 +92,8 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         signals[2] = steerPosition;
         signals[3] = steerVelocity;
 
-        double rotationsPerWheelRotation = moduleConfiguration().radiansPerRevolution;
-        double metersPerWheelRotation = moduleConfiguration().metersPerRevolution;
+        double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
+        double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
         driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
     }
 
@@ -115,7 +101,6 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         return signals;
     }
 
-    @Override
     public Rotation2d getAbsoluteAngle() {
         double reportedVal = steerEncoder.getAbsolutePosition().getValueAsDouble();
 
@@ -127,7 +112,6 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         return new Rotation2d(reportedVal * 2 * Math.PI);
     }
 
-    @Override
     public SwerveModulePosition getModulePosition() {
         drivePosition.refresh();
         driveVelocity.refresh();
@@ -145,30 +129,25 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         return internalState;
     }
 
-    @Override
     public SwerveModuleState getCurrentState() {
-        return new SwerveModuleState(driveVelocity.getValueAsDouble(), getAbsoluteAngle());
+        SwerveModulePosition currentState = getModulePosition();
+        return new SwerveModuleState(driveMotor.getVelocity().getValueAsDouble(), currentState.angle);
     }
 
-    @Override
     public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
         sentDesiredState.optimize(internalState.angle);
-        Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
 
-        double angleToSetDeg = sentDesiredState.angle.getRadians();
-        Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
+        double angleToSetDeg = sentDesiredState.angle.getRotations();
         steerMotor.setControl(angleSetter.withPosition(angleToSetDeg));
         double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
+        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+
+        Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
+        Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
         Logger.recordOutput("DriveModules/" + this.name + "/Requested Velocity", velocityToSet);
-        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet).withFeedForward(moduleConfiguration().drivingFF));
         Logger.recordOutput("DriveModules/" + this.name + "/Drive Voltage", driveMotor.getMotorVoltage().getValueAsDouble());
         Logger.recordOutput("DriveModules/" + this.name + "/Turn Voltage", steerMotor.getMotorVoltage().getValueAsDouble()
         );
-    }
-
-    @Override
-    void syncRelativeToAbsoluteEncoder() {
-
     }
 
     static SwerveModuleConfiguration moduleConfiguration() {
@@ -181,7 +160,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingP = 10;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
-        ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+        ret_val.drivingFF = 1.0 / (Constants.Drive.speedAt12Volts);
         ret_val.drivingKS = 0.0154;
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;

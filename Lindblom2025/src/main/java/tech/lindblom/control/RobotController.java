@@ -169,16 +169,16 @@ public class RobotController {
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
-        double rotVelocity = -rotation.getX() * Constants.Drive.DRIVER_ROTATION_INPUT_MULTIPIER;
+        double rotVelocity = -rotation.getX() * 1;
 
         Logger.recordOutput("Driver/movement/x", translation.getX());
         Logger.recordOutput("Driver/rotation/x", rotation.getX());
         Logger.recordOutput("Driver/movement/y", translation.getY());
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
 
-        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.speedAt12Volts;
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.speedAt12Volts;
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.speedAt12Volts;
 
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }

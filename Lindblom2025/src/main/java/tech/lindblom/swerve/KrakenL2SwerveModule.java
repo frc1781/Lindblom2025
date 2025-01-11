@@ -193,7 +193,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
         ret_val.drivingP = 0;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
-        ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+        ret_val.drivingFF = 1.0 / (Constants.Drive.speedAt12Volts);
         ret_val.drivingKS = 0.0154;
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
