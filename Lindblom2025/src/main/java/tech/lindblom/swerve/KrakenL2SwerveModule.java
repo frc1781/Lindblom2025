@@ -65,7 +65,10 @@ public class KrakenL2SwerveModule extends SwerveModule {
         driveConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0;
         driveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0; 
         
-        mDriveMotor.getConfigurator().apply(driveConfig);
+        StatusCode driveConfigStatusCode = mDriveMotor.getConfigurator().apply(driveConfig);
+        if (driveConfigStatusCode != StatusCode.OK) {
+            DriverStation.reportError("Could not configure CANCoder with ID: " + driveMotorID, false);
+        }
 
         mTurnMotor = new SparkMax(turnMotorID, SparkLowLevel.MotorType.kBrushless);
 
@@ -155,7 +158,7 @@ public class KrakenL2SwerveModule extends SwerveModule {
     }
 
     private double getDriveMotorSpeed() {
-        return mDriveMotor.getVelocity().getValueAsDouble();
+        return mDriveMotor.getVelocity().getValueAsDouble() * moduleConfiguration().metersPerRevolution;
     }
 
     private double getDriveMotorPosition() {

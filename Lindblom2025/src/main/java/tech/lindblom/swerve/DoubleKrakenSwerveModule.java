@@ -1,6 +1,7 @@
 package tech.lindblom.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -24,6 +25,8 @@ import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.SwerveModuleConfiguration;
@@ -60,6 +63,12 @@ public class DoubleKrakenSwerveModule {
         talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
         driveMotor.getConfigurator().apply(talonConfigs);
 
+        StatusCode driveConfigStatusCode = driveMotor.getConfigurator().apply(talonConfigs);
+        if (driveConfigStatusCode != StatusCode.OK) {
+            System.err.println("COULD NOT CONFIGURE THE FOLLOWING MOTOR: " + constants.DriveMotorId);
+        }
+
+
         talonConfigs.TorqueCurrent = new TorqueCurrentConfigs();
 
         talonConfigs.Slot0 = constants.SteerMotorGains;
@@ -79,7 +88,8 @@ public class DoubleKrakenSwerveModule {
 
         CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
         cancoderConfigs.MagnetSensor.MagnetOffset = constants.EncoderOffset;
-        cancoderConfigs.MagnetSensor.SensorDirection = constants.EncoderInverted ? SensorDirectionValue.CounterClockwise_Positive : SensorDirectionValue.Clockwise_Positive;
+        cancoderConfigs.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+                //SensorDirectionValue.CounterClockwise_Positive : SensorDirectionValue.Clockwise_Positive;
         steerEncoder.getConfigurator().apply(cancoderConfigs);
 
         drivePosition = driveMotor.getPosition();
@@ -96,21 +106,6 @@ public class DoubleKrakenSwerveModule {
         double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
         double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
         driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
-    }
-
-    BaseStatusSignal[] getSignals() {
-        return signals;
-    }
-
-    public Rotation2d getAbsoluteAngle() {
-        double reportedVal = steerEncoder.getAbsolutePosition().getValueAsDouble();
-
-        reportedVal = reportedVal % 1.0;
-        if(reportedVal < 0) {
-            reportedVal += 1.0;
-        }
-
-        return new Rotation2d(reportedVal * 2 * Math.PI);
     }
 
     public SwerveModulePosition getModulePosition() {
@@ -130,22 +125,35 @@ public class DoubleKrakenSwerveModule {
         return internalState;
     }
 
+    public Rotation2d getAbsoluteAngle() {
+        double reportedVal = steerEncoder.getAbsolutePosition().getValueAsDouble();
+
+        reportedVal = reportedVal % 1.0;
+        if(reportedVal < 0) {
+            reportedVal += 1.0;
+        }
+
+        return new Rotation2d(reportedVal * 2 * Math.PI);
+    }
+
+    public double getDriveVelocity() {
+        return driveMotor.getVelocity().getValueAsDouble() * moduleConfiguration().metersPerRevolution;
+    }
+
     public SwerveModuleState getCurrentState() {
-        SwerveModulePosition currentState = getModulePosition();
-        return new SwerveModuleState(driveMotor.getVelocity().getValueAsDouble(), currentState.angle);
+        return new SwerveModuleState(getDriveVelocity(), Rotation2d.fromRotations(steerEncoder.getAbsolutePosition().getValueAsDouble()));
     }
 
     public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
         sentDesiredState.optimize(getAbsoluteAngle());
 
-        double angleToSetDeg = sentDesiredState.angle.getRotations();
+        double angleToSetDeg = sentDesiredState.angle.getDegrees();
         steerMotor.setControl(new PositionVoltage(angleToSetDeg));
-        //double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
-        //driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+        double velocityToSet = sentDesiredState.speedMetersPerSecond;
+        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
 
         Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
         Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
-        //Logger.recordOutput("DriveModules/" + this.name + "/Requested Velocity", velocityToSet);
         Logger.recordOutput("DriveModules/" + this.name + "/Drive Voltage", driveMotor.getMotorVoltage().getValueAsDouble());
         Logger.recordOutput("DriveModules/" + this.name + "/Turn Voltage", steerMotor.getMotorVoltage().getValueAsDouble()
         );
@@ -158,6 +166,11 @@ public class DoubleKrakenSwerveModule {
         ret_val.velocityConversion = ret_val.metersPerRevolution / 60.0;
         ret_val.radiansPerSecond = ret_val.radiansPerRevolution / 60.0;
 
+
+        // SparkMax (NEO) / VORTEX?
+        // Motor for pivot 1 motor
+        // 2 motors for elevator
+        // one inverted and follows
         ret_val.drivingP = 10;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;

@@ -24,8 +24,8 @@ import tech.lindblom.utils.EnumCollection;
 public class Drive extends Subsystem {
     private final DoubleKrakenSwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module", Constants.Drive.FrontLeft);
     private final DoubleKrakenSwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module", Constants.Drive.FrontRight);
-    private final DoubleKrakenSwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module", Constants.Drive.backLeft);
-    private final DoubleKrakenSwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module", Constants.Drive.backRight);
+    private final DoubleKrakenSwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module", Constants.Drive.BackLeft);
+    private final DoubleKrakenSwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module", Constants.Drive.BackRight);
 
     // Odometry & Kinematics
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(new Translation2d(Constants.Drive.frontLeftXPos, Constants.Drive.frontLeftYPos),
