@@ -42,29 +42,30 @@ public class Elevator extends StateSubsystem {
 
     private AbsoluteEncoder elevatorAbsoluteEncoder;
 
-
     public Elevator() {
         super("Elevator", ArmState.SAFE);
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, SparkLowLevel.MotorType.kBrushless);
         motorLeft = new SparkMax(Constants.Elevator.LEFT_ELEVATOR_MOTOR, SparkLowLevel.MotorType.kBrushless);
 
-        //Motor Config
         SparkMaxConfig motorRightConfig = new SparkMaxConfig();
-        motorRight.configure(motorRightConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
         SparkMaxConfig motorLeftConfig = new SparkMaxConfig();
-        motorLeft.configure(motorLeftConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+
+        //Motor Config
+        motorRightConfig.smartCurrentLimit(40);
+        motorLeftConfig.smartCurrentLimit(40);
+        motorLeftConfig.follow(motorRight, true);
 
         //PID Config
         motorRightConfig.closedLoop.p(0);
         motorRightConfig.closedLoop.i(0);
         motorRightConfig.closedLoop.d(0);
-        motorLeftConfig.follow(motorRight);
 
         //Encoder Config
         motorRightConfig.encoder.positionConversionFactor(0);
         motorLeftConfig.encoder.positionConversionFactor(0);
 
-        
+        motorRight.configure(motorRightConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+        motorLeft.configure(motorLeftConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
     }
 
 
