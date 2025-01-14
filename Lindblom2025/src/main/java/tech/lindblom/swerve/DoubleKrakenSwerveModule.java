@@ -130,7 +130,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
 
-        double turningControllerOutput = turningController.calculate(new Rotation2d(mTurnMotor.getPosition().getValue()).getRadians(), optimizedState.angle.getRadians());
+        double turningControllerOutput = turningController.calculate(getAbsoluteAngle().getRadians(), optimizedState.angle.getRadians());
 
         Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
 
@@ -175,8 +175,8 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = .2;
-        ret_val.turningI = 0.01;
+        ret_val.turningP = 0.1;
+        ret_val.turningI = 0.1;
         ret_val.turningD = 0;
         ret_val.turningFF = 0.0;
 
