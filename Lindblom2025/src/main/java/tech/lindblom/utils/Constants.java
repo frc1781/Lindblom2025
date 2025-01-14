@@ -27,7 +27,7 @@ public class Constants {
     public class Drive {
         public static Slot0Configs steerGains = new Slot0Configs()
                 .withKP(1).withKI(0).withKD(0.01)
-                .withKS(0.1).withKV(0).withKA(0)
+                .withKS(0).withKV(0).withKA(0)
                 .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
 
         public static Slot0Configs driveGains = new Slot0Configs()
@@ -42,12 +42,7 @@ public class Constants {
         public static SwerveModuleConstants.SteerFeedbackType steerFeedbackType = SwerveModuleConstants.SteerFeedbackType.FusedCANcoder;
         public static double slipCurrent = 120;
 
-        public static TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
-
-                .withFeedback(
-                        new FeedbackConfigs()
-                                .withSensorToMechanismRatio(1 / (0.1016 * Math.PI * (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0) * .9766))
-                );
+        public static TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
 
         public static TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
                 .withCurrentLimits(
@@ -70,8 +65,8 @@ public class Constants {
 
         public static double wheelRadius = Units.inchesToMeters(4); //Inches
 
-        public static boolean invertLeftSide = true;
-        public static boolean invertRightSide = false;
+        public static boolean invertLeftSide = false;
+        public static boolean invertRightSide = true;
 
         public static double steerInertia = 0.01;
         public static double driveInertia = 0.01;
@@ -120,7 +115,7 @@ public class Constants {
         public static boolean frontRightEncoderInverted = true;
 
         public static double frontRightXPos = Units.inchesToMeters(11.375);
-        public static double frontRightYPos = -Units.inchesToMeters(-11.375);
+        public static double frontRightYPos = Units.inchesToMeters(-11.375);
 
         // Back Left
         public static int backLeftDriveMotorId = 23;

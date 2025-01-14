@@ -61,13 +61,17 @@ public class DoubleKrakenSwerveModule {
         talonConfigs.Slot0 = constants.DriveMotorGains;
         talonConfigs.TorqueCurrent.PeakForwardTorqueCurrent = constants.SlipCurrent;
         talonConfigs.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
+        talonConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        talonConfigs.MotorOutput.Inverted =
+                constants.DriveMotorInverted
+                    ? InvertedValue.Clockwise_Positive
+                        : InvertedValue.CounterClockwise_Positive;
         driveMotor.getConfigurator().apply(talonConfigs);
 
         StatusCode driveConfigStatusCode = driveMotor.getConfigurator().apply(talonConfigs);
         if (driveConfigStatusCode != StatusCode.OK) {
             System.err.println("COULD NOT CONFIGURE THE FOLLOWING MOTOR: " + constants.DriveMotorId);
         }
-
 
         talonConfigs.TorqueCurrent = new TorqueCurrentConfigs();
 
@@ -77,8 +81,7 @@ public class DoubleKrakenSwerveModule {
         talonConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         talonConfigs.Feedback.RotorToSensorRatio = constants.SteerMotorGearRatio;
 
-        talonConfigs.ClosedLoopGeneral.ContinuousWrap =
-                true;
+        talonConfigs.ClosedLoopGeneral.ContinuousWrap = true;
 
         talonConfigs.MotorOutput.Inverted =
                 constants.SteerMotorInverted
@@ -89,7 +92,6 @@ public class DoubleKrakenSwerveModule {
         CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
         cancoderConfigs.MagnetSensor.MagnetOffset = constants.EncoderOffset;
         cancoderConfigs.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-                //SensorDirectionValue.CounterClockwise_Positive : SensorDirectionValue.Clockwise_Positive;
         steerEncoder.getConfigurator().apply(cancoderConfigs);
 
         drivePosition = driveMotor.getPosition();
@@ -121,39 +123,33 @@ public class DoubleKrakenSwerveModule {
 
         internalState.distanceMeters = drive_rot.baseUnitMagnitude() / driveRotationsPerMeter;
         internalState.angle = Rotation2d.fromRotations(angle_rot.baseUnitMagnitude());
-
         return internalState;
     }
 
     public Rotation2d getAbsoluteAngle() {
         double reportedVal = steerEncoder.getAbsolutePosition().getValueAsDouble();
 
-        reportedVal = reportedVal % 1.0;
-        if(reportedVal < 0) {
-            reportedVal += 1.0;
-        }
-
-        return new Rotation2d(reportedVal * 2 * Math.PI);
+        return Rotation2d.fromRotations(reportedVal);
     }
 
     public double getDriveVelocity() {
-        return driveMotor.getVelocity().getValueAsDouble() * moduleConfiguration().metersPerRevolution;
+        return driveMotor.getVelocity().getValueAsDouble();
     }
 
     public SwerveModuleState getCurrentState() {
-        return new SwerveModuleState(getDriveVelocity(), Rotation2d.fromRotations(steerEncoder.getAbsolutePosition().getValueAsDouble()));
+        return new SwerveModuleState(getDriveVelocity(), getAbsoluteAngle());
     }
 
     public void runDesiredModuleState(SwerveModuleState sentDesiredState) {
         sentDesiredState.optimize(getAbsoluteAngle());
 
-        double angleToSetDeg = sentDesiredState.angle.getDegrees();
-        steerMotor.setControl(new PositionVoltage(angleToSetDeg));
-        double velocityToSet = sentDesiredState.speedMetersPerSecond;
-        driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
+        double angleToSetRot = sentDesiredState.angle.getRotations();
+        //steerMotor.setControl(angleSetter.withPosition(angleToSetRot)); // Rad or Deg, what is expected what should be sent?
+        double velocityToSet = sentDesiredState.speedMetersPerSecond * driveRotationsPerMeter;
+        //driveMotor.setControl(velocitySetter.withVelocity(velocityToSet));
 
         Logger.recordOutput("DriveModules/" + this.name + "/Optimized State", sentDesiredState);
-        Logger.recordOutput("DriveModules/" + this.name + "/Requested Angle", angleToSetDeg);
+        Logger.recordOutput("DriveModules/" + this.name + "/Requested Rotations", angleToSetRot);
         Logger.recordOutput("DriveModules/" + this.name + "/Drive Voltage", driveMotor.getMotorVoltage().getValueAsDouble());
         Logger.recordOutput("DriveModules/" + this.name + "/Turn Voltage", steerMotor.getMotorVoltage().getValueAsDouble()
         );
