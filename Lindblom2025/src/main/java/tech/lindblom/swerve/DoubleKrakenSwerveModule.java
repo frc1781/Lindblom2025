@@ -143,7 +143,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
 
-        //mDriveMotor.set(FF);
+        mDriveMotor.set(FF);
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
