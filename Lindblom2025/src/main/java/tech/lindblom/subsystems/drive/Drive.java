@@ -113,6 +113,7 @@ public class Drive extends Subsystem {
     public void zeroNavX() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
+        
         swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }

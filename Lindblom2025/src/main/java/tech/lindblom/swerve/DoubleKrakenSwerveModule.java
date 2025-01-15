@@ -88,9 +88,8 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
 
         mTurnMotor.getConfigurator().apply(turnConfig);
-        mTurnMotor.setPosition(getAbsoluteAngle().getRadians());
-        turningController.enableContinuousInput(0, 2 * Math.PI);
-        turningController.reset(getAbsoluteAngle().getRadians());
+        turningController.enableContinuousInput(0.999755859375, -1);
+        turningController.reset(getAbsoluteRotation());
 
         Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
         Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
@@ -105,20 +104,18 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + name + "/Turn Requested Position", 0.0);
     }
 
-    public Rotation2d getAbsoluteAngle() {
-        double reportedVal = mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
-
-        reportedVal = reportedVal % 1.0;
-        if(reportedVal < 0) {
-            reportedVal += 1.0;
-        }
-
-        return new Rotation2d(reportedVal * 2 * Math.PI);
+    public double getAbsoluteRotation() {
+        return mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
     }
 
     public SwerveModuleState getCurrentState() {
-        Logger.recordOutput("DriveModule/" + this.name + "/Turn CAN" ,getAbsoluteAngle().getRadians());
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn CAN" ,getAbsoluteAngle());
         return new SwerveModuleState(getDriveMotorSpeed(), getAbsoluteAngle());
+    }
+
+    @Override
+    public Rotation2d getAbsoluteAngle() {
+        return Rotation2d.fromRotations(getAbsoluteRotation());
     }
 
     public SwerveModulePosition getModulePosition() {
@@ -128,13 +125,14 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     public void runDesiredModuleState(SwerveModuleState desiredState) {
         SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRadians());
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(optimizedState.angle.getRotations() - getAbsoluteRotation()));
 
-        double turningControllerOutput = turningController.calculate(getAbsoluteAngle().getRadians(), optimizedState.angle.getRadians());
-
-        Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
-
-        mTurnMotor.set(turningControllerOutput);
+        if (Math.abs(optimizedState.angle.getRotations() - getAbsoluteRotation()) > 0.01) {
+            double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), optimizedState.angle.getRotations());
+            Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
+            mTurnMotor.set(turningControllerOutput);
+        }
 
         double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
 
@@ -176,7 +174,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKA = 0.3;
 
         ret_val.turningP = 0.1;
-        ret_val.turningI = 0.1;
+        ret_val.turningI = 0;
         ret_val.turningD = 0;
         ret_val.turningFF = 0.0;
 
