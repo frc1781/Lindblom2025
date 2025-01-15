@@ -48,7 +48,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         mDriveMotor = new TalonFX(driveMotorID);
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 
-        driveConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        driveConfig.MotorOutput.Inverted = isInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
         driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         driveConfig.Feedback.SensorToMechanismRatio = moduleConfiguration().metersPerRevolution; // not sure
         driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -73,11 +73,12 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         mTurnMotor = new TalonFX(turnMotorID);
         TalonFXConfiguration turnConfig = new TalonFXConfiguration();
-        if (inverted) {
-            turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        } else {
-            turnConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        }
+        // if (inverted) {
+        //     turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        // } else {
+        //     turnConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        // }
+        turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         turnConfig.CurrentLimits.SupplyCurrentLimit = 35;
         turnConfig.CurrentLimits.withSupplyCurrentLimit(60);
@@ -129,15 +130,16 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
 
-        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
+        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), Rotation2d.fromDegrees(0).getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
         //if (this.name.equals("Front Left Module")) {
             mTurnMotor.set(turningControllerOutput);
-            System.out.printf("%.4f %.4f %.4f\n",
-            turningControllerOutput,
-            getAbsoluteRotation(),
-            desiredState.angle.getRotations()
-            );
+            //  System.out.printf("%s %.4f %.4f %.4f\n",
+            //  this.name,
+            //  turningControllerOutput,
+            //  getAbsoluteRotation(),
+            //  desiredState.angle.getRotations()
+            // );
         //}
         double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
 
@@ -178,7 +180,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = 6;
+        ret_val.turningP = 5;
         ret_val.turningI = 0;
         ret_val.turningD = 0.0;
         ret_val.turningFF = 0.0;

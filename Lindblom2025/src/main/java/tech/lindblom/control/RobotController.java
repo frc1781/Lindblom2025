@@ -10,6 +10,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
+import tech.lindblom.subsystems.auto.routines.TwoFarNote;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -47,7 +48,8 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine()
+                new TestRoutine(),
+                new TwoFarNote()
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
