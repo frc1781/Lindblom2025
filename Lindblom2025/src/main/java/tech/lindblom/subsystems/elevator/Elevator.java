@@ -1,69 +1,64 @@
 package tech.lindblom.subsystems.elevator;
 
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
-
-import org.littletonrobotics.junction.Logger;
-
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import org.littletonrobotics.junction.Logger;
-
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.Timer;
 import tech.lindblom.subsystems.types.StateSubsystem;
-import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
 
 public class Elevator extends StateSubsystem {
-    private SparkMax motorRight, motorLeft;
-    private RelativeEncoder rightEncoder = motorRight.getEncoder();
-    private RelativeEncoder leftEncoder = motorLeft.getEncoder();
+    private SparkMax motorRight;
+    private RelativeEncoder rightEncoder;
+    private SparkClosedLoopController rightPIDController;
+    private SparkMax motorLeft;
+    private RelativeEncoder leftEncoder;
+    private SparkClosedLoopController leftPIDController;
 
     public Elevator() {
         super("Elevator", ElevatorState.SAFE);
-        motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, SparkLowLevel.MotorType.kBrushless);
-        motorLeft = new SparkMax(Constants.Elevator.LEFT_ELEVATOR_MOTOR, SparkLowLevel.MotorType.kBrushless);
 
-        SparkMaxConfig motorRightConfig = new SparkMaxConfig();
-        SparkMaxConfig motorLeftConfig = new SparkMaxConfig();
+        SparkMaxConfig elevatorConfig = new SparkMaxConfig();
 
-        //Motor Config
-        motorRightConfig.idleMode(IdleMode.kBrake);
-        motorLeftConfig.idleMode(IdleMode.kBrake);
-        motorRightConfig.smartCurrentLimit(40);
-        motorLeftConfig.smartCurrentLimit(40);
-        motorLeftConfig.follow(motorRight, true);
-        motorRightConfig.softLimit.forwardSoftLimitEnabled(false);
-        motorRightConfig.softLimit.forwardSoftLimitEnabled(false);
+        elevatorConfig.closedLoop.pid(0,0,0);
+        elevatorConfig.closedLoop.iZone(0);
+        elevatorConfig.closedLoop.minOutput(0);
+        elevatorConfig.closedLoop.maxOutput(0);
 
+        elevatorConfig.smartCurrentLimit(0);
 
-        //PID Config
-        motorRightConfig.closedLoop.p(0);
-        motorRightConfig.closedLoop.i(0);
-        motorRightConfig.closedLoop.d(0);
+        elevatorConfig.idleMode(IdleMode.kBrake);
 
-        //Encoder Config
-        motorRightConfig.encoder.positionConversionFactor(0);
-        motorRightConfig.encoder.velocityConversionFactor(0);
+        //Right Elevator Motor
+        motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
+        rightEncoder = motorRight.getEncoder();
+        rightPIDController = motorRight.getClosedLoopController();
+        motorRight.configure(elevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        rightEncoder.setPosition(0.0);
-        leftEncoder.setPosition(0.0);
+        //Left Elevator Motor
+        motorLeft = new SparkMax(Constants.Elevator.LEFT_ELEVATOR_MOTOR, MotorType.kBrushless);
+        leftEncoder = motorLeft.getEncoder();
+        leftPIDController = motorLeft.getClosedLoopController();
+        motorLeft.configure(elevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
 
-        motorRight.configure(motorRightConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
-        motorLeft.configure(motorLeftConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+    public enum ElevatorState implements SubsystemState {
+        SAFE,
+        L1,
+        L2,
+        L3,
+        L4
     }
 
 
@@ -85,13 +80,5 @@ public class Elevator extends StateSubsystem {
     public void periodic() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'periodic'");
-    }
-
-    public enum ElevatorState implements SubsystemState {
-        L1,
-        L2,
-        L3,
-        L4,
-        SAFE
     }
 }
