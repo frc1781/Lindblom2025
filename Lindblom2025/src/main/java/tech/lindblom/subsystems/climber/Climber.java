@@ -30,21 +30,31 @@ public class Climber extends StateSubsystem{
 
     @Override
     public boolean matchesState() {
-        return this.getCurrentState() == ClimberState.IDLE;
+        return getCurrentState() == ClimberState.IDLE;
     }
 
     @Override
     public void init() {
+
         switch((ClimberState)getCurrentState()) {
             case IDLE:
+                mLeftEncoder.setPosition(1/4); //SUBJECT TO CHANGE
+                mRightEncoder.setPosition(1/4); //SUBJECT TO CHANGE
+
                 mLeftArm.set(0);
                 mRightArm.set(0);
                 break;
             case WAIT:
+                mLeftEncoder.setPosition(0); //SUBJECT TO CHANGE
+                mRightEncoder.setPosition(0); //SUBJECT TO CHANGE
+
                 mLeftArm.set(0);
                 mRightArm.set(0);
                 break;
             case LIFT:
+                mLeftEncoder.setPosition(0); //SUBJECT TO CHANGE(Unit is rotations)
+                mRightEncoder.setPosition(0); //SUBJECT TO CHANGE(Unit is rotations)
+
                 mLeftArm.set(0);
                 mRightArm.set(0);
                 break;
@@ -52,7 +62,6 @@ public class Climber extends StateSubsystem{
                 mLeftArm.set(0);
                 mRightArm.set(0);
                 break;
-
         }
     }
 
@@ -61,24 +70,45 @@ public class Climber extends StateSubsystem{
         Rotation2d mLeftMotorPosition = Rotation2d.fromRotations(mLeftEncoder.getPosition());
         Rotation2d mRightMotorPosition = Rotation2d.fromRotations(mRightEncoder.getPosition());
 
+        double mLeftMotorVelocity = mLeftEncoder.getVelocity();  //unit is ROTATIONS per MINUTE(NOT SECONDS)
+        double mRightMotorVelocity = mRightEncoder.getVelocity();  //unit is ROTATIONS per MINUTE(NOT SECONDS)
+
+        double leftMotorDutyCycle = 0;
+        double rightMotorDutyCycle = 0;
+
+
+
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                
+
+
                 break;
             case WAIT:
-                mLeftArm.set(-0.1);
-                mRightArm.set(-0.1);
+                leftMotorDutyCycle = -0.1;
+                rightMotorDutyCycle = -0.1;
                 break;
             case LIFT:
-                mLeftArm.set(0.1);
-                mRightArm.set(0.1);
+                leftMotorDutyCycle = 0.1;
+                rightMotorDutyCycle = 0.1;
                 break;
             default:
-                mLeftArm.set(0);
-                mRightArm.set(0);
+                leftMotorDutyCycle = 0;
+                rightMotorDutyCycle = 0;
                 break;
-
         }
+
+        if (Math.abs(mLeftMotorVelocity) > 20) {    //Subject to change
+            //slow down left motor by 3/4ths (idk how much more)
+            leftMotorDutyCycle *= 1/4;
+        }
+
+        if (Math.abs(mRightMotorVelocity) > 20) {     //Subject to change
+            //slow down left motor by 3/4ths (idk how much more)
+            rightMotorDutyCycle *= 1/4;
+        }
+
+        mLeftArm.set(leftMotorDutyCycle);
+        mRightArm.set(rightMotorDutyCycle);
     }
 
     public enum ClimberState implements SubsystemState{

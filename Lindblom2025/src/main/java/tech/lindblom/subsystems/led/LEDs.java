@@ -46,6 +46,8 @@ public class LEDs extends StateSubsystem {
             case BLUE:
                 solid(0, 0, 255);
                 break;
+            case EXPECTED_FAIL:
+                break;
         }
         mLedController.setData(mLedBuffer);
     }
