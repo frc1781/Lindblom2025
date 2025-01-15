@@ -58,7 +58,7 @@ public class RobotController {
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
-        subsystems.add(visionSystem);
+        //subsystems.add(visionSystem);
         subsystems.add(autoSystem);
         createActions();
     }

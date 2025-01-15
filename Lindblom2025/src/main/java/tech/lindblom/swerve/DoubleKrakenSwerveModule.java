@@ -34,12 +34,10 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     );
 
     private final ProfiledPIDController turningController = new ProfiledPIDController(
-            moduleConfiguration().turningP,
-            moduleConfiguration().turningI,
-            moduleConfiguration().turningD,
-            new TrapezoidProfile.Constraints(
-                    moduleConfiguration().minTurningMotorVoltage, moduleConfiguration().maxTurningMotorVoltage
-            )
+             moduleConfiguration().turningP,
+             moduleConfiguration().turningI,
+             moduleConfiguration().turningD,
+            new TrapezoidProfile.Constraints(8, 16) 
     );
 
 
@@ -88,7 +86,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
 
         mTurnMotor.getConfigurator().apply(turnConfig);
-        turningController.enableContinuousInput(0.999755859375, -1);
+        turningController.enableContinuousInput(0, 1);
         turningController.reset(getAbsoluteRotation());
 
         Logger.recordOutput("DriveModule/" + name + "/Offset", cancoderOffset);
@@ -105,7 +103,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     }
 
     public double getAbsoluteRotation() {
-        return mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
+        double ret = mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble();
+        ret = Math.abs(ret);
+        return ret;
     }
 
     public SwerveModuleState getCurrentState() {
@@ -123,22 +123,27 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     }
 
     public void runDesiredModuleState(SwerveModuleState desiredState) {
-        SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
-        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", optimizedState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", optimizedState.angle.getRotations());
-        Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(optimizedState.angle.getRotations() - getAbsoluteRotation()));
+        //SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
+        desiredState.optimize(getAbsoluteAngle());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
 
-        if (Math.abs(optimizedState.angle.getRotations() - getAbsoluteRotation()) > 0.01) {
-            double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), optimizedState.angle.getRotations());
-            Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
+        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
+        //if (this.name.equals("Front Left Module")) {
             mTurnMotor.set(turningControllerOutput);
-        }
-
-        double FF = driveFF.calculate(optimizedState.speedMetersPerSecond);
+            System.out.printf("%.4f %.4f %.4f\n",
+            turningControllerOutput,
+            getAbsoluteRotation(),
+            desiredState.angle.getRotations()
+            );
+        //}
+        double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
 
         Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
 
-        mDriveMotor.set(FF);
+        //mDriveMotor.set(FF);
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
@@ -173,9 +178,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingKV = 0.2529;
         ret_val.drivingKA = 0.3;
 
-        ret_val.turningP = 0.1;
+        ret_val.turningP = 6;
         ret_val.turningI = 0;
-        ret_val.turningD = 0;
+        ret_val.turningD = 0.0;
         ret_val.turningFF = 0.0;
 
         ret_val.minDrivingMotorVoltage = -1;
@@ -191,11 +196,12 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
         ret_val.MagnetSensor.MagnetOffset = magnetOffset;
-        if (isInverted) {
-            ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-        } else {
+        //KVR THERE ARE TWO DIFFERENT INVERSIONS, SHOULD ALWAYS BE CLOCKWISE POSITIVE?
+        //if (isInverted) {
+        //    ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+       // } else {
             ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-        }
+        //}
 
         return ret_val;
     }
