@@ -66,12 +66,11 @@ public class Constants {
     }
 
     public class Vision {
-        public static final String FrontCameraName = "Main";
+        public static final String FRONT_CAMERA_NAME = "Main";
 
-        public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
+        public static final Transform3d FRONT_CAMERA_POSITION_ON_ROBOT = new Transform3d(
                 new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
                 new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
-
 
         // These values were also taken from 7525, again, thank you so much.
         public static final double STD_TRUSTABLE_DISTANCE = 6;
@@ -85,5 +84,10 @@ public class Constants {
 
     public class Controls {
         public static final double DEADZONE = 0.1;
+    }
+
+    public class Elevator {
+        public static final int RIGHT_ELEVATOR_MOTOR = 40;
+        public static final int LEFT_ELEVATOR_MOTOR = 41;
     }
 }

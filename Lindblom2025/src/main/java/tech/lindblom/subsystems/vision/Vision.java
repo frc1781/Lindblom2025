@@ -16,14 +16,13 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class Vision extends Subsystem {
     private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
 
-    private PhotonCamera frontCamera = new PhotonCamera(Constants.Vision.FrontCameraName);
+    private PhotonCamera frontCamera = new PhotonCamera(Constants.Vision.FRONT_CAMERA_NAME);
     private PhotonPoseEstimator frontCameraPoseEstimator;
 
     private AprilTagFieldLayout fieldLayout;
@@ -37,7 +36,7 @@ public class Vision extends Subsystem {
             fieldLayout = new AprilTagFieldLayout(deployDirectoryPath + "/CrescendoFieldLayout.json");
             frontCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.frontCameraPositionOnRobot);
+                    Constants.Vision.FRONT_CAMERA_POSITION_ON_ROBOT);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
