@@ -73,11 +73,6 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         mTurnMotor = new TalonFX(turnMotorID);
         TalonFXConfiguration turnConfig = new TalonFXConfiguration();
-        // if (inverted) {
-        //     turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        // } else {
-        //     turnConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        // }
         turnConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         turnConfig.CurrentLimits.SupplyCurrentLimit = 35;
@@ -124,27 +119,17 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     }
 
     public void runDesiredModuleState(SwerveModuleState desiredState) {
-        //SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, getAbsoluteAngle());
         desiredState.optimize(getAbsoluteAngle());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
 
-        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), Rotation2d.fromDegrees(0).getRotations());
-        Logger.recordOutput("DriveModule/" + this.name + "/PID", turningControllerOutput);
-        //if (this.name.equals("Front Left Module")) {
-            mTurnMotor.set(turningControllerOutput);
-            //  System.out.printf("%s %.4f %.4f %.4f\n",
-            //  this.name,
-            //  turningControllerOutput,
-            //  getAbsoluteRotation(),
-            //  desiredState.angle.getRotations()
-            // );
-        //}
+        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
+        mTurnMotor.set(turningControllerOutput);
+
         double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
-
-        Logger.recordOutput("DriveModule/" + this.name + "/FeedForwardOutput", FF);
-
+        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
         mDriveMotor.set(FF);
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
@@ -198,12 +183,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         ret_val.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
         ret_val.MagnetSensor.MagnetOffset = magnetOffset;
-        //KVR THERE ARE TWO DIFFERENT INVERSIONS, SHOULD ALWAYS BE CLOCKWISE POSITIVE?
-        //if (isInverted) {
-        //    ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-       // } else {
-            ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-        //}
+        ret_val.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
         return ret_val;
     }

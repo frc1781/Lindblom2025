@@ -34,10 +34,10 @@ public class Constants {
         public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 59;
 
         //Drive motor offsets
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.039;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.221;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -0.5;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -0.271;
+        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.037842;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.218506;
+        public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.51123;
+        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.288818;
 
         public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(22.75);
