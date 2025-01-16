@@ -82,21 +82,26 @@ public class Elevator extends StateSubsystem {
     @Override
     public void periodic() {
         switch ((ElevatorState) getCurrentState()) {
-            case SAFE:
+            case SAFE: 
+            goToPosition(ElevatorState.SAFE);
                 break;
             case L1:
+            goToPosition(ElevatorState.L1);
                 break;
             case L2:
+            goToPosition(ElevatorState.L2);
                 break;
             case L3:
+            goToPosition(ElevatorState.L3);
                 break;
             case L4:
+            goToPosition(ElevatorState.L4);
                 break;
         }
     }
 
     public void goToPosition(double position) {
-
+        
     }
 
     public enum ElevatorState implements SubsystemState {
