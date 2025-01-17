@@ -26,7 +26,6 @@ import java.util.HashMap;
 public class Elevator extends StateSubsystem {
     private final SparkMax motorRight;
     private RelativeEncoder rightEncoder;
-    private SparkClosedLoopController rightPIDController;
 
     private SparkMax motorLeft;
 
@@ -45,7 +44,6 @@ public class Elevator extends StateSubsystem {
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
         rightEncoder = motorRight.getEncoder();
-        rightPIDController = motorRight.getClosedLoopController();
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.idleMode(IdleMode.kBrake);
