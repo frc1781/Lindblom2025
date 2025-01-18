@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
@@ -22,7 +23,6 @@ import tech.lindblom.utils.EnumCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -51,7 +51,7 @@ public class RobotController {
                 new TestRoutine(),
                 new TwoFarNote()
         );
-        visionSystem = new Vision();
+        visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         driverInput = new DriverInput(this);
 
@@ -104,10 +104,8 @@ public class RobotController {
     public void run(EnumCollection.OperatingMode mode) {
         switch (mode) {
             case DISABLED:
-                visionUpdates();
                 break;
             case AUTONOMOUS:
-                visionUpdates();
                 if (currentAction != null) {
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
@@ -118,7 +116,6 @@ public class RobotController {
                 }
                 break;
             case TELEOP:
-                visionUpdates();
                 processDriverInputs();
                 break;
             case TEST:
@@ -181,25 +178,16 @@ public class RobotController {
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
-    public void visionUpdates() {
-        Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
-        if (visionEstimateOptional.isPresent()) {
-            Pose2d visionEstimate = visionEstimateOptional.get();
-            PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
-            Logger.recordOutput("RobotController/updatingUsingVision", true);
-            if (pipelineResult.targets.size() > 1) {
-                driveController.updatePoseUsingVisionEstimate(
-                        visionEstimate,
-                        Timer.getFPGATimestamp(),
-                        visionSystem.getEstimationStdDevs(
-                                visionEstimate,
-                                pipelineResult
-                        )
-                );
-            } else {
-                Logger.recordOutput("RobotController/updatingUsingVision", false);
-            }
-        }
+    public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
+        Pose2d estimatedPose = visionEstimate.estimatedPose.toPose2d();
+        driveController.updatePoseUsingVisionEstimate(
+                estimatedPose,
+                visionEstimate.timestampSeconds,
+                visionSystem.getEstimationStdDevs(
+                        estimatedPose,
+                        pipelineResult
+                )
+        );
     }
 
     public void setAutoStep(AutoStep autoStep) {

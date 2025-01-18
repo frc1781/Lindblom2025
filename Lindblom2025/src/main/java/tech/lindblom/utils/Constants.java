@@ -67,11 +67,24 @@ public class Constants {
     }
 
     public class Vision {
-        public static final String FrontCameraName = "Main";
+        public static final String BACK_CAMERA_NAME = "Back";
+        public static final String FRONT_LEFT_CAMERA_NAME = "FrontLeft";
+        public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
 
-        public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
-                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
+        public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
 
 
         // These values were also taken from 7525, again, thank you so much.
