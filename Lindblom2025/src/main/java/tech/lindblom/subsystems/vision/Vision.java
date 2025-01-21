@@ -18,9 +18,7 @@ import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Vision extends Subsystem {
     private RobotController robotController;
@@ -38,6 +36,8 @@ public class Vision extends Subsystem {
     private PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
     private PhotonPoseEstimator backCameraPoseEstimator;
     private PhotonPipelineResult backCameraPipelineResult;
+
+    private int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -73,23 +73,29 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
-        updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
-        updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
+        updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
+        updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
+        updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
+    }
+
+    public int getClosestReefApriltag(Camera camera) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+        if (result.getBestTarget() != null)  {
+            for (int i = 0; i < reefApriltagIDs.length; i++) {
+                if (result.getBestTarget().getFiducialId() == reefApriltagIDs[i]) {
+                    return reefApriltagIDs[i];
+                }
+            }
+        }
+
+        return -1;
     }
 
     public double getCameraOffsetX(Camera camera, int tagID) {
-        PhotonPipelineResult result = null;
-        switch (camera) {
-            case BACK:
+        PhotonPipelineResult result = getCameraLatestResults(camera);
 
-                break;
-            case FRONT_LEFT:
-
-                break;
-            case FRONT_RIGHT:
-
-                break;
+        if (result == null) {
+            return 1781;
         }
 
         for (PhotonTrackedTarget target : result.getTargets()) {
@@ -101,9 +107,38 @@ public class Vision extends Subsystem {
         return 1781;
     }
 
-    public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
+    public PhotonPipelineResult getCameraLatestResults(Camera camera) {
+        PhotonPipelineResult result = null;
+        switch (camera) {
+            case BACK:
+                result = backCameraPipelineResult;
+                break;
+            case FRONT_LEFT:
+                result = frontLeftCameraPipelineResult;
+                break;
+            case FRONT_RIGHT:
+                result = frontRightCameraPipelineResult;
+                break;
+        }
+
+        return result;
+    }
+
+    public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera, Camera type) {
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
         if (!unreadResults.isEmpty()) {
+            switch (type) {
+                case BACK:
+                    backCameraPipelineResult = unreadResults.get(0);
+                    break;
+                case FRONT_LEFT:
+                    frontLeftCameraPipelineResult = unreadResults.get(0);
+                    break;
+                case FRONT_RIGHT:
+                    frontRightCameraPipelineResult = unreadResults.get(0);
+                    break;
+            }
+
             for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
                 estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));

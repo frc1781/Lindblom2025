@@ -45,6 +45,8 @@ public class RobotController {
 
     private HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
 
+    private DriverInput.InputHolder mostRecentInputHolder;
+
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
@@ -67,15 +69,19 @@ public class RobotController {
 
     public enum Action {
         WAIT,
-        TEST_RED,
-        TEST_BLUE,
-        EXPECTED_LED_FAIL, TEST_GREEN
+        LEDs_RED,
+        LEDs_BLUE,
+        EXPECTED_LED_FAIL,
+        LEDs_GREEN,
+        CENTER_REEF_L4_LEFT,
+        CENTER_REEF_L4_RIGHT,
     }
 
     public void init(EnumCollection.OperatingMode mode) {
+        interruptAction();
+
         switch (mode) {
             case DISABLED:
-                interruptAction();
                 break;
             case AUTONOMOUS:
                 break;
@@ -138,6 +144,7 @@ public class RobotController {
 
     public void processDriverInputs() {
         DriverInput.InputHolder holder = driverInput.getDriverInputs();
+        mostRecentInputHolder = holder;
         driverDriving(holder.driverLeftJoystickPosition, holder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
@@ -190,6 +197,12 @@ public class RobotController {
         );
     }
 
+    public DriverInput.ReefCenteringSide getCenteringSide() {
+        if (mostRecentInputHolder.centeringSide == null) return null;
+        return mostRecentInputHolder.centeringSide;
+    }
+
+    // Auto
     public void setAutoStep(AutoStep autoStep) {
         if (autoStep == null) return;
 
@@ -252,12 +265,12 @@ public class RobotController {
     }
 
     public void createActions() {
-        defineAction(Action.TEST_BLUE,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 0));
-        defineAction(Action.TEST_RED,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
-        defineAction(Action.TEST_GREEN,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+        defineAction(Action.LEDs_BLUE,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
+        defineAction(Action.LEDs_RED,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 3));
+        defineAction(Action.LEDs_GREEN,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
     }
@@ -272,6 +285,10 @@ public class RobotController {
         }
 
         return failedSubsystems;
+    }
+
+    public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
+        return actionMap.get(action);
     }
 
     public void defineAction(Action action, SubsystemSetting... settings) {

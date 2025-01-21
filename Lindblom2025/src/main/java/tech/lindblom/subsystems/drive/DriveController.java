@@ -18,8 +18,10 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
+import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
 
@@ -40,6 +42,8 @@ public class DriveController extends Subsystem {
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
+    private final PIDController centeringXController = new PIDController(0.1, 0, 0);
+
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
     private RobotConfig robotConfig;
 
@@ -51,6 +55,7 @@ public class DriveController extends Subsystem {
 
     @Override
     public void init() {
+        centeringXController.reset();
         switch (currentMode) {
             case DISABLED:
                 break;
@@ -106,6 +111,22 @@ public class DriveController extends Subsystem {
                 xVelocity,
                 yVelocity,
                 rotSpeed), driveSubsystem.getRobotRotation());
+
+        if (robotController.getCenteringSide() != null) {
+            double cameraOffset = 0.0;
+            int apriltagId = 0;
+
+            if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                cameraOffset = robotController.visionSystem.getCameraOffsetX(Vision.Camera.FRONT_LEFT, apriltagId);
+            } else if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.RIGHT) {
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+                cameraOffset = robotController.visionSystem.getCameraOffsetX(Vision.Camera.FRONT_RIGHT, apriltagId);
+            }
+
+            speeds.vxMetersPerSecond = centeringXController.calculate(cameraOffset, 0);
+        }
+
         driveSubsystem.drive(speeds);
     }
 
@@ -168,7 +189,7 @@ public class DriveController extends Subsystem {
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {
-        Optional<Pose2d> visionPoseOptional = robotController.visionSystem.getFrontCameraPose();
+/*        Optional<Pose2d> visionPoseOptional = robotController.visionSystem.getFrontCameraPose();
         PhotonPipelineResult pipelineResult = robotController.visionSystem.getFrontCameraPipelineResult();
 
         if (visionPoseOptional.isPresent() && pipelineResult != null) {
@@ -178,7 +199,7 @@ public class DriveController extends Subsystem {
                 driveSubsystem.setInitialPose(new Pose2d(visionPose.getTranslation(), driveSubsystem.getNavXRotation()));
                 return;
             }
-        }
+        }*/
 
         if (mode == AUTONOMOUS) {
             try {
