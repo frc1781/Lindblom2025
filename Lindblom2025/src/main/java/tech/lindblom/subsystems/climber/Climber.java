@@ -4,7 +4,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
@@ -30,25 +29,14 @@ public class Climber extends StateSubsystem{
 
     @Override
     public void init() {
+        mArm.set(0);
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                mArmEncoder.setPosition(1/4); //SUBJECT TO CHANGE
-
-                mArm.set(0);
-                break;
-            case WAIT:
                 mArmEncoder.setPosition(0); //SUBJECT TO CHANGE
-
-                mArm.set(0);
                 break;
             case LIFT:
                 mArmEncoder.setPosition(0); //SUBJECT TO CHANGE(Unit is rotations)
-
-                mArm.set(0);
-                break;
-            default:
-                mArm.set(0);
                 break;
         }
     }
@@ -63,28 +51,16 @@ public class Climber extends StateSubsystem{
             case IDLE:
 
                 break;
-            case WAIT:
-                motorDutyCycle = -0.1;
-                break;
             case LIFT:
                 motorDutyCycle = 0.1;
                 break;
-            default:
-                motorDutyCycle = 0;
-                break;
-        }
-
-
-        if (Math.abs(mMotorVelocity) > 20) {     //Subject to change
-            //slow down left motor by 3/4ths (idk how much more)
-            motorDutyCycle = 0;
         }
 
         mArm.set(motorDutyCycle);
     }
 
     public enum ClimberState implements SubsystemState{
-        IDLE, WAIT, LIFT;
+        IDLE, LIFT;
     }
     
 }
