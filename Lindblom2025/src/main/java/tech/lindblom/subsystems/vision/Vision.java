@@ -29,12 +29,15 @@ public class Vision extends Subsystem {
 
     private PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
     private PhotonPoseEstimator frontRightCameraPoseEstimator;
+    private PhotonPipelineResult frontRightCameraPipelineResult;
 
     private PhotonCamera frontLeftCamera = new PhotonCamera(Constants.Vision.FRONT_LEFT_CAMERA_NAME);
     private PhotonPoseEstimator frontLeftCameraPoseEstimator;
+    private PhotonPipelineResult frontLeftCameraPipelineResult;
 
     private PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
     private PhotonPoseEstimator backCameraPoseEstimator;
+    private PhotonPipelineResult backCameraPipelineResult;
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -73,18 +76,29 @@ public class Vision extends Subsystem {
         updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
         updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
+    }
 
-        /*        if (areAprilTagsDetected) {
-            Logger.recordOutput(this.name + "/FrontCamera/EstimatedPose", frontCameraRobotPose.get().estimatedPose.toPose2d());
-            List<PhotonTrackedTarget> targetList = frontCameraRobotPose.get().targetsUsed;
-            Pose2d[] targetPoses = new Pose2d[targetList.size()];
-            for (int i = 0; i < targetList.size(); i++) {
-                PhotonTrackedTarget target = targetList.get(i);
-                targetPoses[i] = fieldLayout.getTagPose(target.getFiducialId()).get().toPose2d();
+    public double getCameraOffsetX(Camera camera, int tagID) {
+        PhotonPipelineResult result = null;
+        switch (camera) {
+            case BACK:
+
+                break;
+            case FRONT_LEFT:
+
+                break;
+            case FRONT_RIGHT:
+
+                break;
+        }
+
+        for (PhotonTrackedTarget target : result.getTargets()) {
+            if (target.getFiducialId() == tagID) {
+                return target.yaw;
             }
+        }
 
-            Logger.recordOutput(this.name + "/FrontCamera/TargetsUsed", targetPoses);
-        }*/
+        return 1781;
     }
 
     public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
@@ -142,6 +156,9 @@ public class Vision extends Subsystem {
         // are in the tags we can see
 
         return estStdDevs;
+    }
 
+    public enum Camera {
+        FRONT_RIGHT, FRONT_LEFT, BACK
     }
 }
