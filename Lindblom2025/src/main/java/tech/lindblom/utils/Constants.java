@@ -86,4 +86,9 @@ public class Constants {
     public class Controls {
         public static final double DEADZONE = 0.1;
     }
+
+    public class Mouth {
+        public static final int SPIN_MOUTH_MOTOR = 0;
+        public static final int POSITION_MOUTH_MOTOR = 0;
+    }
 }
