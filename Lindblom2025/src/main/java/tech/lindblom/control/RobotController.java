@@ -12,6 +12,7 @@ import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.auto.routines.TwoFarNote;
+import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -30,6 +31,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Climber climberSystem;
 
     DriverInput driverInput;
 
@@ -56,7 +58,7 @@ public class RobotController {
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         driverInput = new DriverInput(this);
-
+        climberSystem = new Climber();
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
 
@@ -75,6 +77,7 @@ public class RobotController {
         LEDs_GREEN,
         CENTER_REEF_L4_LEFT,
         CENTER_REEF_L4_RIGHT,
+        LIFT
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -273,6 +276,9 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+        defineAction(Action.LIFT,
+                new SubsystemSetting(climberSystem, Climber.ClimberState.LIFT, 3));
+
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
