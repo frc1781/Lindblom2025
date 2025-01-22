@@ -79,6 +79,7 @@ public class RobotController {
         LEDs_GREEN,
         CENTER_REEF_L4_LEFT,
         CENTER_REEF_L4_RIGHT,
+        PLACE_L4
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -277,6 +278,8 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+        defineAction(Action.PLACE_L4, 
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5));
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
