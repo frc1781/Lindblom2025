@@ -12,6 +12,7 @@ import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.util.Units;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.HashMap;
 
@@ -32,10 +33,14 @@ public class Elevator extends StateSubsystem {
                     Constants.Elevator.ELEVATOR_KA
             );
 
-    private final HashMap<ElevatorState, Double> positions = new HashMap<>();
+    private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
 
     public Elevator() {
         super("Elevator", ElevatorState.SAFE);
+
+        firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
+        secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
+
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -54,17 +59,21 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, 0.0);
-        positions.put(ElevatorState.L1, 0.0);
-        positions.put(ElevatorState.L2, 0.0);
-        positions.put(ElevatorState.L3, 0.0);
-        positions.put(ElevatorState.L4, 0.0);
+        positions.put(ElevatorState.SAFE, new Double[]{0.0,0.0});
+        positions.put(ElevatorState.L1, new Double[]{0.0,0.0});
+        positions.put(ElevatorState.L2, new Double[]{0.0,0.0});
+        positions.put(ElevatorState.L3, new Double[]{0.0,0.0});
+        positions.put(ElevatorState.L4, new Double[]{0.0,0.0});
     }
 
 
     @Override
     public boolean matchesState() {
-        return getPosition() == positions.get(getCurrentState());
+        Double[] desiredPosition = positions.get(getCurrentState());
+        double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
+        double secondStageDiff = Math.abs(desiredPosition[0] - getSecondStagePosition());
+        double tolerance = 25;
+        return firstStageDiff <= 25 && secondStageDiff <= 25;
     }
 
 
@@ -75,32 +84,23 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void periodic() {
-        switch ((ElevatorState) getCurrentState()) {
-            case SAFE: 
-            goToPosition(positions.get(ElevatorState.SAFE));
-                break;
-            case L1:
-            goToPosition(positions.get(ElevatorState.L1));
-                break;
-            case L2:
-            goToPosition(positions.get(ElevatorState.L2));
-                break;
-            case L3:
-            goToPosition(positions.get(ElevatorState.L3));
-                break;
-            case L4:
-            goToPosition(positions.get(ElevatorState.L4));
-                break;
-        }
+        if (currentMode == OperatingMode.DISABLED) return;
+        goToPosition();
     }
 
-    public double getPosition() {
-        return 0.0;
+    public double getFirstStagePosition() {
+        return firstStageTOF.getRange();
     }
 
-    public void goToPosition(double position) {
-        double ff = feedforwardController.calculate((getPosition() - position));
-        motorRight.setVoltage(ff);
+    public double getSecondStagePosition() {
+        return secondStageTOF.getRange();
+    }
+
+    public void goToPosition() {
+        double totalPosition = getFirstStagePosition() + getSecondStagePosition();
+        double desiredPosition = positions.get(getCurrentState())[0] + positions.get(getCurrentState())[1];
+        double ff = feedforwardController.calculate(desiredPosition - totalPosition);
+        motorRight.set(ff);
     }
 
     public enum ElevatorState implements SubsystemState {
