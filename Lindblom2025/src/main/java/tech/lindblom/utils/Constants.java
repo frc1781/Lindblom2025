@@ -40,7 +40,7 @@ public class Constants {
         public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.288818;
 
         public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
-        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(22.75);
+        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(25.75);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.75);
 
         public static final double WHEEL_RADIUS = 0.1016;
