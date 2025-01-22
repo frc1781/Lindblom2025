@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.elevator;
 
+import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -8,6 +9,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.util.Units;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
@@ -18,6 +20,10 @@ public class Elevator extends StateSubsystem {
     private final SparkMax motorRight;
 
     private SparkMax motorLeft;
+
+    private TimeOfFlight firstStageTOF;
+    private TimeOfFlight secondStageTOF;
+    // measure the max distance
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -64,7 +70,6 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void init() {
-
     }
 
 
