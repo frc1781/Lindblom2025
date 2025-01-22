@@ -73,7 +73,7 @@ public class Elevator extends StateSubsystem {
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[0] - getSecondStagePosition());
         double tolerance = 25;
-        return firstStageDiff <= 25 && secondStageDiff <= 25;
+        return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
 
@@ -100,6 +100,9 @@ public class Elevator extends StateSubsystem {
         double totalPosition = getFirstStagePosition() + getSecondStagePosition();
         double desiredPosition = positions.get(getCurrentState())[0] + positions.get(getCurrentState())[1];
         double ff = feedforwardController.calculate(desiredPosition - totalPosition);
+        if (ff < 0) {
+            ff = 0;
+        }
         motorRight.set(ff);
     }
 
