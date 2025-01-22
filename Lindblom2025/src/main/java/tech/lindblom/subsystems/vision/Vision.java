@@ -1,6 +1,7 @@
 package tech.lindblom.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,30 +14,52 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Vision extends Subsystem {
+    private RobotController robotController;
+
     private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
 
-    private PhotonCamera frontCamera = new PhotonCamera(Constants.Vision.FRONT_CAMERA_NAME);
-    private PhotonPoseEstimator frontCameraPoseEstimator;
+    private PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
+    private PhotonPoseEstimator frontRightCameraPoseEstimator;
+    private PhotonPipelineResult frontRightCameraPipelineResult;
+
+    private PhotonCamera frontLeftCamera = new PhotonCamera(Constants.Vision.FRONT_LEFT_CAMERA_NAME);
+    private PhotonPoseEstimator frontLeftCameraPoseEstimator;
+    private PhotonPipelineResult frontLeftCameraPipelineResult;
+
+    private PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
+    private PhotonPoseEstimator backCameraPoseEstimator;
+    private PhotonPipelineResult backCameraPipelineResult;
+
+    private int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
 
     private AprilTagFieldLayout fieldLayout;
 
-    private boolean areAprilTagsDetected = false;
-
-    public Vision() {
+    public Vision(RobotController _robotController) {
         super("Vision");
+        this.robotController = _robotController;
         try {
-            String deployDirectoryPath = Filesystem.getDeployDirectory().getAbsolutePath();
-            fieldLayout = new AprilTagFieldLayout(deployDirectoryPath + "/CrescendoFieldLayout.json");
-            frontCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+            fieldLayout = new AprilTagFieldLayout(AprilTagFields.kDefaultField.m_resourceFile);
+
+            frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.FRONT_CAMERA_POSITION_ON_ROBOT);
+                    Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
+            frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
+            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    Constants.Vision.BACK_CAMERA_POSITION);
+
+            frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
@@ -50,38 +73,82 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        List<PhotonPipelineResult> unreadResults = frontCamera.getAllUnreadResults();
-        if (!unreadResults.isEmpty()) {
-            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.get(0));
+        updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
+        updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
+        updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
+    }
+
+    public int getClosestReefApriltag(Camera camera) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+        if (result.getBestTarget() != null)  {
+            for (int i = 0; i < reefApriltagIDs.length; i++) {
+                if (result.getBestTarget().getFiducialId() == reefApriltagIDs[i]) {
+                    return reefApriltagIDs[i];
+                }
+            }
         }
 
-        areAprilTagsDetected = frontCameraRobotPose.isPresent();
+        return -1;
+    }
 
-        Logger.recordOutput(this.name + "/FrontCamera/AprilTagsDetected", areAprilTagsDetected);
-        if (areAprilTagsDetected) {
-            Logger.recordOutput(this.name + "/FrontCamera/EstimatedPose", frontCameraRobotPose.get().estimatedPose.toPose2d());
-            List<PhotonTrackedTarget> targetList = frontCameraRobotPose.get().targetsUsed;
-            Pose2d[] targetPoses = new Pose2d[targetList.size()];
-            for (int i = 0; i < targetList.size(); i++) {
-                PhotonTrackedTarget target = targetList.get(i);
-                targetPoses[i] = fieldLayout.getTagPose(target.getFiducialId()).get().toPose2d();
+    public double getCameraOffsetX(Camera camera, int tagID) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+
+        if (result == null) {
+            return 1781;
+        }
+
+        for (PhotonTrackedTarget target : result.getTargets()) {
+            if (target.getFiducialId() == tagID) {
+                return target.yaw;
+            }
+        }
+
+        return 1781;
+    }
+
+    public PhotonPipelineResult getCameraLatestResults(Camera camera) {
+        PhotonPipelineResult result = null;
+        switch (camera) {
+            case BACK:
+                result = backCameraPipelineResult;
+                break;
+            case FRONT_LEFT:
+                result = frontLeftCameraPipelineResult;
+                break;
+            case FRONT_RIGHT:
+                result = frontRightCameraPipelineResult;
+                break;
+        }
+
+        return result;
+    }
+
+    public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera, Camera type) {
+        List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
+        if (!unreadResults.isEmpty()) {
+            switch (type) {
+                case BACK:
+                    backCameraPipelineResult = unreadResults.get(0);
+                    break;
+                case FRONT_LEFT:
+                    frontLeftCameraPipelineResult = unreadResults.get(0);
+                    break;
+                case FRONT_RIGHT:
+                    frontRightCameraPipelineResult = unreadResults.get(0);
+                    break;
             }
 
-            Logger.recordOutput(this.name + "/FrontCamera/TargetsUsed", targetPoses);
+            for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
+                Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
+                estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));
+            }
         }
     }
 
     public Optional<Pose2d> getFrontCameraPose() {
         return frontCameraRobotPose.map(estimatedRobotPose -> estimatedRobotPose.estimatedPose.toPose2d());
 
-    }
-
-    public PhotonPipelineResult getFrontCameraPipelineResult() {
-        List<PhotonPipelineResult> unreadResults = frontCamera.getAllUnreadResults();
-        if (!unreadResults.isEmpty()) {
-            frontCameraRobotPose = frontCameraPoseEstimator.update(unreadResults.get(0));
-        }
-        return new PhotonPipelineResult();
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
@@ -124,6 +191,9 @@ public class Vision extends Subsystem {
         // are in the tags we can see
 
         return estStdDevs;
+    }
 
+    public enum Camera {
+        FRONT_RIGHT, FRONT_LEFT, BACK
     }
 }
