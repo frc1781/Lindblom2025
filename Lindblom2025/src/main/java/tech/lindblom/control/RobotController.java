@@ -11,6 +11,7 @@ import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.drive.DriveController;
+import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
@@ -29,6 +30,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Elevator elevatorSystem;
 
     DriverInput driverInput;
 
@@ -51,10 +53,12 @@ public class RobotController {
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
+        elevatorSystem = new Elevator();
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
+        stateSubsystems.add(elevatorSystem);
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
