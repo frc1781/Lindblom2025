@@ -24,6 +24,7 @@ public class Elevator extends StateSubsystem {
 
     private TimeOfFlight firstStageTOF;
     private TimeOfFlight secondStageTOF;
+    private TimeOfFlight lowerTroughTOF;
     // measure the max distance
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
@@ -40,20 +41,21 @@ public class Elevator extends StateSubsystem {
 
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
+        lowerTroughTOF = new TimeOfFlight(Constants.Elevator.LOWER_TROUGH__TOF);
 
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
-        rightMotorConfig.idleMode(IdleMode.kBrake);
+        rightMotorConfig.idleMode(IdleMode.kCoast);
         rightMotorConfig.smartCurrentLimit(30);
         motorRight.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Left Elevator Motor
         motorLeft = new SparkMax(Constants.Elevator.LEFT_ELEVATOR_MOTOR, MotorType.kBrushless);
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
-        leftMotorConfig.idleMode(IdleMode.kBrake);
+        leftMotorConfig.idleMode(IdleMode.kCoast);
         leftMotorConfig.inverted(true);
         leftMotorConfig.follow(motorRight);
         leftMotorConfig.smartCurrentLimit(30);
@@ -94,6 +96,10 @@ public class Elevator extends StateSubsystem {
 
     public double getSecondStagePosition() {
         return secondStageTOF.getRange();
+    }
+
+    public boolean hasCoral() {
+        return lowerTroughTOF.getRange() <= 125;
     }
 
     public void goToPosition() {
