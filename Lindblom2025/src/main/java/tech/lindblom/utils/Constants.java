@@ -34,15 +34,16 @@ public class Constants {
         public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 59;
 
         //Drive motor offsets
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -0.876221;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.8167;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -0.670;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -0.116;
+        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.037842;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.218506;
+        public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.51123;
+        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.288818;
 
         public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
+        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(25.75);
+        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.75);
 
-        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(23);
-        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(25);
+        public static final double WHEEL_RADIUS = 0.1016;
 
         public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
                 (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
@@ -66,11 +67,24 @@ public class Constants {
     }
 
     public class Vision {
-        public static final String FrontCameraName = "Main";
+        public static final String BACK_CAMERA_NAME = "Back";
+        public static final String FRONT_LEFT_CAMERA_NAME = "FrontLeft";
+        public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
 
-        public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
-                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
+        public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
 
 
         // These values were also taken from 7525, again, thank you so much.

@@ -14,28 +14,29 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.swerve.DoubleKrakenSwerveModule;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
-    private final SwerveModule frontLeftModule = new KrakenL2SwerveModule("Front Left Module",
+    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
             Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET);
-    private final SwerveModule frontRightModule = new KrakenL2SwerveModule("Front Right Module",
+            Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, true);
+    private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
             Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET);
-    private final SwerveModule backLeftModule = new KrakenL2SwerveModule("Back Left Module",
+            Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, false);
+    private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
             Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET);
-    private final SwerveModule backRightModule = new KrakenL2SwerveModule("Back Right Module",
+            Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, true);
+    private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
             Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
             Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET);
+            Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, false);
 
     // Odometry & Kinematics
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
@@ -44,7 +45,7 @@ public class Drive extends Subsystem {
 
     public final AHRS navX = new AHRS(SPI.Port.kMXP);
 
-    private final SwerveDrivePoseEstimator swerveDrivePoseEstimator;
+    private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
     public Drive() {
         super("Drive");
@@ -112,6 +113,7 @@ public class Drive extends Subsystem {
     public void zeroNavX() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
+        
         swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
