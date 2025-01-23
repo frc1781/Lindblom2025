@@ -56,8 +56,7 @@ public class Elevator extends StateSubsystem {
         motorLeft = new SparkMax(Constants.Elevator.LEFT_ELEVATOR_MOTOR, MotorType.kBrushless);
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.idleMode(IdleMode.kCoast);
-        leftMotorConfig.inverted(true);
-        leftMotorConfig.follow(motorRight);
+        leftMotorConfig.follow(motorRight, true);
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
