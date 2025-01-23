@@ -5,7 +5,9 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkClosedLoopController;
 
 import edu.wpi.first.math.util.Units;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -28,12 +30,13 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig spinMotorConfig = new SparkMaxConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
+        //spinMotorConfig.inverted(true);
         spinMotor.configure(spinMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Position Motor
         positionMotor = new SparkMax(Constants.Mouth.POSITION_MOUTH_MOTOR, MotorType.kBrushless);
         SparkMaxConfig positionMotorConfig = new SparkMaxConfig();
-        positionMotorConfig.idleMode(IdleMode.kCoast);
+        positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
         positionMotor.configure(positionMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -57,10 +60,11 @@ public class Mouth extends StateSubsystem {
     public void periodic() {
         switch ((MouthState) getCurrentState()) {
             case UP: 
-            goToPosition(positions.get(MouthState.UP));
+            positionMotor.set(0);
                 break;
             case DOWN:
             goToPosition(positions.get(MouthState.DOWN));
+            collect();
                 break;
         }
     }
@@ -70,7 +74,11 @@ public class Mouth extends StateSubsystem {
     }
 
     public void goToPosition(double position) {
+        
+    }
 
+    private void collect() {
+        spinMotor.set(-1);
     }
 
     public enum MouthState implements SubsystemState {
