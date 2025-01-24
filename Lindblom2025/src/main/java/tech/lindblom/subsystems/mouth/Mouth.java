@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Encoder;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
@@ -73,7 +74,7 @@ public class Mouth extends StateSubsystem {
     }
 
     public double getPosition() {
-        return 0.0;
+        return positionMotor.getEncoder().getPosition();
     }
 
     public void goToPosition(double position) {
