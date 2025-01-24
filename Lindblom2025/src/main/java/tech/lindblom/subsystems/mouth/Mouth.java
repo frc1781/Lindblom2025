@@ -21,7 +21,7 @@ import java.util.HashMap;
 public class Mouth extends StateSubsystem {
     private final SparkMax spinMotor;
     private final SparkMax positionMotor;
-    private final SparkClosedLoopController smartMotionController;
+    private final SparkClosedLoopController motionController;
 
     private final HashMap<MouthState, Double> positions = new HashMap<>();
 
@@ -33,7 +33,6 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig spinMotorConfig = new SparkMaxConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
-        //spinMotorConfig.inverted(true);
         spinMotor.configure(spinMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Position Motor
@@ -73,12 +72,8 @@ public class Mouth extends StateSubsystem {
         }
     }
 
-    public double getPosition() {
-        return 0.0;
-    }
-
     public void goToPosition(double position) {
-        smartMotionController.setReference(getPosition()-position, ControlType.kPosition);
+        motionController.setReference(getPosition() - position, ControlType.kPosition);
     }
 
     private void collect() {
