@@ -15,6 +15,7 @@ import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
+import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
@@ -29,6 +30,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Mouth mouthSystem;
 
     DriverInput driverInput;
 
@@ -51,15 +53,18 @@ public class RobotController {
         );
         visionSystem = new Vision();
         ledsSystem = new LEDs();
+        mouthSystem = new Mouth();
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
+        stateSubsystems.add(mouthSystem);
 
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
+        subsystems.add(mouthSystem);
         createActions();
     }
 
@@ -67,7 +72,8 @@ public class RobotController {
         WAIT,
         TEST_RED,
         TEST_BLUE,
-        EXPECTED_LED_FAIL, TEST_GREEN
+        EXPECTED_LED_FAIL, TEST_GREEN,
+        COLLECT
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -270,6 +276,8 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(mouthSystem, Mouth.MouthState.DOWN, 5));
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {

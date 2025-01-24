@@ -3,6 +3,7 @@ package tech.lindblom.control;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import tech.lindblom.subsystems.led.LEDs;
+import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public class DriverInput {
         this.robotController = robotController;
         this.controlList = new Control[] {
                 new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
-                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4))
+                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4)),
+                new Control(0,"RB",new RobotController.SubsystemSetting(robotController.mouthSystem, Mouth.MouthState.DOWN, 5))
         };
     }
 

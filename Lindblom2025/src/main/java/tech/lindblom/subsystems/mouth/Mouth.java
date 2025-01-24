@@ -37,7 +37,7 @@ public class Mouth extends StateSubsystem {
 
         //Position Motor
         positionMotor = new SparkMax(Constants.Mouth.POSITION_MOUTH_MOTOR, MotorType.kBrushless);
-        smartMotionController = positionMotor.getClosedLoopController();
+        motionController = positionMotor.getClosedLoopController();
         SparkMaxConfig positionMotorConfig = new SparkMaxConfig();
         positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
@@ -63,13 +63,17 @@ public class Mouth extends StateSubsystem {
     public void periodic() {
         switch ((MouthState) getCurrentState()) {
             case UP: 
-            positionMotor.set(0);
+            goToPosition(positions.get(MouthState.UP));
                 break;
             case DOWN:
             goToPosition(positions.get(MouthState.DOWN));
             collect();
                 break;
         }
+    }
+
+    public double getPosition() {
+        return 0.0;
     }
 
     public void goToPosition(double position) {
