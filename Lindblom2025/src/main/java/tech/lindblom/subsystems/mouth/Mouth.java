@@ -1,6 +1,7 @@
 package tech.lindblom.subsystems.mouth;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -8,6 +9,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.util.Units;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 public class Mouth extends StateSubsystem {
     private final SparkMax spinMotor;
     private final SparkMax positionMotor;
+    private final SparkClosedLoopController smartMotionController;
 
     private final HashMap<MouthState, Double> positions = new HashMap<>();
 
@@ -35,6 +38,7 @@ public class Mouth extends StateSubsystem {
 
         //Position Motor
         positionMotor = new SparkMax(Constants.Mouth.POSITION_MOUTH_MOTOR, MotorType.kBrushless);
+        smartMotionController = positionMotor.getClosedLoopController();
         SparkMaxConfig positionMotorConfig = new SparkMaxConfig();
         positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
@@ -74,7 +78,7 @@ public class Mouth extends StateSubsystem {
     }
 
     public void goToPosition(double position) {
-        
+        smartMotionController.setReference(getPosition()-position, ControlType.kPosition);
     }
 
     private void collect() {
