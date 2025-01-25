@@ -1,5 +1,6 @@
 package tech.lindblom.utils;
 
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -103,5 +104,22 @@ public class Constants {
 
     public class Climber {
         public static final int RIGHT_ARM = 61;
+
+        public static final double RADIANS_PER_REVOLUTION = (Math.PI * 2) / 125;
+
+        public static final double P = 0;
+        public static final double I = 0;
+        public static final double D = 0;
+
+        // https://www.reca.lc/arm?armMass=%7B%22s%22%3A120%2C%22u%22%3A%22lbs%22%7D&comLength=%7B%22s%22%3A11.1%2C%22u%22%3A%22in%22%7D&currentLimit=%7B%22s%22%3A30%2C%22u%22%3A%22A%22%7D&efficiency=90&endAngle=%7B%22s%22%3A90%2C%22u%22%3A%22deg%22%7D&iterationLimit=10000&motor=%7B%22quantity%22%3A1%2C%22name%22%3A%22NEO%22%7D&ratio=%7B%22magnitude%22%3A125%2C%22ratioType%22%3A%22Reduction%22%7D&startAngle=%7B%22s%22%3A0%2C%22u%22%3A%22deg%22%7D
+        public static final double KS = 0;
+        public static final double KG = 3.96;
+        public static final double KV = 2.44;
+        public static final double KA = 0.14;
+
+        public static final ClosedLoopConfig CLOSED_LOOP_CONFIG = new ClosedLoopConfig()
+                .p(P)
+                .i(I)
+                .d(D);
     }
 }
