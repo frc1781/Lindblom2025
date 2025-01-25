@@ -10,6 +10,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -26,6 +29,7 @@ public class Elevator extends StateSubsystem {
     private TimeOfFlight secondStageTOF;
     private TimeOfFlight lowerTroughTOF;
     // measure the max distance
+    private LoggedMechanism2d elevatorMechSimulation;
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -42,7 +46,6 @@ public class Elevator extends StateSubsystem {
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
         lowerTroughTOF = new TimeOfFlight(Constants.Elevator.LOWER_TROUGH__TOF);
-
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -65,6 +68,8 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L2, new Double[]{0.0,0.0});
         positions.put(ElevatorState.L3, new Double[]{0.0,0.0});
         positions.put(ElevatorState.L4, new Double[]{0.0,0.0});
+
+        elevatorMechSimulation = new LoggedMechanism2d(3,3);
     }
 
 
@@ -85,6 +90,8 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void periodic() {
+        Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
+
         if (currentMode == OperatingMode.DISABLED) return;
         goToPosition();
     }
