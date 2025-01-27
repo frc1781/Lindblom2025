@@ -85,5 +85,12 @@ public class Constants {
 
     public class Controls {
         public static final double DEADZONE = 0.1;
+
     }
+    public class Arm{
+
+        public static final int ARM_MOTOR_ID = 16;
+    }
+
+
 }
