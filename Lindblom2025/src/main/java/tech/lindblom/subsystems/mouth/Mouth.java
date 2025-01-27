@@ -34,6 +34,7 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig spinMotorConfig = new SparkMaxConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
+        spinMotorConfig.inverted(true);
         spinMotor.configure(spinMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Position Motor
@@ -42,6 +43,7 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig positionMotorConfig = new SparkMaxConfig();
         positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
+        positionMotorConfig.inverted(true);
         positionMotor.configure(positionMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positions.put(MouthState.UP, 0.0);
@@ -57,6 +59,7 @@ public class Mouth extends StateSubsystem {
 
     @Override
     public void init() {
+        positionMotor.getEncoder().setPosition(positions.get(MouthState.UP));
     }
 
 
@@ -64,11 +67,11 @@ public class Mouth extends StateSubsystem {
     public void periodic() {
         switch ((MouthState) getCurrentState()) {
             case UP: 
-            goToPosition(positions.get(MouthState.UP));
+                goToPosition(positions.get(MouthState.UP));
                 break;
             case DOWN:
-            goToPosition(positions.get(MouthState.DOWN));
-            collect();
+                goToPosition(positions.get(MouthState.DOWN));
+                collect();
                 break;
         }
     }
@@ -78,11 +81,12 @@ public class Mouth extends StateSubsystem {
     }
 
     public void goToPosition(double position) {
-        motionController.setReference(getPosition() - position, ControlType.kPosition);
+        System.out.println("mouth position: " + position);
+        //motionController.setReference(position, ControlType.kPosition);
     }
 
     private void collect() {
-        spinMotor.set(-1);
+        //spinMotor.set(0.01);
     }
 
     public enum MouthState implements SubsystemState {
