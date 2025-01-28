@@ -1,36 +1,40 @@
 package tech.lindblom.subsystems.climber;
 
 import com.revrobotics.sim.SparkMaxSim;
+import com.revrobotics.sim.SparkRelativeEncoderSim;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import org.littletonrobotics.junction.Logger;
 
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.SparkMax;
-
 import edu.wpi.first.math.geometry.Rotation2d;
-import tech.lindblom.subsystems.types.StateSubsystem;
-import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
-public class Climber extends BaseClimber {
+public class ClimberSim extends BaseClimber {
 
-    private final RelativeEncoder mArmEncoder;
+    private final SparkMaxSim armMotorSim;
+    private final SparkRelativeEncoderSim armEncoder;
+    private final SingleJointedArmSim armSim;
+
 
     private ClimberState PreviousState;
     private Rotation2d positionToHold = new Rotation2d();
 
-    private ArmFeedforward armFeedforward;
-
-    public Climber() {
-        mArmEncoder = leverMotor.getEncoder();
-        armFeedforward = new ArmFeedforward(Constants.Climber.KS, Constants.Climber.KG, Constants.Climber.KV);
+    public ClimberSim() {
+        DCMotor NEO = DCMotor.getNEO(1);
+        NEO.withReduction(125);
+        armMotorSim = new SparkMaxSim(leverMotor, NEO);
+        armEncoder = armMotorSim.getRelativeEncoderSim();
+        armSim = new SingleJointedArmSim(NEO,
+                1,
+                5.6,
+                0.3,
+                0.5,
+                1,
+                true,
+                0,
+                0);
     }
 
     @Override
@@ -42,18 +46,18 @@ public class Climber extends BaseClimber {
     public void init() {
         PreviousState = (ClimberState) this.getCurrentState();
         leverMotor.set(0);
-        mArmEncoder.setPosition(0);
+        armEncoder.setPosition(0);
     }
 
     public double getMotorVelocity() {
-        return mArmEncoder.getVelocity() / 60;
+        return armEncoder.getVelocity() / 60;
     }
 
     @Override
     public void periodic() {
         if (currentMode == EnumCollection.OperatingMode.DISABLED) return;
 
-        Rotation2d mMotorPosition = Rotation2d.fromRadians(mArmEncoder.getPosition());
+        Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();
 
         Logger.recordOutput("Climber/Velocity", mMotorVelocity);
@@ -61,7 +65,7 @@ public class Climber extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                leverMotor.set(0.5);
+                armMotorSim.se
                 System.out.println("Climber/Idle");
                 break;
             case LIFT:
@@ -78,4 +82,5 @@ public class Climber extends BaseClimber {
 
         PreviousState = (ClimberState)this.getCurrentState();
     }
+
 }

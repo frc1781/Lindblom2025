@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -12,7 +13,9 @@ import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.auto.routines.TwoFarNote;
+import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
+import tech.lindblom.subsystems.climber.ClimberSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -31,7 +34,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
-    public Climber climberSystem;
+    public BaseClimber climberSystem;
 
     DriverInput driverInput;
 
@@ -58,7 +61,11 @@ public class RobotController {
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         driverInput = new DriverInput(this);
-        climberSystem = new Climber();
+        if (RobotBase.isReal()) {
+            climberSystem = new Climber();
+        } else {
+            climberSystem = new ClimberSim();
+        }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
 
