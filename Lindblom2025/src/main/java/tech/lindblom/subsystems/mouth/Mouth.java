@@ -15,6 +15,8 @@ import tech.lindblom.utils.Constants;
 
 import java.util.HashMap;
 
+import org.littletonrobotics.junction.Logger;
+
 
 public class Mouth extends StateSubsystem {
     private final SparkMax spinMotor;
@@ -50,17 +52,14 @@ public class Mouth extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        System.out.println("matches state: " + matchesState());
         double positionDiff = Math.abs((positions.get(getCurrentState()) - getPosition()));
         double tolerance = 2;
         return positionDiff <= tolerance;
-        
     }
 
 
     @Override
     public void init() {
-        System.out.println("starting position: " + positionMotor.getEncoder().getPosition());
         positionMotor.getEncoder().setPosition(positions.get(MouthState.UP));
     }
 
@@ -76,20 +75,20 @@ public class Mouth extends StateSubsystem {
                 collect();
                 break;
         }
+        Logger.recordOutput(this.name + "/position", getPosition());
+        Logger.recordOutput(this.name + "/desired position", positions.get(getCurrentState()));
+        Logger.recordOutput(this.name + "/collectSpeed", spinMotor.get());
     }
 
     public double getPosition() {
-        System.out.println("current mouth position: " + positionMotor.getEncoder().getPosition());
         return positionMotor.getEncoder().getPosition();
     }
 
     public void goToPosition(double position) {
-        System.out.println("desired mouth position: " + position);
         motionController.setReference(position, ControlType.kPosition);
     }
 
     private void collect() {
-        System.out.println("current speed: " + spinMotor.get());
         spinMotor.set(0.01);
     }
 
