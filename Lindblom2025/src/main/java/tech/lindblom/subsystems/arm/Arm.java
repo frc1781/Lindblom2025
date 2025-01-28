@@ -21,14 +21,16 @@ public class Arm extends StateSubsystem {
 
     public Arm() {
         super("Arm", ArmState.IDLE);
+
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.encoder.positionConversionFactor((1/4) * (1/5) * (1/2));
-        armMotorConfig.closedLoop.pid(0.1, 0,0);
-
+        armMotorConfig.encoder.positionConversionFactor((1/4) * (1/5) * (1/2)*360);
+        armMotorConfig.closedLoop.pid(0.001, 0,0);
+        armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
         positionMap = new HashMap<>();
         positionMap.put(ArmState.IDLE, 0.0);
         positionMap.put(ArmState.L1, 0.0);
@@ -57,11 +59,9 @@ public class Arm extends StateSubsystem {
 
     private void getToPosition(double position ){
         armMotor.getClosedLoopController().setReference(position,ControlType.kPosition);
-    
     }
 
     public enum ArmState implements SubsystemState {
         IDLE, L1, L2, L3, L4
     }
-    
 }
