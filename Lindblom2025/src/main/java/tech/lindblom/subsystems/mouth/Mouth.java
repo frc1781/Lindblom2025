@@ -77,7 +77,7 @@ public class Mouth extends StateSubsystem {
         }
         Logger.recordOutput(this.name + "/position", getPosition());
         Logger.recordOutput(this.name + "/desired position", positions.get(getCurrentState()));
-        Logger.recordOutput(this.name + "/collectSpeed", spinMotor.get());
+        Logger.recordOutput(this.name + "/collect speed", spinMotor.get());
     }
 
     public double getPosition() {
