@@ -6,12 +6,10 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkClosedLoopController;
 
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Encoder;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
@@ -33,7 +31,7 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig spinMotorConfig = new SparkMaxConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
-        spinMotorConfig.inverted(true);
+        spinMotorConfig.inverted(false);
         spinMotor.configure(spinMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Position Motor
@@ -42,7 +40,7 @@ public class Mouth extends StateSubsystem {
         SparkMaxConfig positionMotorConfig = new SparkMaxConfig();
         positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
-        positionMotorConfig.inverted(true);
+        positionMotorConfig.inverted(false);
         positionMotor.configure(positionMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positions.put(MouthState.UP, 0.0);
@@ -52,14 +50,17 @@ public class Mouth extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
+        System.out.println("matches state: " + matchesState());
         double positionDiff = Math.abs((positions.get(getCurrentState()) - getPosition()));
         double tolerance = 2;
         return positionDiff <= tolerance;
+        
     }
 
 
     @Override
     public void init() {
+        System.out.println("starting position: " + positionMotor.getEncoder().getPosition());
         positionMotor.getEncoder().setPosition(positions.get(MouthState.UP));
     }
 
@@ -88,6 +89,7 @@ public class Mouth extends StateSubsystem {
     }
 
     private void collect() {
+        System.out.println("current speed: " + spinMotor.get());
         spinMotor.set(0.01);
     }
 
