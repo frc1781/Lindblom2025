@@ -23,6 +23,7 @@ import tech.lindblom.utils.SwerveModuleConfiguration;
 public class DoubleKrakenSwerveModule extends SwerveModule {
     private final TalonFX mDriveMotor;
     private final TalonFX mTurnMotor;
+    private double testDutyCycle;
 
     private final CANcoder mTurnAbsoluteEncoder;
     private boolean isInverted;
@@ -135,6 +136,17 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
+    }
+
+    public void runTestStates() {
+        if (getDriveMotorSpeed() >= 1) {
+            mDriveMotor.set(0);
+        }
+        mTurnMotor.set(turningController.calculate(getAbsoluteRotation(),0));
+        testDutyCycle += 0.001;
+        Logger.recordOutput("DriveModule/" + this.name + "/Test Duty Cycle", testDutyCycle);
+        Logger.recordOutput("DriveModule/" + this.name + "/Velocity", getDriveMotorSpeed());
+        mDriveMotor.set(testDutyCycle);
     }
 
     private double getDriveMotorSpeed() {

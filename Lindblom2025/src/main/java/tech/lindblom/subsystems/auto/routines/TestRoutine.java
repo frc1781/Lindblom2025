@@ -1,6 +1,7 @@
 package tech.lindblom.subsystems.auto.routines;
 
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoRoutine;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
@@ -17,19 +18,7 @@ public class TestRoutine implements AutoRoutine {
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
-                        new AutoStep(10, RobotController.Action.EXPECTED_LED_FAIL, new Reaction1()),
-                        new AutoStep(10, RobotController.Action.LEDs_RED),
-                }),
-                new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.LEDs_GREEN),
-                        new AutoStep(10, RobotController.Action.LEDs_RED),
-                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
-                }),
-                new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.LEDs_GREEN),
-                        new AutoStep(10, RobotController.Action.LEDs_RED),
-                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
+                        new AutoStep(Auto.getPathFromName("maxspeed"))
                 })
         };
     }
