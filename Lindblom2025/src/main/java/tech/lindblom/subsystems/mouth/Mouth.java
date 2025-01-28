@@ -9,7 +9,6 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
@@ -77,11 +76,12 @@ public class Mouth extends StateSubsystem {
     }
 
     public double getPosition() {
+        System.out.println("current mouth position: " + positionMotor.getEncoder().getPosition());
         return positionMotor.getEncoder().getPosition();
     }
 
     public void goToPosition(double position) {
-        System.out.println("mouth position: " + position);
+        System.out.println("desired mouth position: " + position);
         //motionController.setReference(position, ControlType.kPosition);
     }
 
