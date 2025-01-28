@@ -17,19 +17,19 @@ public class TestRoutine implements AutoRoutine {
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.TEST_BLUE),
+                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
                         new AutoStep(10, RobotController.Action.EXPECTED_LED_FAIL, new Reaction1()),
-                        new AutoStep(10, RobotController.Action.TEST_RED),
+                        new AutoStep(10, RobotController.Action.LEDs_RED),
                 }),
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.TEST_GREEN),
-                        new AutoStep(10, RobotController.Action.TEST_RED),
-                        new AutoStep(10, RobotController.Action.TEST_BLUE),
+                        new AutoStep(10, RobotController.Action.LEDs_GREEN),
+                        new AutoStep(10, RobotController.Action.LEDs_RED),
+                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
                 }),
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, RobotController.Action.TEST_GREEN),
-                        new AutoStep(10, RobotController.Action.TEST_RED),
-                        new AutoStep(10, RobotController.Action.TEST_BLUE),
+                        new AutoStep(10, RobotController.Action.LEDs_GREEN),
+                        new AutoStep(10, RobotController.Action.LEDs_RED),
+                        new AutoStep(10, RobotController.Action.LEDs_BLUE),
                 })
         };
     }

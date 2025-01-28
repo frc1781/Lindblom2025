@@ -16,13 +16,9 @@ public class TwoFarNote implements AutoRoutine {
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, Auto.getPathFromName("p2;c3")),
-                        new AutoStep(10, Auto.getPathFromName("c3;p2")),
+                        new AutoStep(Auto.getPathFromName("testPath")),
+
                 }),
-                new DependGroup(new AutoStep[]{
-                        new AutoStep(10, Auto.getPathFromName("p2;c1")),
-                        new AutoStep(10, Auto.getPathFromName("c1;p2")),
-                })
         };
     }
 }
