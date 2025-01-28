@@ -18,8 +18,8 @@ public class DriverInput {
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
         this.controlList = new Control[] {
-                new Control(0, "A", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.RED, 3)),
-                new Control(0, "B", new RobotController.SubsystemSetting(robotController.ledsSystem, LEDs.LEDState.GREEN, 4))
+                new Control(0, "A", RobotController.Action.LEDs_RED),
+                new Control(0, "B", RobotController.Action.LEDs_GREEN)
         };
     }
 
@@ -33,20 +33,30 @@ public class DriverInput {
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
+        if (getButton("LB", 0)) {
+            driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
+        } else if (getButton("RB", 0)) {
+            driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+        }
+
         for (int i = 0; i < controlList.length; i++) {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
-                for (int j = 0; j < subsystemSettings.size(); j++) {
-                    RobotController.SubsystemSetting subsystemSetting = subsystemSettings.get(j);
-                    if (subsystemSetting.subsystem == control.requestedSetting.subsystem && subsystemSetting.weight < control.requestedSetting.weight) {
-                        subsystemSettings.add(control.requestedSetting);
-                        subsystemSettings.remove(subsystemSetting);
-                        break;
-                    }
-                }
+                RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
+                if (subsystemSettingsFromAction == null) break;
 
-                subsystemSettings.add(control.requestedSetting);
+                for (RobotController.SubsystemSetting subsystemSettingFromAction : subsystemSettingsFromAction) {
+                    for (RobotController.SubsystemSetting subsystemSetting : subsystemSettings) {
+                        if (subsystemSetting.subsystem == subsystemSettingFromAction.subsystem && subsystemSetting.weight < subsystemSettingFromAction.weight) {
+                            subsystemSettings.add(subsystemSetting);
+                            subsystemSettings.remove(subsystemSettingFromAction);
+                            break;
+                        }
+                    }
+
+                    subsystemSettings.add(subsystemSettingFromAction);
+                }
             }
         }
 
@@ -106,13 +116,13 @@ public class DriverInput {
     private class Control {
         private final int controllerIndex;
         private final String inputName;
-        private final RobotController.SubsystemSetting requestedSetting;
+        private final RobotController.Action requestedAction;
 
-        Control(int controllerIndex, String input, RobotController.SubsystemSetting requestedSetting) {
+        Control(int controllerIndex, String input, RobotController.Action requestedAction) {
             this.controllerIndex = controllerIndex;
             this.inputName = input;
 
-            this.requestedSetting = requestedSetting;
+            this.requestedAction = requestedAction;
         }
 
         boolean getButtonValue() {
@@ -132,6 +142,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getAButton();
             case "B":
                 return controllers[controllerIndex].getBButton();
+            case "LB":
+                return controllers[controllerIndex].getLeftBumperButton();
+            case "RB":
+                return controllers[controllerIndex].getRightBumperButton();
         }
 
         return false;
@@ -139,11 +153,16 @@ public class DriverInput {
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
+        public ReefCenteringSide centeringSide = null;
 
         Translation2d driverLeftJoystickPosition;
         Translation2d driverRightJoystickPosition;
 
         boolean resetNavX;
+    }
+
+    public enum ReefCenteringSide {
+        LEFT, RIGHT, CENTER
     }
 
     public enum ControllerSide {
