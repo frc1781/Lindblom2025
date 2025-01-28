@@ -52,7 +52,9 @@ public class Mouth extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        return getPosition() == positions.get(getCurrentState());
+        double positionDiff = Math.abs((positions.get(getCurrentState()) - getPosition()));
+        double tolerance = 2;
+        return positionDiff <= tolerance;
     }
 
 
@@ -82,11 +84,11 @@ public class Mouth extends StateSubsystem {
 
     public void goToPosition(double position) {
         System.out.println("desired mouth position: " + position);
-        //motionController.setReference(position, ControlType.kPosition);
+        motionController.setReference(position, ControlType.kPosition);
     }
 
     private void collect() {
-        //spinMotor.set(0.01);
+        spinMotor.set(0.01);
     }
 
     public enum MouthState implements SubsystemState {
