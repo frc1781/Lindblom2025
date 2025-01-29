@@ -99,13 +99,18 @@ public class Constants {
 
     public class Controls {
         public static final double DEADZONE = 0.1;
+
+    }
+
+    public class Arm{
+        public static final int ARM_MOTOR_ID = 16;
     }
 
     public class Elevator {
         public static final int RIGHT_ELEVATOR_MOTOR = 40;
         public static final int LEFT_ELEVATOR_MOTOR = 41;
 
-        
+
         public static final int FIRST_STAGE_TOF = 0;
         public static final int SECOND_STAGE_TOF = 0;
         public static final int LOWER_TROUGH__TOF = 0;
@@ -118,4 +123,5 @@ public class Constants {
         public static final double ELEVATOR_KA = 0.01;
 
     }
+
 }
