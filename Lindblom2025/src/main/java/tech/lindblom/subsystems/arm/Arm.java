@@ -27,9 +27,9 @@ public class Arm extends StateSubsystem {
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.encoder.positionConversionFactor(((double) 1/4) * ((double) 1/5) * ((double) 1/2) * 360);
+        armMotorConfig.encoder.positionConversionFactor(360.0/(4.0 * 5.0 * 2.0));
         armMotorConfig.closedLoop.pid(0.001, 0,0);
-        //armMotorConfig.openLoopRampRate(5);
+        armMotorConfig.openLoopRampRate(5.0);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
