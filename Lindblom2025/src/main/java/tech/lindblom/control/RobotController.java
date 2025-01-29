@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonPipelineResult;
+import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
@@ -32,6 +33,7 @@ public class RobotController {
     public Auto autoSystem;
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
+    public Arm armSystem;
 
     DriverInput driverInput;
 
@@ -58,6 +60,7 @@ public class RobotController {
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         elevatorSystem = new Elevator();
+        armSystem = new Arm();
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
@@ -79,7 +82,9 @@ public class RobotController {
         LEDs_GREEN,
         CENTER_REEF_L4_LEFT,
         CENTER_REEF_L4_RIGHT,
-        PLACE_L4
+        PLACE_L4,
+        ELEVATOR_DOWN,
+        ELEVATOR_UP,
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -278,8 +283,14 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
-        defineAction(Action.PLACE_L4, 
+        defineAction(Action.PLACE_L4,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5));
+        defineAction(Action.ELEVATOR_UP,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 2),
+                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_DOWN, 2));
+        defineAction(Action.ELEVATOR_DOWN,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 3),
+                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {

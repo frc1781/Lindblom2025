@@ -94,8 +94,21 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
         Logger.recordOutput(this.name + "/LowerTroughTOF", lowerTroughTOF.getRange());
+        Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
         if (currentMode == OperatingMode.DISABLED) return;
+        switch ((ElevatorState) getCurrentState()) {
+            case SAFE:
+                motorRight.set(0);
+                break;
+
+            case MANUAL_DOWN:
+                motorRight.set(-0.1);
+                break;
+            case MANUAL_UP:
+                motorRight.set(0.1);
+                break;
+        }
         //goToPosition();
     }
 
@@ -131,6 +144,8 @@ public class Elevator extends StateSubsystem {
         L1,
         L2,
         L3,
-        L4
+        L4,
+        MANUAL_DOWN,
+        MANUAL_UP,
     }
 }

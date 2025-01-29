@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import com.revrobotics.spark.SparkLowLevel;
 
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -26,9 +27,9 @@ public class Arm extends StateSubsystem {
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.encoder.positionConversionFactor((1/4) * (1/5) * (1/2) * 360);
+        armMotorConfig.encoder.positionConversionFactor(((double) 1/4) * ((double) 1/5) * ((double) 1/2) * 360);
         armMotorConfig.closedLoop.pid(0.001, 0,0);
-        armMotorConfig.openLoopRampRate(5);
+        //armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
@@ -53,7 +54,20 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
+        Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getEncoder().getPosition());
         if(currentMode == OperatingMode.DISABLED) return;
+        switch ((ArmState) getCurrentState()) {
+            case IDLE:
+                armMotor.set(0);
+                break;
+            case MANUAL_DOWN:
+                armMotor.set(-0.05);
+                break;
+            case MANUAL_UP:
+                armMotor.set(0.05);
+                break;
+
+        }
         //getToPosition(positionMap.get(getCurrentState()));
     }
 
@@ -62,6 +76,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN
     }
 }
