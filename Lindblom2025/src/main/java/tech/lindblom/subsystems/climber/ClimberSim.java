@@ -65,7 +65,7 @@ public class ClimberSim extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                armMotorSim.se
+                //armMotorSim.se
                 System.out.println("Climber/Idle");
                 break;
             case LIFT:
