@@ -9,8 +9,6 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -74,7 +72,8 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.COLLECT, new Double[]{minFirstStageDistance, 150.0});
+        positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 150.0});
+        positions.put(ElevatorState.COLLECT_LOW, new Double[]{maxFirstStageDistance, 400.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(3,3);
     }
@@ -82,6 +81,9 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
+        if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
+            return false;
+        }
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
@@ -139,7 +141,7 @@ public class Elevator extends StateSubsystem {
         Double[] desiredPosition = positions.get(getCurrentState());
         double Tolerance = 80;
 
-        if (Math.abs(desiredPosition[1] - secondStagePosition) > Tolerance && desiredPosition[0] == minFirstStageDistance) {
+        if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = Math.min(0.5, Math.max(ff, -0.5));
@@ -164,6 +166,7 @@ public class Elevator extends StateSubsystem {
         L4,
         MANUAL_DOWN,
         MANUAL_UP,
-        COLLECT
+        COLLECT_HIGH,
+        COLLECT_LOW
     }
 }

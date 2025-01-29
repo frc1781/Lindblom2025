@@ -18,7 +18,9 @@ public class DriverInput {
         this.robotController = robotController;
         this.controlList = new Control[] {
                 new Control(0, "X", RobotController.Action.L4),
-                new Control(0, "Y", RobotController.Action.COLLECT)
+                new Control(0, "Y", RobotController.Action.COLLECT),
+                new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
+                new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
         };
     }
 
@@ -44,6 +46,11 @@ public class DriverInput {
             if (control.getButtonValue()) {
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
                 if (subsystemSettingsFromAction == null) break;
+
+                if (subsystemSettingsFromAction[0].reliesOnOthers) {
+                    driverInputHolder.sequentialAction = control.requestedAction;
+                    break;
+                }
 
                 for (RobotController.SubsystemSetting subsystemSettingFromAction : subsystemSettingsFromAction) {
                     for (RobotController.SubsystemSetting subsystemSetting : subsystemSettings) {
@@ -156,6 +163,8 @@ public class DriverInput {
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
+        public RobotController.Action sequentialAction;
+
         public ReefCenteringSide centeringSide = null;
 
         Translation2d driverLeftJoystickPosition;

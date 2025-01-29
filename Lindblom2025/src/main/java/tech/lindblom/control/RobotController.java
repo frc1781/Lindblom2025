@@ -50,6 +50,7 @@ public class RobotController {
     private HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
 
     private DriverInput.InputHolder mostRecentInputHolder;
+    private ArrayList<SequentialActionStatus> sequentialActionStatus = new ArrayList<>();
 
     public RobotController() {
         driveController = new DriveController(this);
@@ -83,7 +84,9 @@ public class RobotController {
         CENTER_REEF_L4_LEFT,
         CENTER_REEF_L4_RIGHT,
         L4,
-        COLLECT
+        COLLECT,
+        MANUAL_ELEVATOR_UP,
+        MANUAL_ELEVATOR_DOWN,
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -162,13 +165,34 @@ public class RobotController {
             driveController.resetNavX();
         }
 
+        if (holder.sequentialAction != null) {
+            SubsystemSetting[] subsystemSettings = actionMap.get(holder.sequentialAction);
+            for (int i = 0; i < subsystemSettings.length; i++) {
+                if (subsystemSettings[i].reliesOnOthers) continue;
+                SubsystemSetting setting = subsystemSettings[i];
+
+                if (i == 1) {
+                    setting.subsystem.setState(setting.state);
+                    setSubsystems.add(setting.subsystem);
+                    sequentialActionStatus.add(new SequentialActionStatus(setting.subsystem.matchesState()));
+                    break;
+                }
+
+                if ((sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                    setting.subsystem.setState(setting.state);
+                    setSubsystems.add(setting.subsystem);
+                }
+
+                sequentialActionStatus.add(new SequentialActionStatus(setting.subsystem.matchesState()));
+            }
+        } else {
+            if (!sequentialActionStatus.isEmpty()) {
+                sequentialActionStatus = new ArrayList<>();
+            }
+        }
+
         for (int i = 0; i < holder.requestedSubsystemSettings.size(); i++) {
             SubsystemSetting setting = holder.requestedSubsystemSettings.get(i);
-            System.out.println("is arm subsustem " + setting.subsystem.name.equalsIgnoreCase("Arm"));
-            System.out.println("is elevator subsystem " + elevatorSystem.matchesState());
-            if (setting.subsystem.name.equalsIgnoreCase("Arm") && !elevatorSystem.matchesState()) {
-                continue;
-            }
 
             setting.subsystem.setState(setting.state);
             setSubsystems.add(setting.subsystem);
@@ -290,12 +314,20 @@ public class RobotController {
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
         defineAction(Action.L4,
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5));
-        defineAction(Action.COLLECT,
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT, 2),
-                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2)
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_HIGH, 2),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
+                );
+        defineAction(Action.MANUAL_ELEVATOR_DOWN,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
+        defineAction(Action.MANUAL_ELEVATOR_UP,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
@@ -327,10 +359,22 @@ public class RobotController {
         return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
     }
 
+    static class SequentialActionStatus {
+        public boolean stateHasBeenMet = false;
+        public SequentialActionStatus(boolean stateHasBeenMet) {
+            this.stateHasBeenMet = stateHasBeenMet;
+        }
+    }
+
     static class SubsystemSetting {
         public StateSubsystem subsystem;
         public StateSubsystem.SubsystemState state;
         public int weight;
+        public boolean reliesOnOthers = false;
+
+        public SubsystemSetting(boolean reliesOnOthers) {
+            this.reliesOnOthers = reliesOnOthers;
+        }
 
         public SubsystemSetting(StateSubsystem subsystem, StateSubsystem.SubsystemState state, int weight) {
             this.subsystem = subsystem;

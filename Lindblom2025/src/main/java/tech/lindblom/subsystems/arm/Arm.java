@@ -32,7 +32,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.pid(0.01, 0,0);
         armMotorConfig.closedLoop.maxOutput(0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-        armMotorConfig.openLoopRampRate(2);
+        armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
@@ -41,13 +41,13 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
         positionMap.put(ArmState.L4, 90.0);
-        positionMap.put(ArmState.COLLECT, 180.0);
+        positionMap.put(ArmState.COLLECT, 90.0);
     }
 
     @Override
     public boolean matchesState() {
        double tolerance = 2;
-       return Math.abs(positionMap.get(getCurrentState()) - armMotor.getEncoder().getPosition()) <= tolerance;
+       return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
        
     }
 
