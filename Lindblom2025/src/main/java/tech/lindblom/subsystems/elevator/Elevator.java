@@ -91,9 +91,12 @@ public class Elevator extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
+        Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
+        Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
+        Logger.recordOutput(this.name + "/LowerTroughTOF", lowerTroughTOF.getRange());
 
         if (currentMode == OperatingMode.DISABLED) return;
-        goToPosition();
+        //goToPosition();
     }
 
     public double getFirstStagePosition() {
@@ -112,9 +115,14 @@ public class Elevator extends StateSubsystem {
         double totalPosition = getFirstStagePosition() + getSecondStagePosition();
         double desiredPosition = positions.get(getCurrentState())[0] + positions.get(getCurrentState())[1];
         double ff = feedforwardController.calculate(desiredPosition - totalPosition);
-        if (ff < 0) {
+        if (ff <= 0) {
             ff = 0;
         }
+
+        if (ff > 0.1) {
+            ff = 0.1;
+        }
+
         motorRight.set(ff);
     }
 

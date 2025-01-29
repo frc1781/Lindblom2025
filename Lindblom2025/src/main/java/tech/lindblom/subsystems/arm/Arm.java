@@ -26,7 +26,7 @@ public class Arm extends StateSubsystem {
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.encoder.positionConversionFactor((1/4) * (1/5) * (1/2)*360);
+        armMotorConfig.encoder.positionConversionFactor((1/4) * (1/5) * (1/2) * 360);
         armMotorConfig.closedLoop.pid(0.001, 0,0);
         armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -41,7 +41,7 @@ public class Arm extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-       double tolerance=2;
+       double tolerance = 2;
        return Math.abs(positionMap.get(getCurrentState()) - armMotor.getEncoder().getPosition()) <= tolerance;
        
     }
@@ -54,11 +54,11 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         if(currentMode == OperatingMode.DISABLED) return;
-        getToPosition(positionMap.get(getCurrentState()));
+        //getToPosition(positionMap.get(getCurrentState()));
     }
 
     private void getToPosition(double position ){
-        armMotor.getClosedLoopController().setReference(position,ControlType.kPosition);
+        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
     }
 
     public enum ArmState implements SubsystemState {
