@@ -66,7 +66,7 @@ public class RobotController {
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
-
+        stateSubsystems.add(armSystem);
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
         //subsystems.add(visionSystem);
