@@ -68,11 +68,11 @@ public class Arm extends StateSubsystem {
                 break;
 
         }
-        //getToPosition(positionMap.get(getCurrentState()));
+        getToPosition(positionMap.get(getCurrentState()));
     }
 
     private void getToPosition(double position ){
-        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
+        //armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
     }
 
     public enum ArmState implements SubsystemState {
