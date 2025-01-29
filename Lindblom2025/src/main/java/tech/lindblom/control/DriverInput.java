@@ -2,7 +2,6 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
-import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -18,8 +17,8 @@ public class DriverInput {
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
         this.controlList = new Control[] {
-                new Control(0, "A", RobotController.Action.ELEVATOR_UP),
-                new Control(0, "B", RobotController.Action.ELEVATOR_DOWN),
+                new Control(0, "X", RobotController.Action.L4),
+                new Control(0, "Y", RobotController.Action.COLLECT)
         };
     }
 
@@ -142,6 +141,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getAButton();
             case "B":
                 return controllers[controllerIndex].getBButton();
+            case "X":
+                return controllers[controllerIndex].getXButton();
+            case "Y":
+                return controllers[controllerIndex].getYButton();
             case "LB":
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":

@@ -29,6 +29,12 @@ public class Elevator extends StateSubsystem {
     private TimeOfFlight secondStageTOF;
     private TimeOfFlight lowerTroughTOF;
     // measure the max distance
+    private double minSecondStageDistance = 0;
+    private double maxSecondStageDistance = 680;
+
+    private double minFirstStageDistance = 0;
+    private double maxFirstStageDistance = 810;
+
     private LoggedMechanism2d elevatorMechSimulation;
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
@@ -63,11 +69,12 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{0.0,0.0});
-        positions.put(ElevatorState.L1, new Double[]{0.0,0.0});
-        positions.put(ElevatorState.L2, new Double[]{0.0,0.0});
-        positions.put(ElevatorState.L3, new Double[]{0.0,0.0});
-        positions.put(ElevatorState.L4, new Double[]{0.0,0.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, maxSecondStageDistance});
+        positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
+        positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
+        positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
+        positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
+        positions.put(ElevatorState.COLLECT, new Double[]{minFirstStageDistance, 150.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(3,3);
     }
@@ -77,8 +84,8 @@ public class Elevator extends StateSubsystem {
     public boolean matchesState() {
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
-        double secondStageDiff = Math.abs(desiredPosition[0] - getSecondStagePosition());
-        double tolerance = 25;
+        double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
+        double tolerance = 80;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
@@ -97,19 +104,21 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
         if (currentMode == OperatingMode.DISABLED) return;
+
         switch ((ElevatorState) getCurrentState()) {
             case SAFE:
                 motorRight.set(0);
                 break;
-
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
             case MANUAL_UP:
                 motorRight.set(0.1);
                 break;
+            default:
+                goToPosition();
+                break;
         }
-        //goToPosition();
     }
 
     public double getFirstStagePosition() {
@@ -125,18 +134,26 @@ public class Elevator extends StateSubsystem {
     }
 
     public void goToPosition() {
-        double totalPosition = getFirstStagePosition() + getSecondStagePosition();
-        double desiredPosition = positions.get(getCurrentState())[0] + positions.get(getCurrentState())[1];
-        double ff = feedforwardController.calculate(desiredPosition - totalPosition);
-        if (ff <= 0) {
-            ff = 0;
-        }
+        double firstStagePosition = getFirstStagePosition();
+        double secondStagePosition = getSecondStagePosition();
+        Double[] desiredPosition = positions.get(getCurrentState());
+        double Tolerance = 80;
 
-        if (ff > 0.1) {
-            ff = 0.1;
+        if (Math.abs(desiredPosition[1] - secondStagePosition) > Tolerance && desiredPosition[0] == minFirstStageDistance) {
+            double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
+            Logger.recordOutput(this.name + "/FFUnClamped", ff);
+            double clampedResult = Math.min(0.5, Math.max(ff, -0.5));
+            Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
+            motorRight.set(clampedResult);
+        } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance && desiredPosition[0] != minFirstStageDistance) {
+            double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
+            Logger.recordOutput(this.name + "/FFUnClamped", ff);
+            double clampedResult = Math.min(0.5, Math.max(ff, -0.5));
+            Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
+            motorRight.set(clampedResult);
+        } else {
+            motorRight.set(0.02);
         }
-
-        motorRight.set(ff);
     }
 
     public enum ElevatorState implements SubsystemState {
@@ -147,5 +164,6 @@ public class Elevator extends StateSubsystem {
         L4,
         MANUAL_DOWN,
         MANUAL_UP,
+        COLLECT
     }
 }

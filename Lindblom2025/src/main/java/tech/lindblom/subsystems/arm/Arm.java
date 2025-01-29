@@ -4,6 +4,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import java.util.HashMap;
@@ -27,17 +28,20 @@ public class Arm extends StateSubsystem {
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.encoder.positionConversionFactor(360.0/(4.0 * 5.0 * 2.0));
-        armMotorConfig.closedLoop.pid(0.001, 0,0);
-        armMotorConfig.openLoopRampRate(5.0);
+        armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
+        armMotorConfig.closedLoop.pid(0.01, 0,0);
+        armMotorConfig.closedLoop.maxOutput(0.5);
+        armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+        armMotorConfig.openLoopRampRate(2);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        positionMap.put(ArmState.IDLE, 0.0);
-        positionMap.put(ArmState.L1, 0.0);
+        positionMap.put(ArmState.IDLE, 25.0);
+        positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
-        positionMap.put(ArmState.L4, 0.0);
+        positionMap.put(ArmState.L4, 90.0);
+        positionMap.put(ArmState.COLLECT, 180.0);
     }
 
     @Override
@@ -54,28 +58,28 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
-        Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getEncoder().getPosition());
+        Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         if(currentMode == OperatingMode.DISABLED) return;
         switch ((ArmState) getCurrentState()) {
-            case IDLE:
-                armMotor.set(0);
-                break;
             case MANUAL_DOWN:
-                armMotor.set(-0.05);
+                armMotor.set(-0.1);
                 break;
             case MANUAL_UP:
-                armMotor.set(0.05);
+                armMotor.set(0.1);
+                break;
+            default:
+                getToPosition(positionMap.get(getCurrentState()));
                 break;
 
         }
-        getToPosition(positionMap.get(getCurrentState()));
     }
 
     private void getToPosition(double position ){
-        //armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
+        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
+        Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT
     }
 }

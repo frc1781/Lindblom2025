@@ -82,9 +82,8 @@ public class RobotController {
         LEDs_GREEN,
         CENTER_REEF_L4_LEFT,
         CENTER_REEF_L4_RIGHT,
-        PLACE_L4,
-        ELEVATOR_DOWN,
-        ELEVATOR_UP,
+        L4,
+        COLLECT
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -149,6 +148,7 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
+            Logger.recordOutput(subsystem.name + "/MatchesState", subsystem.matchesState());
         }
     }
 
@@ -164,6 +164,12 @@ public class RobotController {
 
         for (int i = 0; i < holder.requestedSubsystemSettings.size(); i++) {
             SubsystemSetting setting = holder.requestedSubsystemSettings.get(i);
+            System.out.println("is arm subsustem " + setting.subsystem.name.equalsIgnoreCase("Arm"));
+            System.out.println("is elevator subsystem " + elevatorSystem.matchesState());
+            if (setting.subsystem.name.equalsIgnoreCase("Arm") && !elevatorSystem.matchesState()) {
+                continue;
+            }
+
             setting.subsystem.setState(setting.state);
             setSubsystems.add(setting.subsystem);
         }
@@ -283,14 +289,13 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
-        defineAction(Action.PLACE_L4,
+        defineAction(Action.L4,
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5));
-        defineAction(Action.ELEVATOR_UP,
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 2),
-                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_DOWN, 2));
-        defineAction(Action.ELEVATOR_DOWN,
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 3),
-                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT, 2),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2)
+                );
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
