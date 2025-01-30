@@ -29,7 +29,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
-        armMotorConfig.closedLoop.pid(0.01, 0,0);
+        armMotorConfig.closedLoop.pid(0.005, 0,0);
         armMotorConfig.closedLoop.maxOutput(0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
         armMotorConfig.openLoopRampRate(5);
@@ -40,8 +40,8 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
-        positionMap.put(ArmState.L4, 90.0);
-        positionMap.put(ArmState.COLLECT, 90.0);
+        positionMap.put(ArmState.L4, 25.0);
+        positionMap.put(ArmState.COLLECT, 190.0);
     }
 
     @Override

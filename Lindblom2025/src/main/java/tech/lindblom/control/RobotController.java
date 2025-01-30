@@ -25,6 +25,7 @@ import tech.lindblom.utils.EnumCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.RandomAccess;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -155,35 +156,70 @@ public class RobotController {
         }
     }
 
-    public void processDriverInputs() {
-        DriverInput.InputHolder holder = driverInput.getDriverInputs();
-        mostRecentInputHolder = holder;
-        driverDriving(holder.driverLeftJoystickPosition, holder.driverRightJoystickPosition);
+    private boolean shouldOverrideState(Action action, int i) {
+        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(action);
+        for (int j = 0; j < subsystemSettings.length; j++) {
+            if (subsystemSettings.length != sequentialActionStatus.size()) {
+                return false;
+            }
+            if (subsystemSettings[j] == sequentialActionStatus.get(i).getSubsystemSetting() && sequentialActionStatus.get(i).stateHasBeenMet) {
+                for (int k = 0; k < subsystemSettings.length; k++) {
+                    if (k <= j) continue;
+                    if (subsystemSettings[i].subsystem == subsystemSettings[k].subsystem && sequentialActionStatus.get(k - 1).stateHasBeenMet) return true;
+                }
+            }
+        }
+
+
+        System.out.println("DIDNT DO SHIT");
+        return false;
+    }
+
+    private SubsystemSetting[] getSequentialActionSubsystemSettings(Action action) {
+        SubsystemSetting[] temp = actionMap.get(action);
+        SubsystemSetting[] subsystemSettings = new SubsystemSetting[temp.length - 1];
+        System.arraycopy(temp, 1, subsystemSettings, 0, subsystemSettings.length);
+        return subsystemSettings;
+    }
+
+    private void processDriverInputs() {
+        DriverInput.InputHolder inputHolder = driverInput.getDriverInputs();
+        mostRecentInputHolder = inputHolder;
+        driverDriving(inputHolder.driverLeftJoystickPosition, inputHolder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
-        if (holder.resetNavX) {
+        if (inputHolder.resetNavX) {
             driveController.resetNavX();
         }
 
-        if (holder.sequentialAction != null) {
-            SubsystemSetting[] subsystemSettings = actionMap.get(holder.sequentialAction);
+        if (inputHolder.sequentialAction != null) {
+            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
+
             for (int i = 0; i < subsystemSettings.length; i++) {
-                if (subsystemSettings[i].reliesOnOthers) continue;
                 SubsystemSetting setting = subsystemSettings[i];
-
-                if (i == 1) {
-                    setting.subsystem.setState(setting.state);
-                    setSubsystems.add(setting.subsystem);
-                    sequentialActionStatus.add(new SequentialActionStatus(setting.subsystem.matchesState()));
-                    break;
+                //Logger.recordOutput("RobotController/ActionCheck", shouldOverrideState(inputHolder.sequentialAction, i));
+                System.out.println(i);
+                if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                    if (sequentialActionStatus.size() == subsystemSettings.length && sequentialActionStatus.get(i).stateHasBeenMet) {
+                        System.out.println("STOPPSKFOJASOFJASF");
+                        setSubsystems.add(setting.subsystem);
+                    } else if (sequentialActionStatus.size() == subsystemSettings.length) {
+                        System.out.println("AJSHLFUIHSFLKHASKFH");
+                        setting.subsystem.setState(setting.state);
+                        setSubsystems.add(setting.subsystem);
+                    }
+                }
+                if (i != 0) {
+                    System.out.println(sequentialActionStatus.get(i - 1).stateHasBeenMet);
                 }
 
-                if ((sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
-                    setting.subsystem.setState(setting.state);
-                    setSubsystems.add(setting.subsystem);
+                if (sequentialActionStatus.size() != subsystemSettings.length) {
+                    sequentialActionStatus.add(new SequentialActionStatus(false, setting));
+                } else if (!sequentialActionStatus.get(i).stateHasBeenMet){
+                    if (setting.subsystem.getCurrentState() == setting.state) {
+                        sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                    }
                 }
-
-                sequentialActionStatus.add(new SequentialActionStatus(setting.subsystem.matchesState()));
             }
         } else {
             if (!sequentialActionStatus.isEmpty()) {
@@ -191,8 +227,8 @@ public class RobotController {
             }
         }
 
-        for (int i = 0; i < holder.requestedSubsystemSettings.size(); i++) {
-            SubsystemSetting setting = holder.requestedSubsystemSettings.get(i);
+        for (int i = 0; i < inputHolder.requestedSubsystemSettings.size(); i++) {
+            SubsystemSetting setting = inputHolder.requestedSubsystemSettings.get(i);
 
             setting.subsystem.setState(setting.state);
             setSubsystems.add(setting.subsystem);
@@ -205,7 +241,7 @@ public class RobotController {
         }
     }
 
-    public void driverDriving(Translation2d translation, Translation2d rotation) {
+    private void driverDriving(Translation2d translation, Translation2d rotation) {
         boolean isRed = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
         int flipForRed = isRed ? -1 : 1;
 
@@ -361,8 +397,15 @@ public class RobotController {
 
     static class SequentialActionStatus {
         public boolean stateHasBeenMet = false;
-        public SequentialActionStatus(boolean stateHasBeenMet) {
+        private SubsystemSetting subsystemSetting;
+
+        public SequentialActionStatus(boolean stateHasBeenMet, SubsystemSetting subsystemSetting) {
             this.stateHasBeenMet = stateHasBeenMet;
+            this.subsystemSetting = subsystemSetting;
+        }
+
+        public SubsystemSetting getSubsystemSetting() {
+            return subsystemSetting;
         }
     }
 

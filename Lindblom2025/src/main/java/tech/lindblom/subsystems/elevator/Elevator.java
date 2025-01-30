@@ -73,7 +73,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 150.0});
-        positions.put(ElevatorState.COLLECT_LOW, new Double[]{maxFirstStageDistance, 400.0});
+        positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 350.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(3,3);
     }
