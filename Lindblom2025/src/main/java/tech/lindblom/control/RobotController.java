@@ -52,6 +52,7 @@ public class RobotController {
 
     private DriverInput.InputHolder mostRecentInputHolder;
     private ArrayList<SequentialActionStatus> sequentialActionStatus = new ArrayList<>();
+    private Action currentSequentialAction = null;
 
     public RobotController() {
         driveController = new DriveController(this);
@@ -156,25 +157,6 @@ public class RobotController {
         }
     }
 
-    private boolean shouldOverrideState(Action action, int i) {
-        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(action);
-        for (int j = 0; j < subsystemSettings.length; j++) {
-            if (subsystemSettings.length != sequentialActionStatus.size()) {
-                return false;
-            }
-            if (subsystemSettings[j] == sequentialActionStatus.get(i).getSubsystemSetting() && sequentialActionStatus.get(i).stateHasBeenMet) {
-                for (int k = 0; k < subsystemSettings.length; k++) {
-                    if (k <= j) continue;
-                    if (subsystemSettings[i].subsystem == subsystemSettings[k].subsystem && sequentialActionStatus.get(k - 1).stateHasBeenMet) return true;
-                }
-            }
-        }
-
-
-        System.out.println("DIDNT DO SHIT");
-        return false;
-    }
-
     private SubsystemSetting[] getSequentialActionSubsystemSettings(Action action) {
         SubsystemSetting[] temp = actionMap.get(action);
         SubsystemSetting[] subsystemSettings = new SubsystemSetting[temp.length - 1];
@@ -192,19 +174,16 @@ public class RobotController {
             driveController.resetNavX();
         }
 
-        if (inputHolder.sequentialAction != null) {
+/*        if (inputHolder.sequentialAction != null) {
             SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
 
             for (int i = 0; i < subsystemSettings.length; i++) {
                 SubsystemSetting setting = subsystemSettings[i];
-                //Logger.recordOutput("RobotController/ActionCheck", shouldOverrideState(inputHolder.sequentialAction, i));
                 System.out.println(i);
                 if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
                     if (sequentialActionStatus.size() == subsystemSettings.length && sequentialActionStatus.get(i).stateHasBeenMet) {
-                        System.out.println("STOPPSKFOJASOFJASF");
                         setSubsystems.add(setting.subsystem);
                     } else if (sequentialActionStatus.size() == subsystemSettings.length) {
-                        System.out.println("AJSHLFUIHSFLKHASKFH");
                         setting.subsystem.setState(setting.state);
                         setSubsystems.add(setting.subsystem);
                     }
@@ -225,7 +204,7 @@ public class RobotController {
             if (!sequentialActionStatus.isEmpty()) {
                 sequentialActionStatus = new ArrayList<>();
             }
-        }
+        }*/
 
         for (int i = 0; i < inputHolder.requestedSubsystemSettings.size(); i++) {
             SubsystemSetting setting = inputHolder.requestedSubsystemSettings.get(i);
@@ -367,7 +346,7 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToMove() {
-        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState) {
+        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState && elevatorSystem.getFirstStagePosition() >= 80) {
             return elevatorSystem.matchesState();
         }
 

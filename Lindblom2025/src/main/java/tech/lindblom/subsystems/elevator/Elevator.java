@@ -43,6 +43,9 @@ public class Elevator extends StateSubsystem {
             );
 
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
+    private double previousDutyCycle = 0;
+    private double previousFirstStageDistance = 0;
+    private double previousSecondStageDistance = 0;
 
     public Elevator() {
         super("Elevator", ElevatorState.SAFE);
@@ -135,25 +138,33 @@ public class Elevator extends StateSubsystem {
     public void goToPosition() {
         double firstStagePosition = getFirstStagePosition();
         double secondStagePosition = getSecondStagePosition();
+        double dutyCycle = 0;
         Double[] desiredPosition = positions.get(getCurrentState());
         double Tolerance = 80;
 
         if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, -.5));
+            double clampedResult = Math.min(0.5, Math.max(ff, 0.0));
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
-            motorRight.set(clampedResult);
+            dutyCycle = clampedResult;
         } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance && desiredPosition[0] != minFirstStageDistance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, -.5));
+            double clampedResult = Math.min(0.5, Math.max(ff, 0));
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
-            motorRight.set(clampedResult);
+            dutyCycle = clampedResult;
         } else {
-
-            motorRight.set(0.02);
+            dutyCycle = 0.02;
         }
+
+        previousDutyCycle = dutyCycle;
+        previousFirstStageDistance = firstStagePosition;
+        previousSecondStageDistance = secondStagePosition;
+
+        Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
+
+        motorRight.set(dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {
