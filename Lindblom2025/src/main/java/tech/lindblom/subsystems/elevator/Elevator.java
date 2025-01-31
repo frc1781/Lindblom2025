@@ -67,13 +67,13 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, maxSecondStageDistance});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 150.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 150.0});
-        positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 350.0});
+        positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(3,3);
     }
@@ -108,9 +108,6 @@ public class Elevator extends StateSubsystem {
         if (currentMode == OperatingMode.DISABLED) return;
 
         switch ((ElevatorState) getCurrentState()) {
-            case SAFE:
-                motorRight.set(0);
-                break;
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
@@ -144,16 +141,17 @@ public class Elevator extends StateSubsystem {
         if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, -0.5));
+            double clampedResult = Math.min(0.5, Math.max(ff, -.5));
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             motorRight.set(clampedResult);
         } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance && desiredPosition[0] != minFirstStageDistance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, -0.5));
+            double clampedResult = Math.min(0.5, Math.max(ff, -.5));
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             motorRight.set(clampedResult);
         } else {
+
             motorRight.set(0.02);
         }
     }

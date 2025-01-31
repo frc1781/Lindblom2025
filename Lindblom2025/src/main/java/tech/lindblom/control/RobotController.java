@@ -62,7 +62,7 @@ public class RobotController {
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         elevatorSystem = new Elevator();
-        armSystem = new Arm();
+        armSystem = new Arm(this);
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
@@ -364,6 +364,14 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
+    }
+
+    public boolean isSafeForArmToMove() {
+        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState) {
+            return elevatorSystem.matchesState();
+        }
+
+        return false;
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {

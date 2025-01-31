@@ -11,7 +11,9 @@ import java.util.HashMap;
 
 import com.revrobotics.spark.SparkLowLevel;
 
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -20,19 +22,21 @@ public class Arm extends StateSubsystem {
 
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
+    private RobotController robotController;
 
-    public Arm() {
+    public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
+        robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
-        armMotorConfig.closedLoop.pid(0.005, 0,0);
+        armMotorConfig.closedLoop.pid(0.003, 0,0);
         armMotorConfig.closedLoop.maxOutput(0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-        armMotorConfig.openLoopRampRate(5);
+        armMotorConfig.openLoopRampRate(50);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
@@ -40,8 +44,8 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
-        positionMap.put(ArmState.L4, 25.0);
-        positionMap.put(ArmState.COLLECT, 190.0);
+        positionMap.put(ArmState.L4, 90.0);
+        positionMap.put(ArmState.COLLECT, 195.0);
     }
 
     @Override
@@ -75,6 +79,7 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position ){
+        if (getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) return;
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
