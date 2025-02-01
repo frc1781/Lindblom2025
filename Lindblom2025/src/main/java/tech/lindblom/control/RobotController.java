@@ -30,6 +30,7 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public TestManager testManager;
 
     DriverInput driverInput;
 
@@ -56,6 +57,8 @@ public class RobotController {
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
         driverInput = new DriverInput(this);
+
+        testManager = new TestManager(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
@@ -88,6 +91,7 @@ public class RobotController {
             case TELEOP:
                 break;
             case TEST:
+                testManager.testInit();
                 break;
             case SIMULATION:
                 break;
@@ -125,6 +129,7 @@ public class RobotController {
                 processDriverInputs();
                 break;
             case TEST:
+                testManager.testRun();
                 break;
             case SIMULATION:
                 break;
