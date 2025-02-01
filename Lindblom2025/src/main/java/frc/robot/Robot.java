@@ -24,7 +24,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
-    Logger.recordMetadata("RobotName", "GLaDOS");
+    Logger.recordMetadata("RobotName", "Ralph");
     Logger.recordMetadata("Team", "1781");
 
     if (isReal()) {

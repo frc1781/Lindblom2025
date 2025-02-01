@@ -106,7 +106,7 @@ public class Drive extends Subsystem {
     }
 
     public Rotation2d getNavXRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+        return new Rotation2d(navX.getRotation2d().getRadians()); //REMOVED negative sign
     }
 
     public void zeroNavX() {
