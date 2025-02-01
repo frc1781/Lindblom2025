@@ -174,12 +174,11 @@ public class RobotController {
             driveController.resetNavX();
         }
 
-/*        if (inputHolder.sequentialAction != null) {
+        if (inputHolder.sequentialAction != null) {
             SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
 
             for (int i = 0; i < subsystemSettings.length; i++) {
                 SubsystemSetting setting = subsystemSettings[i];
-                System.out.println(i);
                 if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
                     if (sequentialActionStatus.size() == subsystemSettings.length && sequentialActionStatus.get(i).stateHasBeenMet) {
                         setSubsystems.add(setting.subsystem);
@@ -187,9 +186,6 @@ public class RobotController {
                         setting.subsystem.setState(setting.state);
                         setSubsystems.add(setting.subsystem);
                     }
-                }
-                if (i != 0) {
-                    System.out.println(sequentialActionStatus.get(i - 1).stateHasBeenMet);
                 }
 
                 if (sequentialActionStatus.size() != subsystemSettings.length) {
@@ -204,7 +200,7 @@ public class RobotController {
             if (!sequentialActionStatus.isEmpty()) {
                 sequentialActionStatus = new ArrayList<>();
             }
-        }*/
+        }
 
         for (int i = 0; i < inputHolder.requestedSubsystemSettings.size(); i++) {
             SubsystemSetting setting = inputHolder.requestedSubsystemSettings.get(i);
@@ -346,7 +342,7 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToMove() {
-        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState && elevatorSystem.getFirstStagePosition() >= 80) {
+        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState) {
             return elevatorSystem.matchesState();
         }
 

@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import java.util.HashMap;
@@ -33,10 +34,16 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
-        armMotorConfig.closedLoop.pid(0.003, 0,0);
-        armMotorConfig.closedLoop.maxOutput(0.5);
+        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-        armMotorConfig.openLoopRampRate(50);
+/*        armMotorConfig.closedLoop.maxMotion.maxAcceleration(0.01);
+        armMotorConfig.closedLoop.maxMotion.maxVelocity(0.01);
+        armMotorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
+        armMotorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);*/
+
+        //armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
@@ -50,7 +57,7 @@ public class Arm extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-       double tolerance = 2;
+       double tolerance = 3;
        return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
        
     }

@@ -145,13 +145,13 @@ public class Elevator extends StateSubsystem {
         if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, 0.0));
+            double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
         } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance && desiredPosition[0] != minFirstStageDistance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
-            double clampedResult = Math.min(0.5, Math.max(ff, 0));
+            double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
         } else {
@@ -165,6 +165,14 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
 
         motorRight.set(dutyCycle);
+    }
+
+    public double clampDutyCycle(double dutyCycle) {
+        if (getCurrentState() == ElevatorState.COLLECT_LOW) {
+            return Math.min(0.5, Math.max(dutyCycle, -0.5));
+        }
+
+        return Math.min(0.5, Math.max(dutyCycle, 0));
     }
 
     public enum ElevatorState implements SubsystemState {
