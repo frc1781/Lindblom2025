@@ -46,6 +46,7 @@ public class DriveController extends Subsystem {
 
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
     private RobotConfig robotConfig;
+    private boolean isFieldOriented = false;
 
     public DriveController(RobotController controller) {
         super("DriveController");
@@ -107,10 +108,13 @@ public class DriveController extends Subsystem {
 
 
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
-        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                xVelocity,
-                yVelocity,
-                rotSpeed), driveSubsystem.getRobotRotation());
+        ChassisSpeeds speeds = isFieldOriented
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+                        xVelocity,
+                        yVelocity,
+                        rotSpeed),
+                driveSubsystem.getRobotRotation())
+                : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
 
         if (robotController.getCenteringSide() != null) {
             double cameraOffset = 0.0;
