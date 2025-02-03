@@ -32,18 +32,14 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
  * this project, you must also update the Main.java file in the project.
  */
 public class Robot extends LoggedRobot {
-  private static XboxController[] controllers = new XboxController[] {
+  private static XboxController controller = new XboxController(0); 
   private static final int motorID = 0;
   private SparkMax motor;
-    new XboxController(0)
-};
 
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
-  public Robot() {
-  }
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
