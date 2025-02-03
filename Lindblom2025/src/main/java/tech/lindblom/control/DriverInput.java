@@ -2,7 +2,6 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
-import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -18,8 +17,10 @@ public class DriverInput {
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
         this.controlList = new Control[] {
-                new Control(0, "A", RobotController.Action.LEDs_RED),
-                new Control(0, "B", RobotController.Action.LEDs_GREEN)
+                new Control(0, "X", RobotController.Action.L4),
+                new Control(0, "Y", RobotController.Action.COLLECT),
+                new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
+                new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
         };
     }
 
@@ -45,6 +46,11 @@ public class DriverInput {
             if (control.getButtonValue()) {
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
                 if (subsystemSettingsFromAction == null) break;
+
+                if (subsystemSettingsFromAction[0].reliesOnOthers) {
+                    driverInputHolder.sequentialAction = control.requestedAction;
+                    break;
+                }
 
                 for (RobotController.SubsystemSetting subsystemSettingFromAction : subsystemSettingsFromAction) {
                     for (RobotController.SubsystemSetting subsystemSetting : subsystemSettings) {
@@ -142,6 +148,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getAButton();
             case "B":
                 return controllers[controllerIndex].getBButton();
+            case "X":
+                return controllers[controllerIndex].getXButton();
+            case "Y":
+                return controllers[controllerIndex].getYButton();
             case "LB":
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":
@@ -153,6 +163,8 @@ public class DriverInput {
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
+        public RobotController.Action sequentialAction;
+
         public ReefCenteringSide centeringSide = null;
 
         Translation2d driverLeftJoystickPosition;
