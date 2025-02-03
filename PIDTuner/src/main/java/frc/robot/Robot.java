@@ -22,10 +22,13 @@ import edu.wpi.first.wpilibj.Timer;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 /**
@@ -40,6 +43,20 @@ public class Robot extends LoggedRobot {
 
   Robot () {
     motor = new SparkMax(motorID, SparkLowLevel.MotorType.kBrushless);
+    //Spark max configuration done here, including PID, reference ARM in 2025 on how to do that...
+    SparkMaxConfig armMotorConfig = new SparkMaxConfig();
+    armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
+    armMotorConfig.smartCurrentLimit(30);
+    armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
+    armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+    armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+    armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
+    armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+    armMotorConfig.closedLoop.maxMotion.maxAcceleration(0.0000001);
+    armMotorConfig.closedLoop.maxMotion.maxVelocity(0.01);
+    armMotorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
+    armMotorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);
+    motor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
 
@@ -53,7 +70,7 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    motor.set(.1);
+    motor.getClosedLoopController().setReference(4, ControlType.kVoltage);
   }
 
   /** This function is called once when the robot is disabled. */
