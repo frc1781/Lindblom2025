@@ -25,15 +25,15 @@ public class Robot extends LoggedRobot {
   private static XboxController controller = new XboxController(0); 
   private static final int motorID = 22;
   private SparkMax motor;
-  private double setpoint = 10;
-  private double kP = 0.01;
+  private double setpoint = 0;
+  private double kP = 0.00001;
   private double kI = 0;
-  private double kD = 0.001;
-  private double FF = (double) 1/917;
-  private double minOutput = -0.5;
-  private double maxOutput = 0.5;
-  private double maxVelocity = 0.01;
-  private double maxAcceleration = 1;
+  private double kD = 0;
+  private double FF = 1/10000.0;
+  private double minOutput = -10000;
+  private double maxOutput = 10000;
+  private double maxVelocity = 10500;
+  private double maxAcceleration = 5000;
 
 
   Robot () {
@@ -74,9 +74,9 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    //motor.getClosedLoopController().setReference(setpoint, ControlType.kMAXMotionVelocityControl);
-    setpoint = controller.getLeftY();
-    motor.set(setpoint);
+    setpoint = -controller.getLeftY() * 10000;
+    maxAcceleration = controller.getRightTriggerAxis();
+    motor.getClosedLoopController().setReference(setpoint, ControlType.kMAXMotionVelocityControl);
     Logger.recordOutput("motorID", motorID);
     Logger.recordOutput("setpoint", setpoint);
     Logger.recordOutput("kP", kP);
