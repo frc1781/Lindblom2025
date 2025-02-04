@@ -4,59 +4,63 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-//import tech.lindblom.subsystems.drive.DriveController;
-//import tech.lindblom.subsystems.led.LEDs;
-//import tech.lindblom.subsystems.types.StateSubsystem;
-//import tech.lindblom.subsystems.types.Subsystem;
-//import tech.lindblom.utils.Constants;
-//import tech.lindblom.utils.EnumCollection;
-
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
-/**
- * The methods in this class are called automatically corresponding to each mode, as described in
- * the TimedRobot documentation. If you change the name of this class or the package after creating
- * this project, you must also update the Main.java file in the project.
- */
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.XboxController;
+
 public class Robot extends LoggedRobot {
   private static XboxController controller = new XboxController(0); 
   private static final int motorID = 22;
-  private SparkMax motor; 
+  private SparkMax motor;
+  private double setpoint = 10;
+  private double kP = 0.01;
+  private double kI = 0;
+  private double kD = 0.001;
+  private double FF = (double) 1/917;
+  private double minOutput = -0.5;
+  private double maxOutput = 0.5;
+  private double maxVelocity = 0.01;
+  private double maxAcceleration = 1;
+
 
   Robot () {
+    if (isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new NT4Publisher());
+
+      new PowerDistribution(1, PowerDistribution.ModuleType.kRev);
+    } else {
+      Logger.addDataReceiver(new NT4Publisher());
+    }
+
+    Logger.start();
     motor = new SparkMax(motorID, SparkLowLevel.MotorType.kBrushless);
     //Spark max configuration done here, including PID, reference ARM in 2025 on how to do that...
-    SparkMaxConfig armMotorConfig = new SparkMaxConfig();
-    armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
-    armMotorConfig.smartCurrentLimit(30);
-    armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
-    armMotorConfig.closedLoop.pid(0.01, 0,0.001);
-    armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-    armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
-    armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-    armMotorConfig.closedLoop.maxMotion.maxAcceleration(0.0000001);
-    armMotorConfig.closedLoop.maxMotion.maxVelocity(0.01);
-    armMotorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
-    armMotorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);
-    motor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    SparkMaxConfig motorConfig = new SparkMaxConfig();
+    motorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
+    motorConfig.smartCurrentLimit(30);
+    motorConfig.closedLoop.pid(kP, kI, kD);
+    motorConfig.closedLoop.velocityFF(FF); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+    motorConfig.closedLoop.outputRange(minOutput, maxOutput);
+    motorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder);
+    motorConfig.closedLoop.maxMotion.maxAcceleration(maxAcceleration);
+    motorConfig.closedLoop.maxMotion.maxVelocity(maxVelocity);
+    motorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
+    motorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);
+    motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
 
@@ -70,7 +74,24 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    motor.getClosedLoopController().setReference(4, ControlType.kVoltage);
+    //motor.getClosedLoopController().setReference(setpoint, ControlType.kMAXMotionVelocityControl);
+    setpoint = controller.getLeftY();
+    motor.set(setpoint);
+    Logger.recordOutput("motorID", motorID);
+    Logger.recordOutput("setpoint", setpoint);
+    Logger.recordOutput("kP", kP);
+    Logger.recordOutput("kI", kI);
+    Logger.recordOutput("kD", kD);
+    Logger.recordOutput("FF", FF);
+    //Logger.recordOutput("kS", kS);
+    //Logger.recordOutput("kG", kG);
+    //Logger.recordOutput("kA", kA);
+    //Logger.recordOutput("kV", kV);
+    Logger.recordOutput("minOutput", minOutput);
+    Logger.recordOutput("maxOutput", maxOutput);
+    Logger.recordOutput("maxVelocity", maxVelocity);
+    Logger.recordOutput("maxAcceleration", maxAcceleration);
+    Logger.recordOutput("motorSpeed", motor.getEncoder().getVelocity());
   }
 
   /** This function is called once when the robot is disabled. */
