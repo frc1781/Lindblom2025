@@ -54,6 +54,12 @@ public class DriverInput {
 
                 for (RobotController.SubsystemSetting subsystemSettingFromAction : subsystemSettingsFromAction) {
                     for (RobotController.SubsystemSetting subsystemSetting : subsystemSettings) {
+                        if (driverInputHolder.sequentialAction != null) {
+                            for (RobotController.SubsystemSetting sequentialActionSetting : robotController.getSubsystemSettingsFromAction(driverInputHolder.sequentialAction)) {
+                                if (sequentialActionSetting.subsystem == subsystemSetting.subsystem) break;
+                            }
+                        }
+
                         if (subsystemSetting.subsystem == subsystemSettingFromAction.subsystem && subsystemSetting.weight < subsystemSettingFromAction.weight) {
                             subsystemSettings.add(subsystemSetting);
                             subsystemSettings.remove(subsystemSettingFromAction);
