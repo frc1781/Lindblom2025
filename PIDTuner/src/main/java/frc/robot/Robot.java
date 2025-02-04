@@ -75,7 +75,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopPeriodic() {
     setpoint = -controller.getLeftY() * 10000;
-    maxAcceleration = controller.getRightTriggerAxis();
+    maxAcceleration = controller.getRightY();
     motor.getClosedLoopController().setReference(setpoint, ControlType.kMAXMotionVelocityControl);
     Logger.recordOutput("motorID", motorID);
     Logger.recordOutput("setpoint", setpoint);
