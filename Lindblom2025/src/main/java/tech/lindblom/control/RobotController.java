@@ -12,7 +12,6 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
-import tech.lindblom.subsystems.auto.routines.TwoFarNote;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -57,8 +56,7 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine(),
-                new TwoFarNote()
+                new TestRoutine()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
@@ -127,6 +125,34 @@ public class RobotController {
                 break;
             case AUTONOMOUS:
                 if (currentAction != null) {
+                    if (isSequentialAction(currentAction)) {
+                        if (currentSequentialAction != currentAction) {
+                            currentSequentialAction = currentAction;
+                            sequentialActionStatus = new ArrayList<>();
+                            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                            for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                                sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                            }
+                        }
+                        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+
+                        for (int i = 0; i < subsystemSettings.length; i++) {
+                            SubsystemSetting setting = subsystemSettings[i];
+                            if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                                setting.subsystem.setState(setting.state);
+                            }
+
+                            if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                                sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                            }
+                        }
+                        break;
+                    } else if (currentSequentialAction != null) {
+                        currentSequentialAction = null;
+                        sequentialActionStatus = new ArrayList<>();
+                    }
+
+
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
                         if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
@@ -137,6 +163,7 @@ public class RobotController {
                 break;
             case TELEOP:
                 processDriverInputs();
+                Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
                 break;
@@ -175,6 +202,14 @@ public class RobotController {
         }
 
         if (inputHolder.sequentialAction != null) {
+            if (currentSequentialAction != inputHolder.sequentialAction) {
+                currentSequentialAction = inputHolder.sequentialAction;
+                sequentialActionStatus = new ArrayList<>();
+                SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                    sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                }
+            }
             SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
 
             for (int i = 0; i < subsystemSettings.length; i++) {
@@ -182,24 +217,19 @@ public class RobotController {
                 if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
                     if (sequentialActionStatus.size() == subsystemSettings.length && sequentialActionStatus.get(i).stateHasBeenMet) {
                         setSubsystems.add(setting.subsystem);
-                    } else if (sequentialActionStatus.size() == subsystemSettings.length) {
+                    } else {
                         setting.subsystem.setState(setting.state);
                         setSubsystems.add(setting.subsystem);
                     }
                 }
 
-                if (sequentialActionStatus.size() != subsystemSettings.length) {
-                    sequentialActionStatus.add(new SequentialActionStatus(false, setting));
-                } else if (!sequentialActionStatus.get(i).stateHasBeenMet){
-                    if (setting.subsystem.getCurrentState() == setting.state) {
-                        sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
-                    }
+                if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                    sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
                 }
             }
-        } else {
-            if (!sequentialActionStatus.isEmpty()) {
-                sequentialActionStatus = new ArrayList<>();
-            }
+        } else if (currentSequentialAction != null) {
+            currentSequentialAction = null;
+            sequentialActionStatus = new ArrayList<>();
         }
 
         for (int i = 0; i < inputHolder.requestedSubsystemSettings.size(); i++) {
@@ -271,34 +301,43 @@ public class RobotController {
         }
     }
 
+    public boolean isSequentialAction(Action action) {
+        return getSubsystemSettingsFromAction(action)[0].reliesOnOthers;
+    }
+
     public boolean hasFinishedAutoStep() {
         AutoStep currentAutoStep = autoSystem.getCurrentStep();
         if (currentAutoStep == null) return true;
 
-        SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());
-
         switch (currentAutoStep.getStepType()) {
             case ACTION:
-                for (int i = 0; i < subsystemSettings.length; i++) {
-                    SubsystemSetting subsystemSetting = subsystemSettings[i];
-                    if (!subsystemSetting.subsystem.matchesState()) {
-                        return false;
-                    }
-                }
-                break;
+                return hasActionFinished();
             case PATH:
                 return driveController.hasRobotReachedTargetPose();
             case PATH_AND_ACTION:
-                for (int i = 0; i < subsystemSettings.length; i++) {
-                    SubsystemSetting subsystemSetting = subsystemSettings[i];
-                    if (!subsystemSetting.subsystem.matchesState()) {
-                        return false;
-                    }
-                }
-
-                return driveController.hasRobotReachedTargetPose();
+                return driveController.hasRobotReachedTargetPose() && hasActionFinished();
         }
 
+        return true;
+    }
+
+    private boolean hasActionFinished() {
+        SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
+        if (isSequentialAction(currentAction)) {
+            if (sequentialActionStatus == null) return false;
+            for (SequentialActionStatus sequentialActionStatus : sequentialActionStatus) {
+                if (!sequentialActionStatus.stateHasBeenMet) {
+                    return false;
+                }
+            }
+        } else {
+            for (int i = 0; i < subsystemSettings.length; i++) {
+                SubsystemSetting subsystemSetting = subsystemSettings[i];
+                if (!subsystemSetting.subsystem.matchesState()) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
