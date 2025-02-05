@@ -29,10 +29,10 @@ public class Robot extends LoggedRobot {
   private double kP = 0.00001;
   private double kI = 0;
   private double kD = 0;
-  private double FF = 1/10000.0;
-  private double minOutput = -10000;
-  private double maxOutput = 10000;
-  private double maxVelocity = 10500;
+  private double FF = 1/917.0;
+  private double minOutput = -1;
+  private double maxOutput = 1;
+  private double maxVelocity = 11000;
   private double maxAcceleration = 5000;
 
 
@@ -48,10 +48,10 @@ public class Robot extends LoggedRobot {
 
     Logger.start();
     motor = new SparkMax(motorID, SparkLowLevel.MotorType.kBrushless);
-    //Spark max configuration done here, including PID, reference ARM in 2025 on how to do that...
     SparkMaxConfig motorConfig = new SparkMaxConfig();
-    motorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
+    motorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);                                           
     motorConfig.smartCurrentLimit(30);
+    motorConfig.inverted(true);
     motorConfig.closedLoop.pid(kP, kI, kD);
     motorConfig.closedLoop.velocityFF(FF); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
     motorConfig.closedLoop.outputRange(minOutput, maxOutput);
@@ -59,10 +59,13 @@ public class Robot extends LoggedRobot {
     motorConfig.closedLoop.maxMotion.maxAcceleration(maxAcceleration);
     motorConfig.closedLoop.maxMotion.maxVelocity(maxVelocity);
     motorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
-    motorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);
     motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    //Spark max configuration done here, including PID, reference ARM in 2025 on how to do that...
   }
 
+  /*public void motorConfig() {
+    
+  }*/
 
   @Override
   public void robotPeriodic() {}
@@ -74,8 +77,11 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    setpoint = -controller.getLeftY() * 10000;
-    maxAcceleration = controller.getRightY();
+    setpoint = controller.getLeftY() * 11000;
+    maxAcceleration = controller.getRightY() * 1000;
+    if (controller.getRightY() < 0) {
+      maxAcceleration = 0;
+    }
     motor.getClosedLoopController().setReference(setpoint, ControlType.kMAXMotionVelocityControl);
     Logger.recordOutput("motorID", motorID);
     Logger.recordOutput("setpoint", setpoint);
