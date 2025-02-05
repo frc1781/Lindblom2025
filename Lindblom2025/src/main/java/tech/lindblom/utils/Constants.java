@@ -68,8 +68,8 @@ public class Constants {
 
     public class Vision {
         public static final String BACK_CAMERA_NAME = "Back";
-        public static final String FRONT_LEFT_CAMERA_NAME = "FrontLeft";
-        public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
+        public static final String FRONT_LEFT_CAMERA_NAME = "Apriltag";
+        public static final String FRONT_RIGHT_CAMERA_NAME = "Apriltag";
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
                 new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),

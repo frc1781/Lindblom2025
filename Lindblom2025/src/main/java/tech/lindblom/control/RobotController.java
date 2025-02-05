@@ -11,6 +11,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
+import tech.lindblom.subsystems.auto.routines.Collect;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
@@ -56,7 +57,8 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine()
+                new TestRoutine(),
+                new Collect()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
@@ -70,7 +72,7 @@ public class RobotController {
         stateSubsystems.add(armSystem);
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
-        //subsystems.add(visionSystem);
+        subsystems.add(visionSystem);
         subsystems.add(autoSystem);
         createActions();
     }
@@ -302,6 +304,7 @@ public class RobotController {
     }
 
     public boolean isSequentialAction(Action action) {
+        if (action == null) return false;
         return getSubsystemSettingsFromAction(action)[0].reliesOnOthers;
     }
 
@@ -323,6 +326,7 @@ public class RobotController {
 
     private boolean hasActionFinished() {
         SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
+        if (subsystemSettings == null) return false;
         if (isSequentialAction(currentAction)) {
             if (sequentialActionStatus == null) return false;
             for (SequentialActionStatus sequentialActionStatus : sequentialActionStatus) {
@@ -366,6 +370,7 @@ public class RobotController {
         defineAction(Action.L4,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.COLLECT,

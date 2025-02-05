@@ -52,14 +52,15 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
         positionMap.put(ArmState.L4, 90.0);
+        positionMap.put(ArmState.PLACE, 25.0);
         positionMap.put(ArmState.COLLECT, 195.0);
     }
 
     @Override
     public boolean matchesState() {
-       double tolerance = 3;
+       double tolerance = 6;
+       Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
        return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
-       
     }
 
     @Override
@@ -92,6 +93,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, PLACE
     }
 }

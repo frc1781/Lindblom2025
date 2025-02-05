@@ -7,8 +7,6 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.Filesystem;
-import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -45,21 +43,21 @@ public class Vision extends Subsystem {
         super("Vision");
         this.robotController = _robotController;
         try {
-            fieldLayout = new AprilTagFieldLayout(AprilTagFields.kDefaultField.m_resourceFile);
+            fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
-            frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+/*            frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
+                    Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);*/
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
-            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+/*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.BACK_CAMERA_POSITION);
+                    Constants.Vision.BACK_CAMERA_POSITION);*/
 
-            frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            //frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
@@ -73,13 +71,14 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
-        updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
-        updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
+        //updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
+       updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
+        //updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
     }
 
     public int getClosestReefApriltag(Camera camera) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
+        if (result == null) return -1;
         if (result.getBestTarget() != null)  {
             for (int i = 0; i < reefApriltagIDs.length; i++) {
                 if (result.getBestTarget().getFiducialId() == reefApriltagIDs[i]) {
@@ -91,7 +90,7 @@ public class Vision extends Subsystem {
         return -1;
     }
 
-    public double getCameraOffsetX(Camera camera, int tagID) {
+    public double getCameraYaw(Camera camera, int tagID) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
 
         if (result == null) {
@@ -101,6 +100,38 @@ public class Vision extends Subsystem {
         for (PhotonTrackedTarget target : result.getTargets()) {
             if (target.getFiducialId() == tagID) {
                 return target.yaw;
+            }
+        }
+
+
+        return 1781;
+    }
+
+    public double getCameraSkew(Camera camera, int tagID) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+
+        if (result == null) {
+            return 1781;
+        }
+
+        for (PhotonTrackedTarget target : result.getTargets()) {
+            if (target.getFiducialId() == tagID) {
+                return target.bestCameraToTarget.getRotation().getAngle();
+            }
+        }
+
+        return 1781;
+    }
+
+    public double getCameraDistanceX(Camera camera, int tagID) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+        if (result == null) {
+            return 1781;
+        }
+
+        for (PhotonTrackedTarget target : result.getTargets()) {
+            if (target.getFiducialId() == tagID) {
+                return target.bestCameraToTarget.getX();
             }
         }
 

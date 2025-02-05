@@ -70,7 +70,7 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 150.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 0.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
@@ -111,6 +111,9 @@ public class Elevator extends StateSubsystem {
         if (currentMode == OperatingMode.DISABLED) return;
 
         switch ((ElevatorState) getCurrentState()) {
+            case SAFE:
+                motorRight.set(0);
+                break;
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
