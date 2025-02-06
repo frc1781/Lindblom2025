@@ -17,15 +17,12 @@ import edu.wpi.first.math.numbers.N3;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
-
-import java.util.Optional;
 
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
@@ -42,20 +39,33 @@ public class DriveController extends Subsystem {
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
-    private final PIDController centeringXController = new PIDController(0.1, 0, 0);
+    private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
+    private final PIDController distanceController = new PIDController(1.5  , 0, 0);
+    private final ProfiledPIDController parallelController = new ProfiledPIDController(0.001
+            , 0, 0,
+            new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
+    //distance .4 m  on x
+    //the offset needs to be zero
+    //180 to the apriltag
 
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
     private RobotConfig robotConfig;
+    private boolean isFieldOriented = true;
 
     public DriveController(RobotController controller) {
         super("DriveController");
         driveSubsystem = new Drive();
         robotController = controller;
+
+        parallelController.enableContinuousInput(0, Math.PI * 2);
+        rotController.enableContinuousInput(0, Math.PI * 2);
     }
 
     @Override
     public void init() {
-        centeringXController.reset();
+        centeringYawController.reset();
+        distanceController.reset();
+
         switch (currentMode) {
             case DISABLED:
                 break;
@@ -107,24 +117,46 @@ public class DriveController extends Subsystem {
 
 
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
-        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                xVelocity,
-                yVelocity,
-                rotSpeed), driveSubsystem.getRobotRotation());
+        ChassisSpeeds speeds = isFieldOriented
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+                        xVelocity,
+                        yVelocity,
+                        rotSpeed),
+                driveSubsystem.getRobotRotation())
+                : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
 
         if (robotController.getCenteringSide() != null) {
             double cameraOffset = 0.0;
+            Rotation2d cameraAngle = new Rotation2d();
+            double cameraDistance = 0.0;
+
             int apriltagId = 0;
+            double tempValue = 0.0;
 
             if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
                 apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-                cameraOffset = robotController.visionSystem.getCameraOffsetX(Vision.Camera.FRONT_LEFT, apriltagId);
-            } else if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.RIGHT) {
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
-                cameraOffset = robotController.visionSystem.getCameraOffsetX(Vision.Camera.FRONT_RIGHT, apriltagId);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                    tempValue = robotController.visionSystem.getCameraSkew(Vision.Camera.FRONT_LEFT, apriltagId);
+
+                    cameraAngle = Rotation2d.fromRadians(tempValue);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+                }
             }
 
-            speeds.vxMetersPerSecond = centeringXController.calculate(cameraOffset, 0);
+            if (cameraOffset != 1781 && tempValue != 1781 && cameraDistance != 1781) {
+                if (!(Math.abs(cameraOffset) < 0.5)) {
+                    speeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 0);
+                }
+                speeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, .5);
+                speeds.omegaRadiansPerSecond = parallelController.calculate(cameraAngle.getRadians(), Math.PI);
+            }
+
+            Logger.recordOutput(this.name + "/driveUsingVelocities", speeds);
+            Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
+            Logger.recordOutput(this.name + "/cameraAngle", cameraAngle);
+            Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
+            Logger.recordOutput(this.name + "/apriltagId", apriltagId);
         }
 
         driveSubsystem.drive(speeds);
