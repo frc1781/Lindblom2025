@@ -10,7 +10,6 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import org.littletonrobotics.junction.LoggedRobot;
@@ -20,21 +19,25 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 public class Robot extends LoggedRobot {
   private static XboxController controller = new XboxController(0); 
   private static final int motorID = 22;
   private SparkMax motor;
   private double setpoint = 0;
-  private double kP = 0.00001;
+  private double kP = 0.00006;
   private double kI = 0;
   private double kD = 0;
+  private double kS = 0;
+  private double kV = 0;
+  private double kA = 0;
   private double FF = 1/917.0;
   private double minOutput = -1;
   private double maxOutput = 1;
   private double maxVelocity = 11000;
   private double maxAcceleration = 5000;
-
+  private SimpleMotorFeedforward feedforwardController = new SimpleMotorFeedforward(kS, kV, kA);
 
   Robot () {
     if (isReal()) {
@@ -60,12 +63,7 @@ public class Robot extends LoggedRobot {
     motorConfig.closedLoop.maxMotion.maxVelocity(maxVelocity);
     motorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
     motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    //Spark max configuration done here, including PID, reference ARM in 2025 on how to do that...
   }
-
-  /*public void motorConfig() {
-    
-  }*/
 
   @Override
   public void robotPeriodic() {}
@@ -90,7 +88,6 @@ public class Robot extends LoggedRobot {
     Logger.recordOutput("kD", kD);
     Logger.recordOutput("FF", FF);
     //Logger.recordOutput("kS", kS);
-    //Logger.recordOutput("kG", kG);
     //Logger.recordOutput("kA", kA);
     //Logger.recordOutput("kV", kV);
     Logger.recordOutput("minOutput", minOutput);
