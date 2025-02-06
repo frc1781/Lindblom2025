@@ -13,8 +13,12 @@ public class OneCoralAuto implements AutoRoutine {
                 new DependGroup(new AutoStep[] {
                     new AutoStep(4, Auto.getPathFromName("collectCoral") ),
                     new AutoStep(3, Auto.getPathFromName("reef")),
-
                 })
         };
+    }
+
+    @Override
+    public String getName() {
+        return "OneCoralAuto";
     }
 }
