@@ -25,6 +25,7 @@ import tech.lindblom.utils.EnumCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.RandomAccess;
 
 // The robot controller, controls robot.
@@ -57,8 +58,8 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine(),
-                new Collect()
+                new TestRoutine()
+               // new Collect()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
@@ -249,8 +250,7 @@ public class RobotController {
     }
 
     private void driverDriving(Translation2d translation, Translation2d rotation) {
-        boolean isRed = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
-        int flipForRed = isRed ? -1 : 1;
+        int flipForRed = isRed() ? -1 : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -413,13 +413,14 @@ public class RobotController {
         actionMap.put(action, settings);
     }
 
-    public static boolean isRed() {
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isEmpty()) {
+    public static boolean isRed() {  
+        try {
+            return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+        }
+        catch (NoSuchElementException e) {
             return false;
         }
 
-        return true; //DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
     }
 
     static class SequentialActionStatus {

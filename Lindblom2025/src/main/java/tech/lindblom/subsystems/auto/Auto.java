@@ -17,7 +17,7 @@ import java.nio.file.Path;
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
-
+    private boolean isRedWhenBuilt;
     private int currentStepIndex = 0;
     private int currentGroupIndex = 0;
     private int currentReactionIndex = 0;
@@ -156,15 +156,17 @@ public class Auto extends Subsystem {
         if (chosenRoutine == null) return;
         Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
-        if (currentAutoRoutine == null || !currentAutoRoutine.getName().equals(chosenRoutine.getName())) {
+        if (currentAutoRoutine == null || 
+          !currentAutoRoutine.getName().equals(chosenRoutine.getName()) ||
+          RobotController.isRed() != isRedWhenBuilt
+        ) {
+            isRedWhenBuilt = RobotController.isRed();
             robotController.autoTimer.reset();
             currentStepIndex = 0;
             currentGroupIndex = 0;
             currentAutoRoutine = chosenRoutine;
-            stepGroups = chosenRoutine.getAutoStepGroups();
+            stepGroups = chosenRoutine.getAutoStepGroups(); //Reloads paths
             currentStep = stepGroups[0].getAutoSteps()[0];
-
-           
             System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
         }
     }
@@ -185,13 +187,16 @@ public class Auto extends Subsystem {
 
     public static PathPlannerPath getPathFromName(String name) {
         try {
-            var ret_val = PathPlannerPath.fromPathFile(name);
-            ret_val.preventFlipping = false;
+            PathPlannerPath path = PathPlannerPath.fromPathFile(name);
+           //MODIFIED CHECK ret_val.preventFlipping = false;
+           System.out.println("===========AUTO PATH LOADED=========================");
             if(RobotController.isRed()) {
-                ret_val = ret_val.flipPath();
-                System.out.println("5dd555555555555555555555555555555555555555555555555");
+                path = path.flipPath();
+                System.out.println("FLIPPED PATH BECAUSE WE ARE ON RED ALLIANCE SIDE");
             }
-            return ret_val;
+            System.out.println("Loaded path " + name);
+            System.out.println("====================================================");
+            return path;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
