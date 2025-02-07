@@ -263,7 +263,6 @@ public class RobotController {
         double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
-        System.out.println("rotSpeed " + rotSpeed);
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
