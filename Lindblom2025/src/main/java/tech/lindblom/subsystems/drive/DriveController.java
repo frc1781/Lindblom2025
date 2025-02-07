@@ -70,8 +70,8 @@ public class DriveController extends Subsystem {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                driveSubsystem.navX.reset();
-                driveSubsystem.navX.zeroYaw();
+                driveSubsystem.resetNavX();
+                driveSubsystem.zeroRotation();
                 setInitialRobotPose(currentMode);
                 break;
             case TELEOP:
@@ -112,7 +112,7 @@ public class DriveController extends Subsystem {
     }
 
     public void resetNavX() {
-        driveSubsystem.zeroNavX();
+        driveSubsystem.zeroRotation();
     }
 
 

@@ -43,7 +43,7 @@ public class Drive extends Subsystem {
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
-    public final AHRS navX = new AHRS(SPI.Port.kMXP);
+    private final AHRS navX = new AHRS(SPI.Port.kMXP);
 
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
@@ -87,7 +87,7 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(), pose);
+        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
@@ -95,7 +95,7 @@ public class Drive extends Subsystem {
     }
 
     private void updatePoseUsingOdometry() {
-        swerveDrivePoseEstimator.update(getNavXRotation(), getModulePositions());
+        swerveDrivePoseEstimator.update(getRotation(), getModulePositions());
     }
 
     public Pose2d getRobotPose() {
@@ -106,15 +106,19 @@ public class Drive extends Subsystem {
         return swerveDrivePoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    public Rotation2d getNavXRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+    public Rotation2d getRotation() {
+        return new Rotation2d(navX.getRotation2d().getRadians());
+    }
+    
+    public void resetNavX() {
+        navX.reset();
     }
 
-    public void zeroNavX() {
+    public void zeroRotation() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
         
-        swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(),
+        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
 
