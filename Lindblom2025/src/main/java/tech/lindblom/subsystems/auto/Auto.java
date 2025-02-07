@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
+import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -16,7 +17,6 @@ import java.nio.file.Path;
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
-    private boolean pathsGeneratedForRed;
 
     private int currentStepIndex = 0;
     private int currentGroupIndex = 0;
@@ -30,6 +30,8 @@ public class Auto extends Subsystem {
     private AutoStep[] reactionSteps;
     private AutoStepGroup[] stepGroups;
 
+    private AutoRoutine testRoutine;
+
     private boolean isReacting = false;
 
 
@@ -42,6 +44,8 @@ public class Auto extends Subsystem {
         }
         Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
         this.robotController = robotController;
+
+        testRoutine = new TestRoutine();
     }
 
     @Override
@@ -146,13 +150,13 @@ public class Auto extends Subsystem {
     }
 
     public void checkSelectedRoutine() {
-        boolean currentAlliance = RobotController.isRed();
-        AutoRoutine chosenRoutine = autoChooser.getSelected();
+        // boolean currentAlliance = true; //TESTING TEMPORARY RobotController.isRed();
+        AutoRoutine chosenRoutine = testRoutine; //autoChooser.getSelected();
 
         if (chosenRoutine == null) return;
         Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
-        if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
+        if (currentAutoRoutine == null || !currentAutoRoutine.getName().equals(chosenRoutine.getName())) {
             robotController.autoTimer.reset();
             currentStepIndex = 0;
             currentGroupIndex = 0;
@@ -160,7 +164,7 @@ public class Auto extends Subsystem {
             stepGroups = chosenRoutine.getAutoStepGroups();
             currentStep = stepGroups[0].getAutoSteps()[0];
 
-            pathsGeneratedForRed = currentAlliance;
+           
             System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
         }
     }
@@ -185,6 +189,7 @@ public class Auto extends Subsystem {
             ret_val.preventFlipping = false;
             if(RobotController.isRed()) {
                 ret_val = ret_val.flipPath();
+                System.out.println("5dd555555555555555555555555555555555555555555555555");
             }
             return ret_val;
         } catch (Exception e) {

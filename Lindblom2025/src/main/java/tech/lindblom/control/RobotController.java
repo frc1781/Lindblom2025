@@ -419,7 +419,7 @@ public class RobotController {
             return false;
         }
 
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+        return true; //DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
     }
 
     static class SequentialActionStatus {
