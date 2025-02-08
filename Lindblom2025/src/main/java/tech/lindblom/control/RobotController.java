@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -12,6 +13,9 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.*;
+import tech.lindblom.subsystems.climber.BaseClimber;
+import tech.lindblom.subsystems.climber.Climber;
+import tech.lindblom.subsystems.climber.ClimberSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -35,6 +39,7 @@ public class RobotController {
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
     public Arm armSystem;
+    public BaseClimber climberSystem;
 
     DriverInput driverInput;
 
@@ -65,7 +70,11 @@ public class RobotController {
         elevatorSystem = new Elevator();
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
-
+        if (RobotBase.isReal()) {
+            climberSystem = new Climber();
+        } else {
+            climberSystem = new ClimberSim();
+        }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
@@ -89,6 +98,7 @@ public class RobotController {
         COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
+        LIFT
     }
 
     public void init(EnumCollection.OperatingMode mode) {
@@ -381,6 +391,8 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
+        defineAction(Action.LIFT,
+                new SubsystemSetting(climberSystem, Climber.ClimberState.LIFT, 3));
     }
 
     public boolean isSafeForArmToMove() {
@@ -411,7 +423,7 @@ public class RobotController {
         actionMap.put(action, settings);
     }
 
-    public static boolean isRed() {  
+    public static boolean isRed() {
         try {
             return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
         }
