@@ -1,8 +1,7 @@
 {
   "NTProvider": {
     "types": {
-      "/FMSInfo": "FMSInfo",
-      "/Shuffleboard/Autonomous/SendableChooser[0]": "String Chooser"
+      "/FMSInfo": "FMSInfo"
     }
   },
   "NetworkTables Info": {

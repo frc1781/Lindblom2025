@@ -4,7 +4,7 @@ import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class Subsystem {
-    protected final String name;
+    public final String name;
     protected EnumCollection.OperatingMode currentMode;
 
     protected Subsystem(String name) {

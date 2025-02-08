@@ -14,37 +14,53 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
+import tech.lindblom.swerve.DoubleKrakenSwerveModule;
 import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
-    private final SwerveModule frontLeftModule = new KrakenL2SwerveModule("Front Left Module",
+    // private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
+    //         Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
+    //         Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
+    //         Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
+    // private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
+    //         Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
+    //         Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
+    //         Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, false);
+    // private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
+    //         Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
+    //         Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
+    //         Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, true);
+    // private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
+    //         Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
+    //         Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
+    //         Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, false);
+    private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Front Left Module",
             Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET);
-    private final SwerveModule frontRightModule = new KrakenL2SwerveModule("Front Right Module",
+            Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
+    private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Front Right Module",
             Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET);
-    private final SwerveModule backLeftModule = new KrakenL2SwerveModule("Back Left Module",
+            Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, false);
+    private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Back Left Module",
             Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET);
-    private final SwerveModule backRightModule = new KrakenL2SwerveModule("Back Right Module",
+            Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, true);
+    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Back Right Module",
             Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
             Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
-            Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET);
-
+            Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, false);
     // Odometry & Kinematics
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
-    public final AHRS navX = new AHRS(SPI.Port.kMXP);
+    private final AHRS navX = new AHRS(SPI.Port.kMXP);
 
-    private final SwerveDrivePoseEstimator swerveDrivePoseEstimator;
+    private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
     public Drive() {
         super("Drive");
@@ -77,6 +93,8 @@ public class Drive extends Subsystem {
         SwerveModuleState[] moduleStates = swerveDriveKinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
 
+        Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
+
         frontLeftModule.runDesiredModuleState(moduleStates[0]);
         frontRightModule.runDesiredModuleState(moduleStates[1]);
         backLeftModule.runDesiredModuleState(moduleStates[2]);
@@ -84,7 +102,7 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(), pose);
+        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
@@ -92,7 +110,7 @@ public class Drive extends Subsystem {
     }
 
     private void updatePoseUsingOdometry() {
-        swerveDrivePoseEstimator.update(getNavXRotation(), getModulePositions());
+        swerveDrivePoseEstimator.update(getRotation(), getModulePositions());
     }
 
     public Pose2d getRobotPose() {
@@ -103,14 +121,19 @@ public class Drive extends Subsystem {
         return swerveDrivePoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    public Rotation2d getNavXRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+    public Rotation2d getRotation() {
+        return new Rotation2d(navX.getRotation2d().getRadians());
+    }
+    
+    public void resetNavX() {
+        navX.reset();
     }
 
-    public void zeroNavX() {
+    public void zeroRotation() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
-        swerveDrivePoseEstimator.resetPosition(getNavXRotation(), getModulePositions(),
+        
+        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
 

@@ -6,11 +6,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonPipelineResult;
+import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
-import tech.lindblom.subsystems.auto.routines.TestRoutine;
+import tech.lindblom.subsystems.auto.routines.*;
 import tech.lindblom.subsystems.drive.DriveController;
+import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
@@ -21,7 +24,8 @@ import tech.lindblom.utils.EnumCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
+import java.util.RandomAccess;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -29,6 +33,8 @@ public class RobotController {
     public Vision visionSystem;
     public Auto autoSystem;
     public LEDs ledsSystem;
+    public Elevator elevatorSystem;
+    public Arm armSystem;
 
     DriverInput driverInput;
 
@@ -44,18 +50,26 @@ public class RobotController {
 
     private HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
 
+    private DriverInput.InputHolder mostRecentInputHolder;
+    private ArrayList<SequentialActionStatus> sequentialActionStatus = new ArrayList<>();
+    private Action currentSequentialAction = null;
+
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
                 new TestRoutine()
+               // new Collect()
         );
-        visionSystem = new Vision();
+        visionSystem = new Vision(this);
         ledsSystem = new LEDs();
+        elevatorSystem = new Elevator();
+        armSystem = new Arm(this);
         driverInput = new DriverInput(this);
 
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
-
+        stateSubsystems.add(elevatorSystem);
+        stateSubsystems.add(armSystem);
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
         subsystems.add(visionSystem);
@@ -65,15 +79,23 @@ public class RobotController {
 
     public enum Action {
         WAIT,
-        TEST_RED,
-        TEST_BLUE,
-        EXPECTED_LED_FAIL, TEST_GREEN
+        LEDs_RED,
+        LEDs_BLUE,
+        EXPECTED_LED_FAIL,
+        LEDs_GREEN,
+        CENTER_REEF_L4_LEFT,
+        CENTER_REEF_L4_RIGHT,
+        L4,
+        COLLECT,
+        MANUAL_ELEVATOR_UP,
+        MANUAL_ELEVATOR_DOWN,
     }
 
     public void init(EnumCollection.OperatingMode mode) {
+        interruptAction();
+
         switch (mode) {
             case DISABLED:
-                interruptAction();
                 break;
             case AUTONOMOUS:
                 break;
@@ -102,11 +124,37 @@ public class RobotController {
     public void run(EnumCollection.OperatingMode mode) {
         switch (mode) {
             case DISABLED:
-                visionUpdates();
                 break;
             case AUTONOMOUS:
-                visionUpdates();
                 if (currentAction != null) {
+                    if (isSequentialAction(currentAction)) {
+                        if (currentSequentialAction != currentAction) {
+                            currentSequentialAction = currentAction;
+                            sequentialActionStatus = new ArrayList<>();
+                            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                            for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                                sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                            }
+                        }
+                        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+
+                        for (int i = 0; i < subsystemSettings.length; i++) {
+                            SubsystemSetting setting = subsystemSettings[i];
+                            if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                                setting.subsystem.setState(setting.state);
+                            }
+
+                            if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                                sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                            }
+                        }
+                        break;
+                    } else if (currentSequentialAction != null) {
+                        currentSequentialAction = null;
+                        sequentialActionStatus = new ArrayList<>();
+                    }
+
+
                     SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
                         if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
@@ -116,8 +164,8 @@ public class RobotController {
                 }
                 break;
             case TELEOP:
-                visionUpdates();
                 processDriverInputs();
+                Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
                 break;
@@ -134,20 +182,61 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
+            Logger.recordOutput(subsystem.name + "/MatchesState", subsystem.matchesState());
         }
     }
 
-    public void processDriverInputs() {
-        DriverInput.InputHolder holder = driverInput.getDriverInputs();
-        driverDriving(holder.driverLeftJoystickPosition, holder.driverRightJoystickPosition);
+    private SubsystemSetting[] getSequentialActionSubsystemSettings(Action action) {
+        SubsystemSetting[] temp = actionMap.get(action);
+        SubsystemSetting[] subsystemSettings = new SubsystemSetting[temp.length - 1];
+        System.arraycopy(temp, 1, subsystemSettings, 0, subsystemSettings.length);
+        return subsystemSettings;
+    }
+
+    private void processDriverInputs() {
+        DriverInput.InputHolder inputHolder = driverInput.getDriverInputs();
+        mostRecentInputHolder = inputHolder;
+        driverDriving(inputHolder.driverLeftJoystickPosition, inputHolder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
-        if (holder.resetNavX) {
+        if (inputHolder.resetNavX) {
             driveController.resetNavX();
         }
 
-        for (int i = 0; i < holder.requestedSubsystemSettings.size(); i++) {
-            SubsystemSetting setting = holder.requestedSubsystemSettings.get(i);
+        if (inputHolder.sequentialAction != null) {
+            if (currentSequentialAction != inputHolder.sequentialAction) {
+                currentSequentialAction = inputHolder.sequentialAction;
+                sequentialActionStatus = new ArrayList<>();
+                SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                    sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                }
+            }
+            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
+
+            for (int i = 0; i < subsystemSettings.length; i++) {
+                SubsystemSetting setting = subsystemSettings[i];
+                if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                    if (sequentialActionStatus.size() == subsystemSettings.length && sequentialActionStatus.get(i).stateHasBeenMet) {
+                        setSubsystems.add(setting.subsystem);
+                    } else {
+                        setting.subsystem.setState(setting.state);
+                        setSubsystems.add(setting.subsystem);
+                    }
+                }
+
+                if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                    sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                }
+            }
+        } else if (currentSequentialAction != null) {
+            currentSequentialAction = null;
+            sequentialActionStatus = new ArrayList<>();
+        }
+
+        for (int i = 0; i < inputHolder.requestedSubsystemSettings.size(); i++) {
+            SubsystemSetting setting = inputHolder.requestedSubsystemSettings.get(i);
+
             setting.subsystem.setState(setting.state);
             setSubsystems.add(setting.subsystem);
         }
@@ -159,9 +248,8 @@ public class RobotController {
         }
     }
 
-    public void driverDriving(Translation2d translation, Translation2d rotation) {
-        boolean isRed = DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
-        int flipForRed = isRed ? -1 : 1;
+    private void driverDriving(Translation2d translation, Translation2d rotation) {
+        int flipForRed = isRed() ? -1 : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -175,31 +263,27 @@ public class RobotController {
         double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
-
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
-    public void visionUpdates() {
-        Optional<Pose2d> visionEstimateOptional = visionSystem.getFrontCameraPose();
-        if (visionEstimateOptional.isPresent()) {
-            Pose2d visionEstimate = visionEstimateOptional.get();
-            PhotonPipelineResult pipelineResult = visionSystem.getFrontCameraPipelineResult();
-            Logger.recordOutput("RobotController/updatingUsingVision", true);
-            if (pipelineResult.targets.size() > 1) {
-                driveController.updatePoseUsingVisionEstimate(
-                        visionEstimate,
-                        Timer.getFPGATimestamp(),
-                        visionSystem.getEstimationStdDevs(
-                                visionEstimate,
-                                pipelineResult
-                        )
-                );
-            } else {
-                Logger.recordOutput("RobotController/updatingUsingVision", false);
-            }
-        }
+    public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
+        Pose2d estimatedPose = visionEstimate.estimatedPose.toPose2d();
+        driveController.updatePoseUsingVisionEstimate(
+                estimatedPose,
+                visionEstimate.timestampSeconds,
+                visionSystem.getEstimationStdDevs(
+                        estimatedPose,
+                        pipelineResult
+                )
+        );
     }
 
+    public DriverInput.ReefCenteringSide getCenteringSide() {
+        if (mostRecentInputHolder.centeringSide == null) return null;
+        return mostRecentInputHolder.centeringSide;
+    }
+
+    // Auto
     public void setAutoStep(AutoStep autoStep) {
         if (autoStep == null) return;
 
@@ -217,34 +301,45 @@ public class RobotController {
         }
     }
 
+    public boolean isSequentialAction(Action action) {
+        if (action == null) return false;
+        return getSubsystemSettingsFromAction(action)[0].reliesOnOthers;
+    }
+
     public boolean hasFinishedAutoStep() {
         AutoStep currentAutoStep = autoSystem.getCurrentStep();
         if (currentAutoStep == null) return true;
 
-        SubsystemSetting[] subsystemSettings = actionMap.get(currentAutoStep.getAction());
-
         switch (currentAutoStep.getStepType()) {
             case ACTION:
-                for (int i = 0; i < subsystemSettings.length; i++) {
-                    SubsystemSetting subsystemSetting = subsystemSettings[i];
-                    if (!subsystemSetting.subsystem.matchesState()) {
-                        return false;
-                    }
-                }
-                break;
+                return hasActionFinished();
             case PATH:
                 return driveController.hasRobotReachedTargetPose();
             case PATH_AND_ACTION:
-                for (int i = 0; i < subsystemSettings.length; i++) {
-                    SubsystemSetting subsystemSetting = subsystemSettings[i];
-                    if (!subsystemSetting.subsystem.matchesState()) {
-                        return false;
-                    }
-                }
-
-                return driveController.hasRobotReachedTargetPose();
+                return driveController.hasRobotReachedTargetPose() && hasActionFinished();
         }
 
+        return true;
+    }
+
+    private boolean hasActionFinished() {
+        SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
+        if (subsystemSettings == null) return false;
+        if (isSequentialAction(currentAction)) {
+            if (sequentialActionStatus == null) return false;
+            for (SequentialActionStatus sequentialActionStatus : sequentialActionStatus) {
+                if (!sequentialActionStatus.stateHasBeenMet) {
+                    return false;
+                }
+            }
+        } else {
+            for (int i = 0; i < subsystemSettings.length; i++) {
+                SubsystemSetting subsystemSetting = subsystemSettings[i];
+                if (!subsystemSetting.subsystem.matchesState()) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -262,14 +357,38 @@ public class RobotController {
     }
 
     public void createActions() {
-        defineAction(Action.TEST_BLUE,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 0));
-        defineAction(Action.TEST_RED,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 0));
-        defineAction(Action.TEST_GREEN,
-                new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 0));
+        defineAction(Action.LEDs_BLUE,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
+        defineAction(Action.LEDs_RED,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 3));
+        defineAction(Action.LEDs_GREEN,
+                new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+        defineAction(Action.L4,
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
+                );
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_HIGH, 2),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
+                );
+        defineAction(Action.MANUAL_ELEVATOR_DOWN,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
+        defineAction(Action.MANUAL_ELEVATOR_UP,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
+    }
+
+    public boolean isSafeForArmToMove() {
+        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState) {
+            return elevatorSystem.matchesState();
+        }
+
+        return false;
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
@@ -284,23 +403,47 @@ public class RobotController {
         return failedSubsystems;
     }
 
+    public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
+        return actionMap.get(action);
+    }
+
     public void defineAction(Action action, SubsystemSetting... settings) {
         actionMap.put(action, settings);
     }
 
-    public static boolean isRed() {
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isEmpty()) {
+    public static boolean isRed() {  
+        try {
+            return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+        }
+        catch (NoSuchElementException e) {
             return false;
         }
 
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+    }
+
+    static class SequentialActionStatus {
+        public boolean stateHasBeenMet = false;
+        private SubsystemSetting subsystemSetting;
+
+        public SequentialActionStatus(boolean stateHasBeenMet, SubsystemSetting subsystemSetting) {
+            this.stateHasBeenMet = stateHasBeenMet;
+            this.subsystemSetting = subsystemSetting;
+        }
+
+        public SubsystemSetting getSubsystemSetting() {
+            return subsystemSetting;
+        }
     }
 
     static class SubsystemSetting {
         public StateSubsystem subsystem;
         public StateSubsystem.SubsystemState state;
         public int weight;
+        public boolean reliesOnOthers = false;
+
+        public SubsystemSetting(boolean reliesOnOthers) {
+            this.reliesOnOthers = reliesOnOthers;
+        }
 
         public SubsystemSetting(StateSubsystem subsystem, StateSubsystem.SubsystemState state, int weight) {
             this.subsystem = subsystem;

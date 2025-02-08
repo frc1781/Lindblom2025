@@ -34,15 +34,16 @@ public class Constants {
         public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 59;
 
         //Drive motor offsets
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -0.876221;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.8167;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = -0.670;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -0.116;
+        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.037842;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.218506;
+        public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.51123;
+        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.288818;
 
         public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
+        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(25.75);
+        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.75);
 
-        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(23);
-        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(25);
+        public static final double WHEEL_RADIUS = 0.1016;
 
         public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
                 (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
@@ -66,11 +67,24 @@ public class Constants {
     }
 
     public class Vision {
-        public static final String FrontCameraName = "Main";
+        public static final String BACK_CAMERA_NAME = "Back";
+        public static final String FRONT_LEFT_CAMERA_NAME = "Apriltag";
+        public static final String FRONT_RIGHT_CAMERA_NAME = "Apriltag";
 
-        public static final Transform3d frontCameraPositionOnRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(16), 0, Units.inchesToMeters(-2.5)),
-                new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
+        public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
+                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
 
 
         // These values were also taken from 7525, again, thank you so much.
@@ -85,5 +99,29 @@ public class Constants {
 
     public class Controls {
         public static final double DEADZONE = 0.1;
+
     }
+
+    public class Arm{
+        public static final int ARM_MOTOR_ID = 13;
+    }
+
+    public class Elevator {
+        public static final int RIGHT_ELEVATOR_MOTOR = 12;
+        public static final int LEFT_ELEVATOR_MOTOR = 11;
+
+
+        public static final int FIRST_STAGE_TOF = 58;
+        public static final int SECOND_STAGE_TOF = 57;
+        public static final int LOWER_TROUGH__TOF = 0;
+        // https://www.reca.lc/linear?angle=%7B%22s%22%3A90%2C%22u%22%3A%22deg%22%7D&currentLimit=%7B%22s%22%3A30%2C%22u%22%3A%22A%22%7D&efficiency=100&limitAcceleration=0&limitDeceleration=0&limitVelocity=0&limitedAcceleration=%7B%22s%22%3A400%2C%22u%22%3A%22in%2Fs2%22%7D&limitedDeceleration=%7B%22s%22%3A50%2C%22u%22%3A%22in%2Fs2%22%7D&limitedVelocity=%7B%22s%22%3A10%2C%22u%22%3A%22in%2Fs%22%7D&load=%7B%22s%22%3A5.93175%2C%22u%22%3A%22lbs%22%7D&motor=%7B%22quantity%22%3A2%2C%22name%22%3A%22NEO%22%7D&ratio=%7B%22magnitude%22%3A9%2C%22ratioType%22%3A%22Reduction%22%7D&spoolDiameter=%7B%22s%22%3A1%2C%22u%22%3A%22in%22%7D&travelDistance=%7B%22s%22%3A35%2C%22u%22%3A%22in%22%7D
+        public static final double MAX_ELEVATION_MPS = 0.87;
+
+        public static final double ELEVATOR_KS = 0.01; // KS cannot be modeled and needs to be measured
+        public static final double ELEVATOR_KG = 0.07;
+        public static final double ELEVATOR_KV = 4.60;
+        public static final double ELEVATOR_KA = 0.01;
+
+    }
+
 }
