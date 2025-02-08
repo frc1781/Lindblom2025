@@ -39,12 +39,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-/*        armMotorConfig.closedLoop.maxMotion.maxAcceleration(0.01);
-        armMotorConfig.closedLoop.maxMotion.maxVelocity(0.01);
-        armMotorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
-        armMotorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);*/
 
-        //armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();

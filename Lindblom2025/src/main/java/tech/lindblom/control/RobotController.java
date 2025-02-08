@@ -57,8 +57,8 @@ public class RobotController {
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
-                new TestRoutine()
-               // new Collect()
+                new TestRoutine(),
+                new Collect()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();

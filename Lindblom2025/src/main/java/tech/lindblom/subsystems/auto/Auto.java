@@ -151,7 +151,7 @@ public class Auto extends Subsystem {
 
     public void checkSelectedRoutine() {
         // boolean currentAlliance = true; //TESTING TEMPORARY RobotController.isRed();
-        AutoRoutine chosenRoutine = testRoutine; //autoChooser.getSelected();
+        AutoRoutine chosenRoutine = autoChooser.getSelected(); //testRoutine;
 
         if (chosenRoutine == null) return;
         Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
