@@ -1,21 +1,11 @@
 package tech.lindblom.subsystems.climber;
 
-import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotBase;
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
@@ -61,18 +51,20 @@ public class Climber extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                leverMotor.set(0.5);
-                System.out.println("Climber/Idle");
+                leverMotor.set(0);
                 break;
-            case LIFT:
+            case DOWN:
                 leverMotor.set(0.5);
+                break;
+            case UP:
+                leverMotor.set(-0.5);
                 break;
             case HOLD:
-                if (PreviousState != ClimberState.HOLD) {
+                /*if (PreviousState != ClimberState.HOLD) {
                     positionToHold = mMotorPosition;
                 }
 
-                leverMotor.getClosedLoopController().setReference(positionToHold.getRadians(), SparkBase.ControlType.kVoltage, ClosedLoopSlot.kSlot0, armFeedforward.calculate(positionToHold.getDegrees(), (Math.PI / 2)));
+                leverMotor.getClosedLoopController().setReference(positionToHold.getRadians(), SparkBase.ControlType.kVoltage, ClosedLoopSlot.kSlot0, armFeedforward.calculate(positionToHold.getDegrees(), (Math.PI / 2)));*/
                 break;
         }
 

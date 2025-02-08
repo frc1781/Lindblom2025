@@ -68,7 +68,7 @@ public class ClimberSim extends BaseClimber {
                 //armMotorSim.se
                 System.out.println("Climber/Idle");
                 break;
-            case LIFT:
+            case DOWN:
                 leverMotor.set(0.5);
                 break;
             case HOLD:

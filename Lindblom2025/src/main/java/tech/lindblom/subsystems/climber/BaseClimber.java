@@ -37,7 +37,7 @@ public abstract class BaseClimber extends StateSubsystem {
     public abstract double getMotorVelocity();
 
 
-    enum ClimberState implements SubsystemState{
-        IDLE, LIFT, HOLD;
+    public enum ClimberState implements SubsystemState{
+        IDLE, DOWN, UP, HOLD;
     }
 }

@@ -108,9 +108,9 @@ public class Elevator extends StateSubsystem {
         if (currentMode == OperatingMode.DISABLED) return;
 
         switch ((ElevatorState) getCurrentState()) {
-/*            case SAFE:
+            case SAFE:
                 motorRight.set(0);
-                break;*/
+                break;
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
@@ -118,7 +118,7 @@ public class Elevator extends StateSubsystem {
                 motorRight.set(0.1);
                 break;
             default:
-                goToPosition();
+                //goToPosition();
                 break;
         }
     }
