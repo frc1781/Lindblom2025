@@ -90,15 +90,17 @@ public class RobotController {
         LEDs_BLUE,
         EXPECTED_LED_FAIL,
         LEDs_GREEN,
-        CENTER_REEF_L4_LEFT,
-        CENTER_REEF_L4_RIGHT,
+        CENTER_REEF_LEFT,
+        CENTER_REEF_RIGHT,
+        L1,
+        L2,
+        L3,
         L4,
         COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
         CLIMBER_DOWN,
         CLIMBER_UP,
-
     }
 
     public void init(EnumCollection.OperatingMode mode) {
