@@ -50,17 +50,19 @@ public class RobotController {
     private final SlewRateLimiter yControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_TRANSLATION_RATE_LIMIT);
     private final SlewRateLimiter rotControllerLimiter = new SlewRateLimiter(Constants.Drive.DRIVER_ROTATION_RATE_LIMIT);
 
-    private HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
+    private final HashMap<Action, SubsystemSetting[]> actionMap = new HashMap<>();
 
     private DriverInput.InputHolder mostRecentInputHolder;
     private ArrayList<SequentialActionStatus> sequentialActionStatus = new ArrayList<>();
     private Action currentSequentialAction = null;
+    private EnumCollection.OperatingMode currentOperatingMode = null;
 
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
                 new TestRoutine(),
-                new Collect()
+                new Collect(),
+                new OneCoralAuto()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
@@ -84,26 +86,8 @@ public class RobotController {
         createActions();
     }
 
-    public enum Action {
-        WAIT,
-        LEDs_RED,
-        LEDs_BLUE,
-        EXPECTED_LED_FAIL,
-        LEDs_GREEN,
-        CENTER_REEF_LEFT,
-        CENTER_REEF_RIGHT,
-        L1,
-        L2,
-        L3,
-        L4,
-        COLLECT,
-        MANUAL_ELEVATOR_UP,
-        MANUAL_ELEVATOR_DOWN,
-        CLIMBER_DOWN,
-        CLIMBER_UP,
-    }
-
     public void init(EnumCollection.OperatingMode mode) {
+        currentOperatingMode = mode;
         interruptAction();
 
         switch (mode) {
@@ -292,6 +276,15 @@ public class RobotController {
 
     public DriverInput.ReefCenteringSide getCenteringSide() {
         if (mostRecentInputHolder.centeringSide == null) return null;
+
+        if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
+            return switch (currentAction) {
+                case CENTER_REEF_LEFT -> DriverInput.ReefCenteringSide.LEFT;
+                case CENTER_REEF_RIGHT -> DriverInput.ReefCenteringSide.RIGHT;
+                default -> null;
+            };
+        }
+
         return mostRecentInputHolder.centeringSide;
     }
 
@@ -328,6 +321,10 @@ public class RobotController {
             case PATH:
                 return driveController.hasRobotReachedTargetPose();
             case PATH_AND_ACTION:
+                if (currentAction == Action.CENTER_REEF_LEFT || currentAction == Action.CENTER_REEF_RIGHT) {
+                    return driveController.hasFinishedCentering();
+                }
+
                 return driveController.hasRobotReachedTargetPose() && hasActionFinished();
         }
 
@@ -345,8 +342,7 @@ public class RobotController {
                 }
             }
         } else {
-            for (int i = 0; i < subsystemSettings.length; i++) {
-                SubsystemSetting subsystemSetting = subsystemSettings[i];
+            for (SubsystemSetting subsystemSetting : subsystemSettings) {
                 if (!subsystemSetting.subsystem.matchesState()) {
                     return false;
                 }
@@ -363,9 +359,28 @@ public class RobotController {
         currentAction = null;
         driveController.setAutoPath(null);
 
-        for (int i = 0; i < stateSubsystems.size(); i++) {
-            stateSubsystems.get(i).restoreToDefaultState();
+        for (StateSubsystem stateSubsystem : stateSubsystems) {
+            stateSubsystem.restoreToDefaultState();
         }
+    }
+
+    public enum Action {
+        WAIT,
+        LEDs_RED,
+        LEDs_BLUE,
+        EXPECTED_LED_FAIL,
+        LEDs_GREEN,
+        CENTER_REEF_LEFT,
+        CENTER_REEF_RIGHT,
+        L1,
+        L2,
+        L3,
+        L4,
+        COLLECT,
+        MANUAL_ELEVATOR_UP,
+        MANUAL_ELEVATOR_DOWN,
+        CLIMBER_DOWN,
+        CLIMBER_UP,
     }
 
     public void createActions() {
@@ -409,8 +424,7 @@ public class RobotController {
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
         ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();
-        for (int i = 0; i < stateSubsystems.size(); i++) {
-            StateSubsystem stateSubsystem = stateSubsystems.get(i);
+        for (StateSubsystem stateSubsystem : stateSubsystems) {
             if (!stateSubsystem.matchesState()) {
                 failedSubsystems.add(stateSubsystem);
             }
@@ -437,9 +451,9 @@ public class RobotController {
 
     }
 
-    static class SequentialActionStatus {
+    private static class SequentialActionStatus {
         public boolean stateHasBeenMet = false;
-        private SubsystemSetting subsystemSetting;
+        private final SubsystemSetting subsystemSetting;
 
         public SequentialActionStatus(boolean stateHasBeenMet, SubsystemSetting subsystemSetting) {
             this.stateHasBeenMet = stateHasBeenMet;
@@ -451,7 +465,7 @@ public class RobotController {
         }
     }
 
-    static class SubsystemSetting {
+    public static class SubsystemSetting {
         public StateSubsystem subsystem;
         public StateSubsystem.SubsystemState state;
         public int weight;

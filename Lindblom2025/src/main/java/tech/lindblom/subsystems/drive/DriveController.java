@@ -21,6 +21,7 @@ import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
+import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEGeometeryUtil;
 import tech.lindblom.utils.EnumCollection;
 
@@ -41,9 +42,6 @@ public class DriveController extends Subsystem {
 
     private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
     private final PIDController distanceController = new PIDController(1.5  , 0, 0);
-    private final ProfiledPIDController parallelController = new ProfiledPIDController(0.001
-            , 0, 0,
-            new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
     //distance .4 m  on x
     //the offset needs to be zero
     //180 to the apriltag
@@ -57,7 +55,6 @@ public class DriveController extends Subsystem {
         driveSubsystem = new Drive();
         robotController = controller;
 
-        parallelController.enableContinuousInput(0, Math.PI * 2);
         rotController.enableContinuousInput(0, Math.PI * 2);
     }
 
@@ -94,7 +91,7 @@ public class DriveController extends Subsystem {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                boolean hasRobotReachedTargetPose = hasRobotReachedTargetPose();
+                boolean hasRobotReachedTargetPose = hasRobotReachedTargetPose() || hasFinishedCentering();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
 
                 if (hasRobotReachedTargetPose()) {
@@ -125,41 +122,62 @@ public class DriveController extends Subsystem {
                 driveSubsystem.getRobotRotation())
                 : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
 
-        if (robotController.getCenteringSide() != null) {
-            double cameraOffset = 0.0;
-            Rotation2d cameraAngle = new Rotation2d();
-            double cameraDistance = 0.0;
-
-            int apriltagId = 0;
-            double tempValue = 0.0;
-
-            if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-                if (apriltagId != -1) {
-                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                    tempValue = robotController.visionSystem.getCameraSkew(Vision.Camera.FRONT_LEFT, apriltagId);
-
-                    cameraAngle = Rotation2d.fromRadians(tempValue);
-                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                }
-            }
-
-            if (cameraOffset != 1781 && tempValue != 1781 && cameraDistance != 1781) {
-                if (!(Math.abs(cameraOffset) < 0.5)) {
-                    speeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 0);
-                }
-                speeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, .5);
-                speeds.omegaRadiansPerSecond = parallelController.calculate(cameraAngle.getRadians(), Math.PI);
-            }
-
-            Logger.recordOutput(this.name + "/driveUsingVelocities", speeds);
-            Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
-            Logger.recordOutput(this.name + "/cameraAngle", cameraAngle);
-            Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-            Logger.recordOutput(this.name + "/apriltagId", apriltagId);
-        }
+        speeds = getCenteringChassisSpeeds(speeds);
 
         driveSubsystem.drive(speeds);
+    }
+
+    public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
+        if (robotController.getCenteringSide() == null) return inputSpeeds;
+
+        int apriltagId = 0;
+        double cameraOffset = 0.0;
+        double cameraDistance = 0.0;
+
+        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
+            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+            if (apriltagId != -1) {
+                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            }
+
+            if (currentMode == AUTONOMOUS && cameraDistance > 1) {
+                return inputSpeeds;
+            }
+
+            if (cameraOffset != 1781 &&  cameraDistance != 1781) {
+                if (!(Math.abs(cameraOffset) < 0.5)) {
+                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 0);
+                }
+                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
+            }
+        }
+
+        Logger.recordOutput(this.name + "/driveUsingVelocities", inputSpeeds);
+        Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
+        Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
+        Logger.recordOutput(this.name + "/apriltagId", apriltagId);
+
+        return inputSpeeds;
+    }
+
+    public boolean hasFinishedCentering() {
+        if (robotController.getCenteringSide() == null) return false;
+        int apriltagId = 0;
+        double cameraOffset = 0.0;
+        double cameraDistance = 0.0;
+
+        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
+            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+            if (apriltagId != -1) {
+                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            }
+
+            return Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.1 && Math.abs(cameraOffset) < 0.5;
+        }
+
+        return false;
     }
 
     public void setAutoPath(PathPlannerPath path) {
@@ -174,10 +192,10 @@ public class DriveController extends Subsystem {
         PIDController xTrajectoryController;
         PIDController yTrajectoryController;
         ProfiledPIDController rotTrajectoryController;
-        xTrajectoryController = new PIDController(10, 0.0, 0.001);
-        yTrajectoryController = new PIDController(10, 0.0, 0.001);
+        xTrajectoryController = new PIDController(9, 0.0, 0.001);
+        yTrajectoryController = new PIDController(9, 0.0, 0.001);
         rotTrajectoryController = new ProfiledPIDController(5.5, 0.01, 0.01,
-                new TrapezoidProfile.Constraints(6.28, 12.14));
+                new TrapezoidProfile.Constraints(Math.PI * 2, 12.14));
         rotTrajectoryController.enableContinuousInput(0, 2 * Math.PI);
         trajectoryController = new HolonomicDriveController(xTrajectoryController, yTrajectoryController,
                 rotTrajectoryController);
@@ -202,6 +220,8 @@ public class DriveController extends Subsystem {
             pathplannerState.linearVelocity,
                 targetOrientation
         );
+
+        desiredChassisSpeeds = getCenteringChassisSpeeds(desiredChassisSpeeds);
 
         driveSubsystem.drive(desiredChassisSpeeds);
     }
