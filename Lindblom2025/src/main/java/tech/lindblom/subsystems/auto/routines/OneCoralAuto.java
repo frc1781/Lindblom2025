@@ -13,7 +13,7 @@ public class OneCoralAuto implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[] {
                         new AutoStep(RobotController.Action.CENTER_REEF_LEFT, Auto.getPathFromName("start;HG")),
-                        new AutoStep(RobotController.Action.L4)
+                        //new AutoStep(RobotController.Action.L4)
                 })
         };
     }

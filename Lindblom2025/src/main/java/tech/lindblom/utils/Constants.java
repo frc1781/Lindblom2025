@@ -75,8 +75,8 @@ public class Constants {
         public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
-                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+                new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(180))
         );
 
         public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
@@ -96,7 +96,7 @@ public class Constants {
         public static final Matrix<N3, N1> SINGLE_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds, if you only see one tag, ie less accuracy/trust so higher values bc we don't trust it
         public static final Matrix<N3, N1> MULTI_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds,  if you see multiple tags, ie more accuracy/trust so lower values bc we trust it
 
-        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
+        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
 
     }
 

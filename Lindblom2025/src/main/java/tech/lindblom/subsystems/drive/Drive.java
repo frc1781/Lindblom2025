@@ -21,22 +21,22 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
-    // private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
-    //         Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
-    //         Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
-    //         Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
-    // private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
-    //         Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
-    //         Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
-    //         Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, false);
-    // private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
-    //         Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
-    //         Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
-    //         Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, true);
-    // private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
-    //         Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
-    //         Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
-    //         Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, false);
+/*    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
+             Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
+             Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
+             Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
+     private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
+             Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
+             Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
+             Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, false);
+     private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
+             Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
+             Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
+             Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, true);
+     private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
+             Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
+             Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
+             Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, false);*/
     private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Front Left Module",
             Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
             Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
@@ -57,6 +57,10 @@ public class Drive extends Subsystem {
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
+
+/*    public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.BACK_RIGHT_MODULE_POSITION,
+            Constants.Drive.BACK_LEFT_MODULE_POSITION, Constants.Drive.FRONT_RIGHT_MODULE_POSITION,
+            Constants.Drive.FRONT_LEFT_MODULE_POSITION);*/
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
 

@@ -18,7 +18,7 @@ public class Collect implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[] {
                         new AutoStep(RobotController.Action.COLLECT),
-                        new AutoStep(RobotController.Action.L4)
+                        //new AutoStep(RobotController.Action.L4)
                 })
         };
     }

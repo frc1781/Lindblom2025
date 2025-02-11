@@ -36,7 +36,7 @@ public class RobotController {
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
     public Arm armSystem;
-    public BaseClimber climberSystem;
+    //public BaseClimber climberSystem;
 
     DriverInput driverInput;
 
@@ -70,7 +70,7 @@ public class RobotController {
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
 /*        if (RobotBase.isReal()) {*/
-            climberSystem = new Climber();
+            //climberSystem = new Climber();
 /*        } else {
             climberSystem = new ClimberSim();
         }*/
@@ -78,7 +78,7 @@ public class RobotController {
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
-        stateSubsystems.add(climberSystem);
+        //stateSubsystems.add(climberSystem);
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
         subsystems.add(visionSystem);
@@ -88,7 +88,16 @@ public class RobotController {
 
     public void init(EnumCollection.OperatingMode mode) {
         currentOperatingMode = mode;
-        interruptAction();
+
+        for (Subsystem subsystem : subsystems) {
+            subsystem.setOperatingMode(mode);
+            subsystem.init();
+        }
+
+        for (StateSubsystem subsystem : stateSubsystems) {
+            subsystem.setOperatingMode(mode);
+            subsystem.init();
+        }
 
         switch (mode) {
             case DISABLED:
@@ -106,15 +115,7 @@ public class RobotController {
                 break;
         }
 
-        for (Subsystem subsystem : subsystems) {
-            subsystem.setOperatingMode(mode);
-            subsystem.init();
-        }
-
-        for (StateSubsystem subsystem : stateSubsystems) {
-            subsystem.setOperatingMode(mode);
-            subsystem.init();
-        }
+        interruptAction();
     }
 
     public void run(EnumCollection.OperatingMode mode) {
@@ -274,15 +275,20 @@ public class RobotController {
         );
     }
 
-    public DriverInput.ReefCenteringSide getCenteringSide() {
-        if (mostRecentInputHolder.centeringSide == null) return null;
 
+    public DriverInput.ReefCenteringSide getCenteringSide() {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
+            if (currentAction == null) {
+                System.out.println("Sifdhaposudhgfioashdngoiuiajsdf");
+                return null;
+            }
             return switch (currentAction) {
                 case CENTER_REEF_LEFT -> DriverInput.ReefCenteringSide.LEFT;
                 case CENTER_REEF_RIGHT -> DriverInput.ReefCenteringSide.RIGHT;
                 default -> null;
             };
+        } else if (currentOperatingMode == EnumCollection.OperatingMode.TELEOP) {
+            if (mostRecentInputHolder.centeringSide == null) return null;
         }
 
         return mostRecentInputHolder.centeringSide;
@@ -342,6 +348,10 @@ public class RobotController {
                 }
             }
         } else {
+            if (currentAction == Action.CENTER_REEF_LEFT || currentAction == Action.CENTER_REEF_RIGHT) {
+                return driveController.hasFinishedCentering();
+            }
+
             for (SubsystemSetting subsystemSetting : subsystemSettings) {
                 if (!subsystemSetting.subsystem.matchesState()) {
                     return false;
@@ -351,13 +361,17 @@ public class RobotController {
         return true;
     }
 
+    public Action getCurrentAction() {
+        return currentAction;
+    }
+
     public void setAction(Action action) {
         currentAction = action;
     }
 
     public void interruptAction() {
-        currentAction = null;
         driveController.setAutoPath(null);
+        currentAction = null;
 
         for (StateSubsystem stateSubsystem : stateSubsystems) {
             stateSubsystem.restoreToDefaultState();
@@ -408,10 +422,14 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
-        defineAction(Action.CLIMBER_DOWN,
+        defineAction(Action.CENTER_REEF_LEFT,
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 3));
+        defineAction(Action.CENTER_REEF_RIGHT,
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 3));
+/*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
-                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));*/
     }
 
     public boolean isSafeForArmToMove() {

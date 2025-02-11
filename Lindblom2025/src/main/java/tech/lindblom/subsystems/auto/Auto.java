@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
+import tech.lindblom.subsystems.auto.routines.OneCoralAuto;
 import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
@@ -45,7 +46,7 @@ public class Auto extends Subsystem {
         Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
         this.robotController = robotController;
 
-        testRoutine = new TestRoutine();
+        testRoutine = new OneCoralAuto();
     }
 
     @Override
@@ -81,6 +82,7 @@ public class Auto extends Subsystem {
                 Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
 
                 Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
+                Logger.recordOutput(name + "/CurrentTime", robotController.autoTimer.get());
 
                 if (currentStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
@@ -172,7 +174,7 @@ public class Auto extends Subsystem {
     }
 
     public Pose2d getStartPosition() throws NoStartingPositionException {
-        if (currentAutoRoutine != null && currentStepIndex == 0) {
+        if (currentAutoRoutine != null) {
             switch (currentStep.getStepType()) {
                 case PATH_AND_ACTION:
                 case PATH:
