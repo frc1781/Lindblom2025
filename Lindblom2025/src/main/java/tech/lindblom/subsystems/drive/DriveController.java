@@ -165,7 +165,7 @@ public class DriveController extends Subsystem {
 
             if (cameraOffset != 1781 &&  cameraDistance != 1781) {
                 if (!(Math.abs(cameraOffset) < 0.02)) {
-                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 0);
+                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 6.1);
                 }
 
                 if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
