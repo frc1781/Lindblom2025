@@ -62,7 +62,7 @@ public class Constants {
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
-        public static double TARGET_CORAL_DISTANCE = 0.46;
+        public static double TARGET_CORAL_DISTANCE = 0.4;
     }
 
     public class Auto {

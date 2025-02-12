@@ -44,9 +44,6 @@ public class DriveController extends Subsystem {
     private final PIDController distanceController = new PIDController(1.6  , 0, 0);
 
     private boolean aprilTagControl = false;
-    //distance .4 m  on x
-    //the offset needs to be zero
-    //180 to the apriltag
 
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
     private RobotConfig robotConfig;
@@ -95,7 +92,6 @@ public class DriveController extends Subsystem {
             case AUTONOMOUS:
                 boolean hasRobotReachedTargetPose = (hasRobotReachedTargetPose() && robotController.getCenteringSide() == null) || hasFinishedCentering();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
-                Logger.recordOutput(name + "/hasFinishedCentering", hasFinishedCentering());
 
                 if (hasRobotReachedTargetPose || followingPath == null) {
                     driveSubsystem.drive(zeroSpeed);
@@ -109,7 +105,6 @@ public class DriveController extends Subsystem {
                 }
                 break;
             case TELEOP:
-                Logger.recordOutput(name + "/hasFinishedCentering", hasFinishedCentering());
                 break;
         }
     }
@@ -155,8 +150,8 @@ public class DriveController extends Subsystem {
             }
 
             if (cameraOffset != 1781 &&  cameraDistance != 1781) {
-                if (!(Math.abs(cameraOffset) < 0.02)) {
-                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 8.1);
+                if (!(Math.abs(7 - cameraOffset) < 0.02)) {
+                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
                 }
 
                 if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
@@ -183,7 +178,8 @@ public class DriveController extends Subsystem {
             if (apriltagId != -1) {
                 cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
                 cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                return Math.abs(8.1 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05;
+                Logger.recordOutput(this.name + "/HasFinishedCentering", Math.abs(8.1 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05);
+                return Math.abs(7 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05;
             }
         }
 
