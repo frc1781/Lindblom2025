@@ -279,7 +279,6 @@ public class RobotController {
     public DriverInput.ReefCenteringSide getCenteringSide() {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
             if (currentAction == null) {
-                System.out.println("Sifdhaposudhgfioashdngoiuiajsdf");
                 return null;
             }
             return switch (currentAction) {
@@ -370,6 +369,7 @@ public class RobotController {
     }
 
     public void interruptAction() {
+        System.out.println("interruptAction");
         driveController.setAutoPath(null);
         currentAction = null;
 
@@ -423,9 +423,13 @@ public class RobotController {
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
         defineAction(Action.CENTER_REEF_LEFT,
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 3));
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
         defineAction(Action.CENTER_REEF_RIGHT,
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 3));
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,

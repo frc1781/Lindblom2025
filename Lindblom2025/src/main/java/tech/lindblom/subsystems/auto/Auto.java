@@ -148,6 +148,7 @@ public class Auto extends Subsystem {
     }
 
     private void startStep(AutoStep step) {
+        robotController.interruptAction();
         robotController.setAutoStep(step);
     }
 

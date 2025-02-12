@@ -40,8 +40,8 @@ public class DriveController extends Subsystem {
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
-    private final PIDController centeringYawController = new PIDController(0.05, 0, 0);
-    private final PIDController distanceController = new PIDController(1.5  , 0, 0);
+    private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
+    private final PIDController distanceController = new PIDController(1.6  , 0, 0);
 
     private boolean aprilTagControl = false;
     //distance .4 m  on x
@@ -95,8 +95,9 @@ public class DriveController extends Subsystem {
             case AUTONOMOUS:
                 boolean hasRobotReachedTargetPose = (hasRobotReachedTargetPose() && robotController.getCenteringSide() == null) || hasFinishedCentering();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
+                Logger.recordOutput(name + "/hasFinishedCentering", hasFinishedCentering());
 
-                if (hasRobotReachedTargetPose) {
+                if (hasRobotReachedTargetPose || followingPath == null) {
                     driveSubsystem.drive(zeroSpeed);
                 }
 
@@ -144,28 +145,18 @@ public class DriveController extends Subsystem {
             if (apriltagId != -1) {
                 cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
                 cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-            } else {
-                Logger.recordOutput(this.name + "/driveUsingVelocities", inputSpeeds);
-                Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
-                Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-                Logger.recordOutput(this.name + "/apriltagId", apriltagId);
-                return inputSpeeds;
             }
 
-            if (currentMode == AUTONOMOUS && cameraDistance > 2) {
-                Logger.recordOutput(this.name + "/driveUsingVelocities", inputSpeeds);
-                Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
-                Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-                Logger.recordOutput(this.name + "/apriltagId", apriltagId);
+            if (currentMode == AUTONOMOUS && cameraDistance > 1.5) {
                 return inputSpeeds;
-            } else if (currentMode == AUTONOMOUS && cameraDistance < 1.5){
+            } else if (currentMode == AUTONOMOUS){
                 aprilTagControl = true;
-                inputSpeeds.omegaRadiansPerSecond = 0;
+                inputSpeeds = zeroSpeed;
             }
 
             if (cameraOffset != 1781 &&  cameraDistance != 1781) {
                 if (!(Math.abs(cameraOffset) < 0.02)) {
-                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 6.1);
+                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 8.1);
                 }
 
                 if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
@@ -192,7 +183,7 @@ public class DriveController extends Subsystem {
             if (apriltagId != -1) {
                 cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
                 cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                return Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05 && Math.abs(cameraOffset) < 0.03;
+                return Math.abs(8.1 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05;
             }
         }
 
@@ -201,6 +192,7 @@ public class DriveController extends Subsystem {
 
     public void setAutoPath(PathPlannerPath path) {
         followingPath = path;
+        followingTrajectory = null;
         if (path == null) return;
 
         aprilTagControl = false;
@@ -259,6 +251,7 @@ public class DriveController extends Subsystem {
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
+        Logger.recordOutput(this.name + "/VisionEstimatedPose", estimatedPose);
         driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
     }
 

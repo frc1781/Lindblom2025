@@ -62,7 +62,7 @@ public class Constants {
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
-        public static double TARGET_CORAL_DISTANCE = 0.479;
+        public static double TARGET_CORAL_DISTANCE = 0.46;
     }
 
     public class Auto {
@@ -75,8 +75,8 @@ public class Constants {
         public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)),
-                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(180))
+                new Translation3d(Units.inchesToMeters(5.5), Units.inchesToMeters(9.5), Units.inchesToMeters(0)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
         );
 
         public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(

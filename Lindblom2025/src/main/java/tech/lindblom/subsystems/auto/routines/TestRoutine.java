@@ -17,7 +17,7 @@ public class TestRoutine implements AutoRoutine {
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(10, Auto.getPathFromName("testPath")),
+                        new AutoStep(Auto.getPathFromName("testPath")),
                 })
         };
     }

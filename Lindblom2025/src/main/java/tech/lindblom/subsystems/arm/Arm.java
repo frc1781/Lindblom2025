@@ -76,7 +76,7 @@ public class Arm extends StateSubsystem {
                 armMotor.set(0.1);
                 break;
             default:
-                //getToPosition(positionMap.get(getCurrentState()));
+                getToPosition(positionMap.get(getCurrentState()));
                 break;
 
         }
