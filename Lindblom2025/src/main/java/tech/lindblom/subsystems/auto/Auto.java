@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
+import tech.lindblom.subsystems.auto.routines.OneCoralAuto;
+import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -16,8 +18,7 @@ import java.nio.file.Path;
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
     private AutoRoutine currentAutoRoutine;
-    private boolean pathsGeneratedForRed;
-
+    private boolean isRedWhenBuilt;
     private int currentStepIndex = 0;
     private int currentGroupIndex = 0;
     private int currentReactionIndex = 0;
@@ -29,6 +30,8 @@ public class Auto extends Subsystem {
 
     private AutoStep[] reactionSteps;
     private AutoStepGroup[] stepGroups;
+
+    private AutoRoutine testRoutine;
 
     private boolean isReacting = false;
 
@@ -42,6 +45,8 @@ public class Auto extends Subsystem {
         }
         Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
         this.robotController = robotController;
+
+        testRoutine = new OneCoralAuto();
     }
 
     @Override
@@ -77,6 +82,7 @@ public class Auto extends Subsystem {
                 Logger.recordOutput(name + "/CurrentReactionIndex", currentReactionIndex);
 
                 Logger.recordOutput(name + "/CurrentAction", currentStep.getAction());
+                Logger.recordOutput(name + "/CurrentTime", robotController.autoTimer.get());
 
                 if (currentStepIndex == 0 || shouldEndAutoStep) {
                     robotController.autoTimer.reset();
@@ -142,31 +148,34 @@ public class Auto extends Subsystem {
     }
 
     private void startStep(AutoStep step) {
+        robotController.interruptAction();
         robotController.setAutoStep(step);
     }
 
     public void checkSelectedRoutine() {
-        boolean currentAlliance = RobotController.isRed();
-        AutoRoutine chosenRoutine = autoChooser.getSelected();
+        // boolean currentAlliance = true; //TESTING TEMPORARY RobotController.isRed();
+        AutoRoutine chosenRoutine = autoChooser.getSelected(); //testRoutine;
 
         if (chosenRoutine == null) return;
         Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
-        if (currentAutoRoutine != chosenRoutine || pathsGeneratedForRed != currentAlliance) {
+        if (currentAutoRoutine == null || 
+          !currentAutoRoutine.getName().equals(chosenRoutine.getName()) ||
+          RobotController.isRed() != isRedWhenBuilt
+        ) {
+            isRedWhenBuilt = RobotController.isRed();
             robotController.autoTimer.reset();
             currentStepIndex = 0;
             currentGroupIndex = 0;
             currentAutoRoutine = chosenRoutine;
-            stepGroups = chosenRoutine.getAutoStepGroups();
+            stepGroups = chosenRoutine.getAutoStepGroups(); //Reloads paths
             currentStep = stepGroups[0].getAutoSteps()[0];
-
-            pathsGeneratedForRed = currentAlliance;
             System.out.println("Cached current auto routine: " + currentAutoRoutine.getName());
         }
     }
 
     public Pose2d getStartPosition() throws NoStartingPositionException {
-        if (currentAutoRoutine != null && currentStepIndex == 0) {
+        if (currentAutoRoutine != null) {
             switch (currentStep.getStepType()) {
                 case PATH_AND_ACTION:
                 case PATH:
@@ -181,12 +190,16 @@ public class Auto extends Subsystem {
 
     public static PathPlannerPath getPathFromName(String name) {
         try {
-            var ret_val = PathPlannerPath.fromPathFile(name);
-            ret_val.preventFlipping = false;
+            PathPlannerPath path = PathPlannerPath.fromPathFile(name);
+           //MODIFIED CHECK ret_val.preventFlipping = false;
+           System.out.println("===========AUTO PATH LOADED=========================");
             if(RobotController.isRed()) {
-                ret_val = ret_val.flipPath();
+                path = path.flipPath();
+                System.out.println("FLIPPED PATH BECAUSE WE ARE ON RED ALLIANCE SIDE");
             }
-            return ret_val;
+            System.out.println("Loaded path " + name);
+            System.out.println("====================================================");
+            return path;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

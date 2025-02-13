@@ -3,29 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.8072522312015677,
-        "y": 2.882140027083359
+        "x": 7.887909836065574,
+        "y": 6.182786885245902
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.2313741991191516,
-        "y": 2.469520975479859
+        "x": 8.137478429359323,
+        "y": 6.197467390733769
       },
       "isLocked": false,
-      "linkedName": "CD"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.0538747530478936,
-        "y": 1.0708040336509805
+        "x": 7.887909836065574,
+        "y": 6.182786885245902
       },
       "prevControl": {
-        "x": 2.4660695055201067,
-        "y": 2.0375871181512726
+        "x": 8.088399760343137,
+        "y": 6.033442349814647
+      },
+      "nextControl": {
+        "x": 7.6874199117880115,
+        "y": 6.332131420677157
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.6423155737704918,
+        "y": 5.823155737704918
+      },
+      "prevControl": {
+        "x": 1.8920036584899536,
+        "y": 5.810671333468946
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Collect South"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +58,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 54.24219328723327
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.004060239959806
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

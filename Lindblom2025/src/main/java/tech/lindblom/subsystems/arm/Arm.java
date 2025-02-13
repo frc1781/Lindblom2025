@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import com.revrobotics.spark.SparkLowLevel;
 
+
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
@@ -38,12 +39,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-/*        armMotorConfig.closedLoop.maxMotion.maxAcceleration(0.01);
-        armMotorConfig.closedLoop.maxMotion.maxVelocity(0.01);
-        armMotorConfig.closedLoop.maxMotion.allowedClosedLoopError(0);
-        armMotorConfig.closedLoop.maxMotion.positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal);*/
 
-        //armMotorConfig.openLoopRampRate(5);
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
@@ -52,14 +48,15 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
         positionMap.put(ArmState.L4, 90.0);
+        positionMap.put(ArmState.PLACE, 25.0);
         positionMap.put(ArmState.COLLECT, 195.0);
     }
 
     @Override
     public boolean matchesState() {
-       double tolerance = 3;
+       double tolerance = 6;
+       Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
        return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
-       
     }
 
     @Override
@@ -92,6 +89,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, PLACE
     }
 }

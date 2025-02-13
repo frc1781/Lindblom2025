@@ -1,7 +1,25 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "SPARK MAX [61]": {
+        "header": {
+          "open": true
+        }
+      },
+      "SPARK MAX [61] RELATIVE ENCODER": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
-      "/FMSInfo": "FMSInfo"
+      "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/AdvantageKit/RealOutputs/Elevator/SimulationMech": "Mechanism2d",
+      "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Autonomous/SendableChooser[0]": "String Chooser",
+      "/SmartDashboard/Alerts": "Alerts"
     }
   },
   "NetworkTables Info": {

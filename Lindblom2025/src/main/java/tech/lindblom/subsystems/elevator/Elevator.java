@@ -43,9 +43,6 @@ public class Elevator extends StateSubsystem {
             );
 
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
-    private double previousDutyCycle = 0;
-    private double previousFirstStageDistance = 0;
-    private double previousSecondStageDistance = 0;
 
     public Elevator() {
         super("Elevator", ElevatorState.SAFE);
@@ -70,12 +67,12 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 150.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 150.0});
+        positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(3,3);
@@ -111,6 +108,9 @@ public class Elevator extends StateSubsystem {
         if (currentMode == OperatingMode.DISABLED) return;
 
         switch ((ElevatorState) getCurrentState()) {
+/*            case SAFE:
+                motorRight.set(0);
+                break;*/
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
@@ -148,7 +148,7 @@ public class Elevator extends StateSubsystem {
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
-        } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance && desiredPosition[0] != minFirstStageDistance) {
+        } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
@@ -157,10 +157,6 @@ public class Elevator extends StateSubsystem {
         } else {
             dutyCycle = 0.02;
         }
-
-        previousDutyCycle = dutyCycle;
-        previousFirstStageDistance = firstStagePosition;
-        previousSecondStageDistance = secondStagePosition;
 
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
 

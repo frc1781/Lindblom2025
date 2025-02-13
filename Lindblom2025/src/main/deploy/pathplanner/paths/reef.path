@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.8072522312015677,
-        "y": 2.882140027083359
+        "x": 1.642,
+        "y": 5.823
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.2313741991191516,
-        "y": 2.469520975479859
+        "x": 1.8915685932937496,
+        "y": 5.837680505487868
       },
       "isLocked": false,
-      "linkedName": "CD"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.0538747530478936,
-        "y": 1.0708040336509805
+        "x": 3.9679303278688525,
+        "y": 5.079918032786885
       },
       "prevControl": {
-        "x": 2.4660695055201067,
-        "y": 2.0375871181512726
+        "x": 3.7375214840851654,
+        "y": 5.176932282803388
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Collect South"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 54.24219328723327
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.004060239959806
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
