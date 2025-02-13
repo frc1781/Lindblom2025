@@ -4,6 +4,8 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
+import com.playingwithfusion.TimeOfFlight;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -34,6 +36,8 @@ public class DriveController extends Subsystem {
     private PathPlannerTrajectory followingTrajectory;
     private Pose2d targetPose;
     private HolonomicDriveController trajectoryController;
+    private TimeOfFlight leftTOF;
+    private TimeOfFlight rightTOF;
 
     private final PIDController XController = new PIDController(3, 0, 0);
     private final PIDController YController = new PIDController(3, 0, 0);
@@ -42,6 +46,8 @@ public class DriveController extends Subsystem {
 
     private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
     private final PIDController distanceController = new PIDController(1.6  , 0, 0);
+    private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0, 
+            new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     private boolean aprilTagControl = false;
 
@@ -54,13 +60,18 @@ public class DriveController extends Subsystem {
         driveSubsystem = new Drive();
         robotController = controller;
 
+        leftTOF = new TimeOfFlight(0);
+        rightTOF = new TimeOfFlight(0);
+
         rotController.enableContinuousInput(0, Math.PI * 2);
+        parallelController.enableContinuousInput(0, Math.PI * 2);
     }
 
     @Override
     public void init() {
         centeringYawController.reset();
         distanceController.reset();
+        parallelController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
 
         switch (currentMode) {
             case DISABLED:
@@ -154,8 +165,13 @@ public class DriveController extends Subsystem {
                     inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
                 }
 
-                if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
-                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
+                //if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
+                //inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
+
+                if (leftTOF.getRange() == Constants.Drive.TOF_DISTANCE_FROM_REEF && rightTOF.getRange() == Constants.Drive.TOF_DISTANCE_FROM_REEF) {
+                    inputSpeeds.vxMetersPerSecond = -distanceController.calculate(leftTOF.getRange(), Constants.Drive.TOF_DISTANCE_FROM_REEF);
+                }
+
             }
         }
 
@@ -163,6 +179,8 @@ public class DriveController extends Subsystem {
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
         Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
         Logger.recordOutput(this.name + "/apriltagId", apriltagId);
+        Logger.recordOutput(this.name + "/leftTOFDistance", leftTOF.getRange());
+        Logger.recordOutput(this.name + "/rightTOFDistance", rightTOF.getRange());
 
         return inputSpeeds;
     }
