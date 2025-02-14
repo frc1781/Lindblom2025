@@ -12,8 +12,6 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.*;
-import tech.lindblom.subsystems.climber.BaseClimber;
-import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -324,13 +322,13 @@ public class RobotController {
             case ACTION:
                 return hasActionFinished();
             case PATH:
-                return driveController.hasRobotReachedTargetPose();
+                return driveController.hasReachedTargetPose();
             case PATH_AND_ACTION:
                 if (currentAction == Action.CENTER_REEF_LEFT || currentAction == Action.CENTER_REEF_RIGHT) {
                     return driveController.hasFinishedCentering();
                 }
 
-                return driveController.hasRobotReachedTargetPose() && hasActionFinished();
+                return driveController.hasReachedTargetPose() && hasActionFinished();
         }
 
         return true;
@@ -443,6 +441,22 @@ public class RobotController {
 
         return false;
     }
+
+    public double getCenteringDistance() {
+        int apriltagId;
+        double cameraDistance;
+
+        if (getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
+            apriltagId = visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+            if (apriltagId != -1) {
+                cameraDistance = visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+                return cameraDistance;
+            }
+        }
+
+        return 1781;
+    }
+
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
         ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();
