@@ -207,6 +207,7 @@ public class RobotController {
                     sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
                 }
             }
+
             SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(inputHolder.sequentialAction);
 
             for (int i = 0; i < subsystemSettings.length; i++) {
@@ -289,6 +290,11 @@ public class RobotController {
         }
 
         return mostRecentInputHolder.centeringSide;
+    }
+
+    public boolean shouldBeCentering() {
+        return getCenteringSide() != null
+                && ((driveController.getCurrentState() == DriveController.DriverStates.PATH && getCenteringDistance() < 1.5) || driveController.getCurrentState() != DriveController.DriverStates.PATH);
     }
 
     // Auto
@@ -422,6 +428,7 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
         defineAction(Action.CENTER_REEF_LEFT,
                 new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
         defineAction(Action.CENTER_REEF_RIGHT,

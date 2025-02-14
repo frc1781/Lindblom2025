@@ -91,6 +91,7 @@ public class DriveController extends StateSubsystem {
 
         switch ((DriverStates) getCurrentState()) {
             case IDLE:
+                driveSubsystem.drive(zeroSpeed);
                 break;
             case CENTERING:
                 centerOnReef();
@@ -99,21 +100,24 @@ public class DriveController extends StateSubsystem {
                 //RobotController is inputing speeds from driver input
                 break;
             case PATH:
-                boolean hasRobotReachedTargetPose = (hasReachedTargetPose() && robotController.getCenteringSide() == null) || hasFinishedCentering();
+                boolean hasRobotReachedTargetPose = hasReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
+
+                if (robotController.shouldBeCentering()) {
+                    setState(DriverStates.CENTERING);
+                }
 
                 if (hasRobotReachedTargetPose || followingPath == null) {
                     driveSubsystem.drive(zeroSpeed);
                 }
 
+                Logger.recordOutput(name + "/isFollowingPath", followingPath != null && !hasRobotReachedTargetPose);
                 if (followingPath != null && !hasRobotReachedTargetPose) {
-                    Logger.recordOutput(name + "/isFollowingPath", true);
                     followPath();
-                } else {
-                    Logger.recordOutput(name + "/isFollowingPath", false);
                 }
                 break;
             case FIND_POLE:
+                findReefPole();
                 break;
         }
     }
@@ -121,7 +125,6 @@ public class DriveController extends StateSubsystem {
     public void resetNavX() {
         driveSubsystem.zeroRotation();
     }
-
 
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
         if (getCurrentState() != DriverStates.DRIVER) return;
@@ -178,7 +181,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public void centerOnReef() {
-        if (robotController.getCenteringSide() == null && getCurrentState() != DriverStates.CENTERING) return;
+        if (robotController.getCenteringSide() == null) return;
         ChassisSpeeds centeringSpeeds = zeroSpeed;
         centeringSpeeds = getCenteringChassisSpeeds(centeringSpeeds);
         driveSubsystem.drive(centeringSpeeds);
@@ -201,6 +204,12 @@ public class DriveController extends StateSubsystem {
         }
 
         return false;
+    }
+
+    public void findReefPole() {
+        if (robotController.getCenteringSide() == null) return;
+
+
     }
 
     public boolean hasFoundReefPole() {
@@ -234,14 +243,7 @@ public class DriveController extends StateSubsystem {
         rotController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
     }
 
-
     public void followPath() {
-        if (followingPath == null && getCurrentState() != DriverStates.PATH) return;
-
-        if (robotController.getCenteringSide() != null && robotController.getCenteringDistance() < 1.5) { // in meters
-            setState(DriverStates.CENTERING);
-        }
-
         PathPlannerTrajectoryState pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
         Pose2d targetPose = new Pose2d(pathplannerState.pose.getTranslation(), pathplannerState.heading);
         Rotation2d targetOrientation = EEGeometeryUtil.normalizeAngle(pathplannerState.pose.getRotation());
