@@ -19,8 +19,8 @@ public class DriverInput {
         this.controlList = new Control[] {
                 new Control(0, "X", RobotController.Action.L4),
                 new Control(0, "Y", RobotController.Action.COLLECT),
-                new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "B", RobotController.Action.L3),
+                new Control(0, "A", RobotController.Action.L2),
         };
     }
 

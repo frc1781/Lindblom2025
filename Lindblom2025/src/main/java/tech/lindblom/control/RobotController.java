@@ -412,6 +412,17 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
+        defineAction(Action.L3,
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
+        );
+        defineAction(Action.L2,
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
         defineAction(Action.COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_HIGH, 2),
