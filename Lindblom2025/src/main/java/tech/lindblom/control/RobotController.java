@@ -19,6 +19,7 @@ import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
 import java.util.ArrayList;
@@ -76,9 +77,9 @@ public class RobotController {
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
+        stateSubsystems.add(driveController);
         //stateSubsystems.add(climberSystem);
         subsystems = new ArrayList<>();
-        subsystems.add(driveController);
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
         createActions();
@@ -150,7 +151,7 @@ public class RobotController {
                     }
 
 
-                    SubsystemSetting[] subsystemSettings = actionMap.get(currentAction);
+                    SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
                     for (SubsystemSetting subsystemSetting : subsystemSettings) {
                         if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
 
@@ -182,7 +183,7 @@ public class RobotController {
     }
 
     private SubsystemSetting[] getSequentialActionSubsystemSettings(Action action) {
-        SubsystemSetting[] temp = actionMap.get(action);
+        SubsystemSetting[] temp = getSubsystemSettingsFromAction(action);
         SubsystemSetting[] subsystemSettings = new SubsystemSetting[temp.length - 1];
         System.arraycopy(temp, 1, subsystemSettings, 0, subsystemSettings.length);
         return subsystemSettings;
@@ -293,8 +294,7 @@ public class RobotController {
     }
 
     public boolean shouldBeCentering() {
-        return getCenteringSide() != null
-                && ((driveController.getCurrentState() == DriveController.DriverStates.PATH && getCenteringDistance() < 1.5) || driveController.getCurrentState() != DriveController.DriverStates.PATH);
+        return getCenteringSide() != null && getCenteringDistance() < 1.5;
     }
 
     // Auto
@@ -307,10 +307,11 @@ public class RobotController {
                 break;
             case PATH:
                 driveController.setAutoPath(autoStep.getPath());
+                driveController.setState(DriveController.DriverStates.PATH);
                 break;
             case PATH_AND_ACTION:
-                driveController.setAutoPath(autoStep.getPath());
                 setAction(autoStep.getAction());
+                driveController.setAutoPath(autoStep.getPath());
                 break;
         }
     }
@@ -328,13 +329,9 @@ public class RobotController {
             case ACTION:
                 return hasActionFinished();
             case PATH:
-                return driveController.hasReachedTargetPose();
+                return driveController.matchesState();
             case PATH_AND_ACTION:
-                if (currentAction == Action.CENTER_REEF_LEFT || currentAction == Action.CENTER_REEF_RIGHT) {
-                    return driveController.hasFinishedCentering();
-                }
-
-                return driveController.hasReachedTargetPose() && hasActionFinished();
+                return driveController.matchesState() && hasActionFinished();
         }
 
         return true;
@@ -373,7 +370,6 @@ public class RobotController {
     }
 
     public void interruptAction() {
-        System.out.println("interruptAction");
         driveController.setAutoPath(null);
         currentAction = null;
 
@@ -413,7 +409,7 @@ public class RobotController {
         defineAction(Action.L4,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.COLLECT,
@@ -428,13 +424,14 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
         defineAction(Action.CENTER_REEF_LEFT,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
+                //new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
+                //new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5));
         defineAction(Action.CENTER_REEF_RIGHT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
@@ -477,6 +474,12 @@ public class RobotController {
     }
 
     public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
+        if (getCenteringSide() != null
+                && currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
+                && autoSystem.getCurrentAutoStep().getPath() != null) {
+            return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
+        }
+
         return actionMap.get(action);
     }
 
@@ -522,6 +525,11 @@ public class RobotController {
             this.subsystem = subsystem;
             this.state = state;
             this.weight = weight;
+        }
+
+        @Override
+        public String toString() {
+            return new StringBuilder().append("Relies On Other: ").append(reliesOnOthers).append(" State: ").append(state).append(" Subsytems: ").append(subsystem).toString();
         }
     }
 }

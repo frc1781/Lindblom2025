@@ -5,7 +5,6 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.HashMap;
 import com.revrobotics.spark.SparkLowLevel;
 
 
-import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -48,7 +46,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 0.0);
         positionMap.put(ArmState.L4, 90.0);
-        positionMap.put(ArmState.PLACE, 25.0);
+        positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 195.0);
     }
 
@@ -89,6 +87,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, PLACE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT
     }
 }

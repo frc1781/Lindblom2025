@@ -23,7 +23,7 @@ import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
-import tech.lindblom.utils.EEGeometeryUtil;
+import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
@@ -64,16 +64,16 @@ public class DriveController extends StateSubsystem {
         centeringYawController.reset();
         distanceController.reset();
 
-        switch (currentMode) {
+        switch (currentOperatingMode) {
             case DISABLED:
                 break;
             case AUTONOMOUS:
                 driveSubsystem.resetNavX();
                 driveSubsystem.zeroRotation();
-                setInitialRobotPose(currentMode);
+                setInitialRobotPose(currentOperatingMode);
                 break;
             case TELEOP:
-                setInitialRobotPose(currentMode);
+                setInitialRobotPose(currentOperatingMode);
                 break;
         }
 
@@ -102,10 +102,6 @@ public class DriveController extends StateSubsystem {
             case PATH:
                 boolean hasRobotReachedTargetPose = hasReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
-
-                if (robotController.shouldBeCentering()) {
-                    setState(DriverStates.CENTERING);
-                }
 
                 if (hasRobotReachedTargetPose || followingPath == null) {
                     driveSubsystem.drive(zeroSpeed);
@@ -156,9 +152,9 @@ public class DriveController extends StateSubsystem {
                 cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
             }
 
-            if (currentMode == AUTONOMOUS && cameraDistance > 1.5) {
+            if (currentOperatingMode == AUTONOMOUS && cameraDistance > 1.5) {
                 return inputSpeeds;
-            } else if (currentMode == AUTONOMOUS){
+            } else if (currentOperatingMode == AUTONOMOUS){
                 inputSpeeds = zeroSpeed;
             }
 
@@ -246,7 +242,7 @@ public class DriveController extends StateSubsystem {
     public void followPath() {
         PathPlannerTrajectoryState pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
         Pose2d targetPose = new Pose2d(pathplannerState.pose.getTranslation(), pathplannerState.heading);
-        Rotation2d targetOrientation = EEGeometeryUtil.normalizeAngle(pathplannerState.pose.getRotation());
+        Rotation2d targetOrientation = EEUtil.normalizeAngle(pathplannerState.pose.getRotation());
         Logger.recordOutput(name + "/TrajectoryPose", targetPose);
 
         ChassisSpeeds desiredChassisSpeeds = trajectoryController.calculate(
@@ -266,7 +262,7 @@ public class DriveController extends StateSubsystem {
         boolean reachedTargetTranslation = currentPose.getTranslation().getDistance(targetPose.getTranslation()) < 0.1;
         boolean reachedTargetHeading = true;
 
-        return reachedTargetHeading && reachedTargetTranslation;
+        return (reachedTargetHeading && reachedTargetTranslation) || robotController.shouldBeCentering();
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {

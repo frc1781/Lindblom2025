@@ -188,6 +188,10 @@ public class Auto extends Subsystem {
         throw new NoStartingPositionException();
     }
 
+    public AutoStep getCurrentAutoStep() {
+        return currentStep;
+    }
+
     public static PathPlannerPath getPathFromName(String name) {
         try {
             PathPlannerPath path = PathPlannerPath.fromPathFile(name);
