@@ -87,6 +87,7 @@ public class RobotController {
 
     public void init(EnumCollection.OperatingMode mode) {
         currentOperatingMode = mode;
+        interruptAction();
 
         for (Subsystem subsystem : subsystems) {
             subsystem.setOperatingMode(mode);
@@ -104,6 +105,7 @@ public class RobotController {
             case AUTONOMOUS:
                 break;
             case TELEOP:
+                driveController.setState(DriveController.DriverStates.DRIVER);
                 break;
             case TEST:
                 break;
@@ -113,8 +115,6 @@ public class RobotController {
                 System.out.println("WHAT IS HAPPENING");
                 break;
         }
-
-        interruptAction();
     }
 
     public void run(EnumCollection.OperatingMode mode) {
