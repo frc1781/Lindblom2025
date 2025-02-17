@@ -9,8 +9,14 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismObject2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -34,6 +40,7 @@ public class Elevator extends StateSubsystem {
     private double maxFirstStageDistance = 810;
 
     private LoggedMechanism2d elevatorMechSimulation;
+    private LoggedMechanismRoot2d elevatorFirstStageRoot;
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -75,7 +82,8 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
-        elevatorMechSimulation = new LoggedMechanism2d(3,3);
+        elevatorMechSimulation = new LoggedMechanism2d(100,maxFirstStageDistance + maxSecondStageDistance);
+        elevatorFirstStageRoot = elevatorMechSimulation.getRoot("Climber", 0, maxFirstStageDistance);
     }
 
 
