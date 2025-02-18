@@ -125,6 +125,11 @@ public class DriveController extends StateSubsystem {
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
         if (getCurrentState() != DriverStates.DRIVER) return;
 
+        Logger.recordOutput(this.name + "/xVelocity", xVelocity);
+        Logger.recordOutput(this.name + "/yVelocity", yVelocity);
+        Logger.recordOutput(this.name + "/rotSpeed", rotSpeed);
+
+
         ChassisSpeeds speeds = isFieldOriented
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
                         xVelocity,
