@@ -395,9 +395,11 @@ public class RobotController {
         MANUAL_ELEVATOR_DOWN,
         CLIMBER_DOWN,
         CLIMBER_UP,
+        FIND_POLE
     }
 
-    public void createActions() {
+    public void createActions(){
+        
         defineAction(Action.LEDs_BLUE,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
         defineAction(Action.LEDs_RED,
@@ -432,6 +434,8 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5));
+        defineAction(Action.FIND_POLE, 
+                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE,0));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
