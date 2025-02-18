@@ -89,16 +89,6 @@ public class RobotController {
         currentOperatingMode = mode;
         interruptAction();
 
-        for (Subsystem subsystem : subsystems) {
-            subsystem.setOperatingMode(mode);
-            subsystem.init();
-        }
-
-        for (StateSubsystem subsystem : stateSubsystems) {
-            subsystem.setOperatingMode(mode);
-            subsystem.init();
-        }
-
         switch (mode) {
             case DISABLED:
                 break;
@@ -114,6 +104,16 @@ public class RobotController {
             default:
                 System.out.println("WHAT IS HAPPENING");
                 break;
+        }
+
+        for (Subsystem subsystem : subsystems) {
+            subsystem.setOperatingMode(mode);
+            subsystem.init();
+        }
+
+        for (StateSubsystem subsystem : stateSubsystems) {
+            subsystem.setOperatingMode(mode);
+            subsystem.init();
         }
     }
 
@@ -179,6 +179,7 @@ public class RobotController {
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
             Logger.recordOutput(subsystem.name + "/MatchesState", subsystem.matchesState());
+            Logger.recordOutput(subsystem.name + "/currentState", subsystem.getCurrentState().toString());
         }
     }
 
@@ -240,6 +241,11 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.defaultState && !setSubsystems.contains(subsystem)) {
+                if (subsystem.name == "DriveController" && subsystem.getCurrentState() != DriveController.DriverStates.DRIVER) {
+                    subsystem.setState(DriveController.DriverStates.DRIVER);
+                } else if (subsystem.name == "DriveController" && subsystem.getCurrentState() == DriveController.DriverStates.DRIVER) {
+                    return;
+                }
                 subsystem.restoreToDefaultState();
             }
         }
@@ -286,8 +292,6 @@ public class RobotController {
                 case CENTER_REEF_RIGHT -> DriverInput.ReefCenteringSide.RIGHT;
                 default -> null;
             };
-        } else if (currentOperatingMode == EnumCollection.OperatingMode.TELEOP) {
-            if (mostRecentInputHolder.centeringSide == null) return null;
         }
 
         return mostRecentInputHolder.centeringSide;
@@ -399,7 +403,6 @@ public class RobotController {
     }
 
     public void createActions(){
-        
         defineAction(Action.LEDs_BLUE,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
         defineAction(Action.LEDs_RED,
@@ -425,16 +428,10 @@ public class RobotController {
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
         defineAction(Action.CENTER_REEF_LEFT,
-                new SubsystemSetting(true),
-                //new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
-                //new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5));
         defineAction(Action.CENTER_REEF_RIGHT,
-                new SubsystemSetting(true),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5));
-        defineAction(Action.FIND_POLE, 
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
+        defineAction(Action.FIND_POLE,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE,0));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
