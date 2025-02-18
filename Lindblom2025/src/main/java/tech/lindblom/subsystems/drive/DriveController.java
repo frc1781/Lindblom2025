@@ -60,8 +60,8 @@ public class DriveController extends Subsystem {
         driveSubsystem = new Drive();
         robotController = controller;
 
-        leftTOF = new TimeOfFlight(0);
-        rightTOF = new TimeOfFlight(0);
+        leftTOF = new TimeOfFlight(Constants.Drive.LEFT_TOF);
+        rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_TOF);
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
