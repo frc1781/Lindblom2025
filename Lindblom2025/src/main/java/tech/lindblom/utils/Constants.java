@@ -62,7 +62,14 @@ public class Constants {
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
-        public static double TARGET_CORAL_DISTANCE = 0.4;
+        public static double DISTANCE_TOLERANCE = 0.05;
+        public static double OFFSET_TOLERANCE = 0.02;
+
+        public static double TARGET_CORAL_DISTANCE_LEFT = 0.4;
+        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.4;
+        // I have no idea what unit this is in -ally
+        public static double TARGET_CORAL_OFFSET_LEFT = 7;
+        public static double TARGET_CORAL_OFFSET_RIGHT = 7;
     }
 
     public class Auto {
@@ -73,6 +80,7 @@ public class Constants {
         public static final String BACK_CAMERA_NAME = "Back";
         public static final String FRONT_LEFT_CAMERA_NAME = "Apriltag";
         public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
+        public static final String LEFT_SIDE_CAMERA_NAME = "Left";
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
                 new Translation3d(Units.inchesToMeters(5.5), Units.inchesToMeters(9.5), Units.inchesToMeters(0)),
@@ -87,6 +95,11 @@ public class Constants {
         public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
                 new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d LEFT_SIDE_CAMERA_POSITION = new Transform3d(
+                new Translation3d(),
+                new Rotation3d()
         );
 
 

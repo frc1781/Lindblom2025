@@ -135,27 +135,46 @@ public class DriveController extends Subsystem {
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
 
-        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
-            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-            if (apriltagId != -1) {
-                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-            }
+        double targetOffset = 0;
+        double targetDistance = 0;
 
-            if (currentMode == AUTONOMOUS && cameraDistance > 1.5) {
-                return inputSpeeds;
-            } else if (currentMode == AUTONOMOUS){
-                aprilTagControl = true;
-                inputSpeeds = zeroSpeed;
-            }
+        switch (robotController.getCenteringSide()) {
+            case LEFT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_LEFT;
 
-            if (cameraOffset != 1781 &&  cameraDistance != 1781) {
-                if (!(Math.abs(7 - cameraOffset) < 0.02)) {
-                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
                 }
+                break;
+            case RIGHT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_RIGHT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_RIGHT;
 
-                if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
-                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
+                }
+                break;
+        }
+
+        if (currentMode == AUTONOMOUS && cameraDistance > 1.5) {
+            return inputSpeeds;
+        } else if (currentMode == AUTONOMOUS){
+            aprilTagControl = true;
+            inputSpeeds = zeroSpeed;
+        }
+
+        if (cameraOffset != 1781 &&  cameraDistance != 1781) {
+            if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
+                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+            }
+
+            if (!(Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE)) {
+                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, targetDistance);
             }
         }
 
@@ -173,14 +192,35 @@ public class DriveController extends Subsystem {
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
 
-        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
-            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-            if (apriltagId != -1) {
-                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                Logger.recordOutput(this.name + "/HasFinishedCentering", Math.abs(8.1 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05);
-                return Math.abs(7 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05;
-            }
+        double targetOffset = 0;
+        double targetDistance = 0;
+
+        switch (robotController.getCenteringSide()) {
+            case LEFT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_LEFT;
+
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+                }
+                break;
+            case RIGHT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_RIGHT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_RIGHT;
+
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
+                }
+                break;
+        }
+
+
+        if (apriltagId != -1) {
+            return Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE && Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE;
         }
 
         return false;
@@ -252,18 +292,6 @@ public class DriveController extends Subsystem {
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {
-/*        Optional<Pose2d> visionPoseOptional = robotController.visionSystem.getFrontCameraPose();
-        PhotonPipelineResult pipelineResult = robotController.visionSystem.getFrontCameraPipelineResult();
-
-        if (visionPoseOptional.isPresent() && pipelineResult != null) {
-            Pose2d visionPose = visionPoseOptional.get();
-
-            if (pipelineResult.targets.size() > 1) {
-                driveSubsystem.setInitialPose(new Pose2d(visionPose.getTranslation(), driveSubsystem.getNavXRotation()));
-                return;
-            }
-        }*/
-
         if (mode == AUTONOMOUS) {
             try {
                 Pose2d poseFromPath = robotController.autoSystem.getStartPosition();
