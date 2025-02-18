@@ -20,6 +20,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.control.DriverInput.ReefCenteringSide;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
@@ -203,9 +204,15 @@ public class DriveController extends StateSubsystem {
     }
 
     public void findReefPole() {
-        if (robotController.getCenteringSide() == null) return;
+        if (robotController.getCenteringSide() == null) {
+            return;
+        }
 
-
+        if (hasFoundReefPole() == true)  {
+            return;
+        }
+        
+        driveUsingVelocities(robotController.getCenteringSide() == ReefCenteringSide.RIGHT ? 0.1 : -0.1, 0, 0);
     }
 
     public boolean hasFoundReefPole() {

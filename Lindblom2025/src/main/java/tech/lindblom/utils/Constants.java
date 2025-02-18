@@ -64,8 +64,9 @@ public class Constants {
 
         public static double TARGET_CORAL_DISTANCE = 0.4;
         public static double ARM_TOF_DISTANCE = 200;
+        
 
-        public static int ARM_TOF_ID = 0;
+        public static int ARM_TOF_ID = 51;
     }
 
     public class Auto {
