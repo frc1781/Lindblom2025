@@ -168,10 +168,12 @@ public class DriveController extends Subsystem {
                 //if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
                 //inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
 
-                if (leftTOF.getRange() == Constants.Drive.TOF_DISTANCE_FROM_REEF && rightTOF.getRange() == Constants.Drive.TOF_DISTANCE_FROM_REEF) {
+                if (leftTOF.getRange() >= Constants.Drive.TOF_DISTANCE_FROM_REEF && rightTOF.getRange() >= Constants.Drive.TOF_DISTANCE_FROM_REEF) {
                     inputSpeeds.vxMetersPerSecond = -distanceController.calculate(leftTOF.getRange(), Constants.Drive.TOF_DISTANCE_FROM_REEF);
+                } 
+                else if (leftTOF.getRange() < rightTOF.getRange()) {
+                    driveSide(true, ((5/4) * inputSpeeds.vxMetersPerSecond));
                 }
-
             }
         }
 

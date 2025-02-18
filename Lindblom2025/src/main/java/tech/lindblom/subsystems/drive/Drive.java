@@ -12,6 +12,10 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
+
+import java.lang.ModuleLayer.Controller;
+import java.util.ResourceBundle.Control;
+
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
@@ -103,6 +107,24 @@ public class Drive extends Subsystem {
         frontRightModule.runDesiredModuleState(moduleStates[1]);
         backLeftModule.runDesiredModuleState(moduleStates[2]);
         backRightModule.runDesiredModuleState(moduleStates[3]);
+    }
+    
+    public void driveSide(boolean left, ChassisSpeeds speeds) {
+        SwerveModuleState zeroSpeedModuleStates = new SwerveModuleState(0, 0);
+        SwerveModuleState speedModuleStates = new SwerveModuleState(speeds, 0); 
+
+        if (left == true) {
+            frontLeftModule.runDesiredModuleState(zeroSpeedModuleState[0]);
+            frontRightModule.runDesiredModuleState(speedModuleState[0]);
+            backLeftModule.runDesiredModuleState(zeroSpeedModuleState[1]);
+            backRightModule.runDesiredModuleState(speedModuleState[1]);
+        }
+        if (left == false) {
+            frontLeftModule.runDesiredModuleState(speedModuleState[0]);
+            frontRightModule.runDesiredModuleState(zeroSpeedModuleState);
+            backLeftModule.runDesiredModuleState(speedModuleState[1]);
+            backRightModule.runDesiredModuleState(zeroSpeedModuleState);
+        }
     }
 
     public void setInitialPose(Pose2d pose) {
