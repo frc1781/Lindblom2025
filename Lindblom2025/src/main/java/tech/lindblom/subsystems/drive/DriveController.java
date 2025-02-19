@@ -172,7 +172,10 @@ public class DriveController extends Subsystem {
                     inputSpeeds.vxMetersPerSecond = -distanceController.calculate(leftTOF.getRange(), Constants.Drive.TOF_DISTANCE_FROM_REEF);
                 } 
                 else if (leftTOF.getRange() < rightTOF.getRange()) {
-                    driveSide(true, ((5/4) * inputSpeeds.vxMetersPerSecond));
+                    driveSubsystem.driveSide(true, inputSpeeds.times((5/4)));
+                }
+                else {
+                    driveSubsystem.driveSide(false, inputSpeeds.times((5/4)));
                 }
             }
         }

@@ -110,19 +110,19 @@ public class Drive extends Subsystem {
     }
     
     public void driveSide(boolean left, ChassisSpeeds speeds) {
-        SwerveModuleState zeroSpeedModuleStates = new SwerveModuleState(0, 0);
-        SwerveModuleState speedModuleStates = new SwerveModuleState(speeds, 0); 
+        SwerveModuleState zeroSpeedModuleState = new SwerveModuleState(0, Rotation2d.kZero);
+        SwerveModuleState speedModuleState = new SwerveModuleState(speeds.vxMetersPerSecond, Rotation2d.kZero);
 
         if (left == true) {
-            frontLeftModule.runDesiredModuleState(zeroSpeedModuleState[0]);
-            frontRightModule.runDesiredModuleState(speedModuleState[0]);
-            backLeftModule.runDesiredModuleState(zeroSpeedModuleState[1]);
-            backRightModule.runDesiredModuleState(speedModuleState[1]);
+            frontLeftModule.runDesiredModuleState(zeroSpeedModuleState);
+            frontRightModule.runDesiredModuleState(speedModuleState);
+            backLeftModule.runDesiredModuleState(zeroSpeedModuleState);
+            backRightModule.runDesiredModuleState(speedModuleState);
         }
         if (left == false) {
-            frontLeftModule.runDesiredModuleState(speedModuleState[0]);
+            frontLeftModule.runDesiredModuleState(speedModuleState);
             frontRightModule.runDesiredModuleState(zeroSpeedModuleState);
-            backLeftModule.runDesiredModuleState(speedModuleState[1]);
+            backLeftModule.runDesiredModuleState(speedModuleState);
             backRightModule.runDesiredModuleState(zeroSpeedModuleState);
         }
     }
