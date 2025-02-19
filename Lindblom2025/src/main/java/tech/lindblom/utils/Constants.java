@@ -64,6 +64,7 @@ public class Constants {
 
         public static double TARGET_CORAL_DISTANCE = 0.4;
         public static double ARM_TOF_DISTANCE = 200;
+        public static double MAX_TIME_LOOKING_FOR_POLE = 0.5;
         
 
         public static int ARM_TOF_ID = 51;
@@ -80,6 +81,7 @@ public class Constants {
         public static final String FRONT_LEFT_CAMERA_NAME = "Apriltag";
         public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
         public static final String LEFT_SIDE_CAMERA_NAME = "LeftSide";
+        public static final int ERROR_CONSTANT = 1781;
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
                 new Translation3d(Units.inchesToMeters(5.5), Units.inchesToMeters(9.5), Units.inchesToMeters(0)),

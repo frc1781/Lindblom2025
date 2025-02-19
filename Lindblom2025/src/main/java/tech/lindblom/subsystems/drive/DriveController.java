@@ -26,6 +26,7 @@ import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
+import edu.wpi.first.wpilibj.Timer;
 
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
@@ -38,6 +39,7 @@ public class DriveController extends StateSubsystem {
     private HolonomicDriveController trajectoryController;
     private TimeOfFlight leftTOF;
     private TimeOfFlight rightTOF;
+    private Timer timeInState;
 
     private final TimeOfFlight armTOF;
 
@@ -95,6 +97,7 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void periodic() {
+        super.periodic();
         if (currentOperatingMode == DISABLED) return;
         driveSubsystem.periodic();
 
@@ -138,7 +141,6 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/yVelocity", yVelocity);
         Logger.recordOutput(this.name + "/rotSpeed", rotSpeed);
 
-
         ChassisSpeeds speeds = isFieldOriented
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
                         xVelocity,
@@ -172,7 +174,7 @@ public class DriveController extends StateSubsystem {
                 inputSpeeds = zeroSpeed;
             }
 
-            if (cameraOffset != 1781 &&  cameraDistance != 1781) {
+            if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT) {
                 if (!(Math.abs(7 - cameraOffset) < 0.02)) {
                     inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
                 }
@@ -221,12 +223,15 @@ public class DriveController extends StateSubsystem {
 
         //CHECK FOR UNUSUAL ERROR CONDITION
         if (leftTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 || 
-            rightTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
-            Math.abs(rightTOFdistance - leftTOFdistance) > 1.4) {
+                rightTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
+                Math.abs(rightTOFdistance - leftTOFdistance) > 1.4 ||
+                hasFoundReefPole() ||
+                timeInState.get() > Constants.Drive.MAX_TIME_LOOKING_FOR_POLE) {
             driveUsingVelocities(0.0, 0.0, 0.0);
             return;
         }
 
+        //FIRST TRY, WILL CONSIDER SPEEDING UP MODIFYING 0.1 P
         double xVelo = getCurrentState() == DriverStates.FIND_POLE_RIGHT ? 0.1 : -0.1;  //GUESS FOR SPEED WE WANT TO MOVE LEFT AND RIGHT
         double yVelo = 0.1 * (leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_CORAL_DISTANCE;  //GUESS FOR SPEED WE WANT TO MOVE FORWARD
         double rot = 0.1 * (rightTOFdistance - leftTOFdistance); //GUESS FOR SPEED WE WANT TO ROTATE
