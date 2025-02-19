@@ -2,6 +2,7 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;

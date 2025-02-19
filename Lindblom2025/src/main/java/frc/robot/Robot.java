@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -21,6 +22,10 @@ import tech.lindblom.utils.EnumCollection;
  */
 public class Robot extends LoggedRobot {
   private RobotController controlSystem;
+
+  private static GenericHID[] buttonBoard = new GenericHID[] {
+            new GenericHID(1)
+    };
 
 
   @Override
@@ -50,7 +55,11 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
-    
+    boolean isPressed = buttonBoard[0].getRawButton(2);
+    if (isPressed == true) {
+      buttonBoard[0].setOutput(2,false);
+    }
+    System.out.println(isPressed);
   }
 
 
