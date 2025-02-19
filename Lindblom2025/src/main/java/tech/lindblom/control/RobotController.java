@@ -399,7 +399,8 @@ public class RobotController {
         MANUAL_ELEVATOR_DOWN,
         CLIMBER_DOWN,
         CLIMBER_UP,
-        FIND_POLE
+        FIND_POLE_LEFT,
+        FIND_POLE_RIGHT
     }
 
     public void createActions(){
@@ -431,8 +432,10 @@ public class RobotController {
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
         defineAction(Action.CENTER_REEF_RIGHT,
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
-        defineAction(Action.FIND_POLE,
-                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE,0));
+        defineAction(Action.FIND_POLE_LEFT,
+                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
+        defineAction(Action.FIND_POLE_RIGHT,
+                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,

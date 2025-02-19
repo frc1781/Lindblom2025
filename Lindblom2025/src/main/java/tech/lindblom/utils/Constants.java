@@ -67,6 +67,8 @@ public class Constants {
         
 
         public static int ARM_TOF_ID = 51;
+        public static int RIGHT_FRONT_TOF_ID = 52;
+        public static int LEFT_FRONT_TOF_ID = 53;
     }
 
     public class Auto {

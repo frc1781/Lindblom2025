@@ -60,9 +60,8 @@ public class DriveController extends StateSubsystem {
         driveSubsystem = new Drive();
         robotController = controller;
         armTOF = new TimeOfFlight(Constants.Drive.ARM_TOF_ID);
-
-        leftTOF = new TimeOfFlight(Constants.Drive.LEFT_TOF);
-        rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_TOF);
+        leftTOF = new TimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID);
+        rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID);
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
@@ -122,7 +121,7 @@ public class DriveController extends StateSubsystem {
                     followPath();
                 }
                 break;
-            case FIND_POLE:
+            case FIND_POLE_RIGHT, FIND_POLE_LEFT:
                 findReefPole();
                 break;
         }
@@ -177,19 +176,6 @@ public class DriveController extends StateSubsystem {
                 if (!(Math.abs(7 - cameraOffset) < 0.02)) {
                     inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
                 }
-
-                //if (!(Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05))
-                //inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, Constants.Drive.TARGET_CORAL_DISTANCE); // not sure why this needs a negative sign
-
-                if (leftTOF.getRange() >= Constants.Drive.TOF_DISTANCE_FROM_REEF && rightTOF.getRange() >= Constants.Drive.TOF_DISTANCE_FROM_REEF) {
-                    inputSpeeds.vxMetersPerSecond = -distanceController.calculate(leftTOF.getRange(), Constants.Drive.TOF_DISTANCE_FROM_REEF);
-                } 
-                else if (leftTOF.getRange() < rightTOF.getRange()) {
-                    driveSubsystem.driveSide(true, inputSpeeds.times((5/4)));
-                }
-                else {
-                    driveSubsystem.driveSide(false, inputSpeeds.times((5/4)));
-                }
             }
         }
 
@@ -199,7 +185,7 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/apriltagId", apriltagId);
         Logger.recordOutput(this.name + "/leftTOFDistance", leftTOF.getRange());
         Logger.recordOutput(this.name + "/rightTOFDistance", rightTOF.getRange());
-
+        Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         return inputSpeeds;
     }
 
@@ -230,15 +216,21 @@ public class DriveController extends StateSubsystem {
     }
 
     public void findReefPole() {
-        if (robotController.getCenteringSide() == null) {
+        double leftTOFdistance = leftTOF.getRange();
+        double rightTOFdistance = rightTOF.getRange();
+
+        //CHECK FOR UNUSUAL ERROR CONDITION
+        if (leftTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 || 
+            rightTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
+            Math.abs(rightTOFdistance - leftTOFdistance) > 1.4) {
+            driveUsingVelocities(0.0, 0.0, 0.0);
             return;
         }
 
-        if (hasFoundReefPole() == true)  {
-            return;
-        }
-        
-        driveUsingVelocities(robotController.getCenteringSide() == ReefCenteringSide.RIGHT ? 0.1 : -0.1, 0, 0);
+        double xVelo = getCurrentState() == DriverStates.FIND_POLE_RIGHT ? 0.1 : -0.1;  //GUESS FOR SPEED WE WANT TO MOVE LEFT AND RIGHT
+        double yVelo = 0.1 * (leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_CORAL_DISTANCE;  //GUESS FOR SPEED WE WANT TO MOVE FORWARD
+        double rot = 0.1 * (rightTOFdistance - leftTOFdistance); //GUESS FOR SPEED WE WANT TO ROTATE
+        driveUsingVelocities(xVelo, yVelo, rot);
     }
 
     public boolean hasFoundReefPole() {
@@ -320,20 +312,14 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        switch ((DriverStates) getCurrentState()) {
-            case CENTERING:
-                return hasFinishedCentering();
-            case PATH:
-                return hasReachedTargetPose();
-            case FIND_POLE:
-                return hasFoundReefPole();
-            case IDLE:
-                return false;
-            case DRIVER:
-                return false;
-            default:
-                return false;
-        }
+        return switch ((DriverStates) getCurrentState()) {
+            case CENTERING -> hasFinishedCentering();
+            case PATH -> hasReachedTargetPose();
+            case FIND_POLE_LEFT, FIND_POLE_RIGHT -> hasFoundReefPole();
+            case IDLE -> false;
+            case DRIVER -> false;
+            default -> false;
+        };
     }
 
     public enum DriverStates implements SubsystemState {
@@ -341,6 +327,7 @@ public class DriveController extends StateSubsystem {
         DRIVER,
         CENTERING,
         PATH,
-        FIND_POLE
+        FIND_POLE_LEFT,
+        FIND_POLE_RIGHT
     }
 }
