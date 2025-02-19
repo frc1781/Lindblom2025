@@ -129,6 +129,7 @@ public class Constants {
 
     public class Climber {
         public static final int CLIMBER_MOTOR = 14;
+        public static final int SERVO_PWM_PORT = 0;
 
         public static final double RADIANS_PER_REVOLUTION = (Math.PI * 2) / 125;
 

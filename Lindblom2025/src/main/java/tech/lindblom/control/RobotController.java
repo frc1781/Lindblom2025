@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -14,6 +15,7 @@ import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.*;
 import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
+import tech.lindblom.subsystems.climber.ClimberSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -36,7 +38,7 @@ public class RobotController {
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
     public Arm armSystem;
-    //public BaseClimber climberSystem;
+    public BaseClimber climberSystem;
 
     DriverInput driverInput;
 
@@ -69,16 +71,16 @@ public class RobotController {
         elevatorSystem = new Elevator();
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
-/*        if (RobotBase.isReal()) {*/
-            //climberSystem = new Climber();
-/*        } else {
+        if (RobotBase.isReal()) {
+            climberSystem = new Climber();
+        } else {
             climberSystem = new ClimberSim();
-        }*/
+        }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
-        //stateSubsystems.add(climberSystem);
+        stateSubsystems.add(climberSystem);
         subsystems = new ArrayList<>();
         subsystems.add(driveController);
         subsystems.add(visionSystem);
@@ -395,6 +397,7 @@ public class RobotController {
         MANUAL_ELEVATOR_DOWN,
         CLIMBER_DOWN,
         CLIMBER_UP,
+        CLIMBER_LATCH_RELEASE
     }
 
     public void createActions() {
@@ -430,6 +433,8 @@ public class RobotController {
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5));
+        defineAction(Action.CLIMBER_LATCH_RELEASE,
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,

@@ -5,12 +5,14 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj.PWM;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
 public abstract class BaseClimber extends StateSubsystem {
     protected SparkMax leverMotor;
     protected ArmFeedforward armFeedforward;
+    protected PWM latchServo;
 
     protected BaseClimber() {
         super("Climber", Climber.ClimberState.IDLE);
@@ -38,6 +40,6 @@ public abstract class BaseClimber extends StateSubsystem {
 
 
     public enum ClimberState implements SubsystemState{
-        IDLE, DOWN, UP, HOLD;
+        IDLE, DOWN, UP, HOLD, RELEASE_LATCH;
     }
 }
