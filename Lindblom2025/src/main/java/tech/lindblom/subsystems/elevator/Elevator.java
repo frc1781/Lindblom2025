@@ -49,7 +49,7 @@ public class Elevator extends StateSubsystem {
 
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
-        lowerTroughTOF = new TimeOfFlight(Constants.Elevator.LOWER_TROUGH__TOF);
+        // lowerTroughTOF = new TimeOfFlight(Constants.Elevator.LOWER_TROUGH_TOF);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
