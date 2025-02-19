@@ -37,7 +37,14 @@ public class Conveyor extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        return true;
+        return switch ((ConveyorState) getCurrentState()) {
+            case IDLE:
+                yield false;
+            case COLLECT:
+                yield hasConveyorHasCoral();
+            case CONVEY:
+                yield cradleHasCoral();
+        };
     }
 
     @Override
@@ -75,7 +82,7 @@ public class Conveyor extends StateSubsystem {
     }
 
     public enum ConveyorState implements SubsystemState {
-        IDLE, CONVEY
+        IDLE, CONVEY, COLLECT
     }
     
 }
