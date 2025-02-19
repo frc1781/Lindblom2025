@@ -26,6 +26,7 @@ public abstract class StateSubsystem extends Subsystem {
         if (currentState == newState) {
             return;
         }
+        System.out.println(name + " changed to " + newState.toString());
         currentState = newState;
         Logger.recordOutput(name + "/currentState", currentState.toString());
     }
