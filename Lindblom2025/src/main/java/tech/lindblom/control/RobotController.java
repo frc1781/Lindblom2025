@@ -12,6 +12,7 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.*;
+import tech.lindblom.subsystems.conveyor.Conveyor;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -35,6 +36,7 @@ public class RobotController {
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
     public Arm armSystem;
+    public Conveyor conveyorSystem;
     //public BaseClimber climberSystem;
 
     DriverInput driverInput;
@@ -68,6 +70,7 @@ public class RobotController {
         elevatorSystem = new Elevator();
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
+        conveyorSystem = new Conveyor();
 /*        if (RobotBase.isReal()) {*/
             //climberSystem = new Climber();
 /*        } else {
@@ -78,6 +81,7 @@ public class RobotController {
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
         stateSubsystems.add(driveController);
+        stateSubsystems.add(conveyorSystem);
         //stateSubsystems.add(climberSystem);
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
