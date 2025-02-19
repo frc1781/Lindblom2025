@@ -42,13 +42,13 @@ public class Conveyor extends StateSubsystem {
 
     @Override
     public void init() {
-
+        coralConveyor.set(0);
     }
 
     @Override
     public void periodic() {
         if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) return;
-        if (hasConveyorHasCoral() || getCurrentState() == ConveyorState.IDLE) {
+        if (hasConveyorHasCoral() && getCurrentState() == ConveyorState.IDLE) {
             setState(ConveyorState.CONVEY);
         }
 
@@ -57,7 +57,7 @@ public class Conveyor extends StateSubsystem {
                 coralConveyor.set(0);
                 break;
             case CONVEY:
-                    if (cradleHasCoral() ) {
+                    if (cradleHasCoral()) {
                         setState(ConveyorState.IDLE);
                     }
 
