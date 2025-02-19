@@ -50,7 +50,7 @@ public class DriveController extends StateSubsystem {
 
     private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
     private final PIDController distanceController = new PIDController(1.6  , 0, 0);
-    private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0, 
+    private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -161,23 +161,45 @@ public class DriveController extends StateSubsystem {
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
 
-        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
-            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-            if (apriltagId != -1) {
-                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-            }
+        double targetOffset = 0;
+        double targetDistance = 0;
 
-            if (currentOperatingMode == AUTONOMOUS && cameraDistance > 1.5) {
-                return inputSpeeds;
-            } else if (currentOperatingMode == AUTONOMOUS){
-                inputSpeeds = zeroSpeed;
-            }
+        switch (robotController.getCenteringSide()) {
+            case LEFT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_LEFT;
 
-            if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT) {
-                if (!(Math.abs(7 - cameraOffset) < 0.02)) {
-                    inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, 7);
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
                 }
+                break;
+            case RIGHT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_RIGHT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_RIGHT;
+
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
+                }
+                break;
+        }
+
+        if (currentMode == AUTONOMOUS && cameraDistance > 1.5) {
+            return inputSpeeds;
+        } else if (currentMode == AUTONOMOUS){
+            inputSpeeds = zeroSpeed;
+        }
+
+        if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT) {
+            if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
+                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+            }
+
+            if (!(Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE)) {
+                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, targetDistance);
             }
         }
 
@@ -204,14 +226,35 @@ public class DriveController extends StateSubsystem {
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
 
-        if (robotController.getCenteringSide() == DriverInput.ReefCenteringSide.LEFT) {
-            apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-            if (apriltagId != -1) {
-                cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                Logger.recordOutput(this.name + "/HasFinishedCentering", Math.abs(8.1 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05);
-                return Math.abs(7 - cameraOffset) < 0.3 && Math.abs(Constants.Drive.TARGET_CORAL_DISTANCE - cameraDistance) < 0.05;
-            }
+        double targetOffset = 0;
+        double targetDistance = 0;
+
+        switch (robotController.getCenteringSide()) {
+            case LEFT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_LEFT;
+
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+                }
+                break;
+            case RIGHT:
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_RIGHT;
+                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_RIGHT;
+
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+                if (apriltagId != -1) {
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
+                }
+                break;
+        }
+
+
+        if (apriltagId != -1) {
+            return Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE && Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE;
         }
 
         return false;
@@ -222,7 +265,7 @@ public class DriveController extends StateSubsystem {
         double rightTOFdistance = rightTOF.getRange();
 
         //CHECK FOR UNUSUAL ERROR CONDITION
-        if (leftTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 || 
+        if (leftTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
                 rightTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
                 Math.abs(rightTOFdistance - leftTOFdistance) > 1.4 ||
                 hasFoundReefPole() ||

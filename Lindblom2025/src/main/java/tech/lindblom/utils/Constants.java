@@ -65,11 +65,20 @@ public class Constants {
         public static double TARGET_CORAL_DISTANCE = 0.4;
         public static double ARM_TOF_DISTANCE = 200;
         public static double MAX_TIME_LOOKING_FOR_POLE = 0.5;
-        
+
 
         public static int ARM_TOF_ID = 51;
         public static int RIGHT_FRONT_TOF_ID = 52;
         public static int LEFT_FRONT_TOF_ID = 53;
+
+        public static double DISTANCE_TOLERANCE = 0.05;
+        public static double OFFSET_TOLERANCE = 0.02;
+
+        public static double TARGET_CORAL_DISTANCE_LEFT = 0.4;
+        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.4;
+        // I have no idea what unit this is in -ally
+        public static double TARGET_CORAL_OFFSET_LEFT = 7;
+        public static double TARGET_CORAL_OFFSET_RIGHT = 7;
     }
 
     public class Auto {
@@ -96,6 +105,11 @@ public class Constants {
         public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
                 new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+        );
+
+        public static final Transform3d LEFT_SIDE_CAMERA_POSITION = new Transform3d(
+                new Translation3d(),
+                new Rotation3d()
         );
 
 
