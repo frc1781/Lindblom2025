@@ -1,6 +1,7 @@
 package tech.lindblom.subsystems.climber;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj.PWM;
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.RelativeEncoder;
@@ -11,15 +12,11 @@ import tech.lindblom.utils.EnumCollection;
 
 public class Climber extends BaseClimber {
 
-    private final RelativeEncoder mArmEncoder;
-
-    private ClimberState PreviousState;
-    private Rotation2d positionToHold = new Rotation2d();
-
-    private ArmFeedforward armFeedforward;
+    private final RelativeEncoder armEncoder;
 
     public Climber() {
-        mArmEncoder = leverMotor.getEncoder();
+        latchServo = new PWM(Constants.Climber.SERVO_PWM_PORT);
+        armEncoder = leverMotor.getEncoder();
         armFeedforward = new ArmFeedforward(Constants.Climber.KS, Constants.Climber.KG, Constants.Climber.KV);
     }
 
@@ -30,20 +27,19 @@ public class Climber extends BaseClimber {
 
     @Override
     public void init() {
-        PreviousState = (ClimberState) this.getCurrentState();
         leverMotor.set(0);
-        mArmEncoder.setPosition(0);
+        armEncoder.setPosition(0);
     }
 
     public double getMotorVelocity() {
-        return mArmEncoder.getVelocity() / 60;
+        return armEncoder.getVelocity() / 60;
     }
 
     @Override
     public void periodic() {
         if (currentMode == EnumCollection.OperatingMode.DISABLED) return;
 
-        Rotation2d mMotorPosition = Rotation2d.fromRadians(mArmEncoder.getPosition());
+        Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();
 
         Logger.recordOutput("Climber/Velocity", mMotorVelocity);
@@ -51,23 +47,20 @@ public class Climber extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
+                latchServo.setSpeed(0);
                 leverMotor.set(0);
                 break;
             case DOWN:
+                latchServo.setSpeed(0);
                 leverMotor.set(0.5);
                 break;
             case UP:
+                latchServo.setSpeed(0);
                 leverMotor.set(-0.5);
                 break;
-            case HOLD:
-                /*if (PreviousState != ClimberState.HOLD) {
-                    positionToHold = mMotorPosition;
-                }
-
-                leverMotor.getClosedLoopController().setReference(positionToHold.getRadians(), SparkBase.ControlType.kVoltage, ClosedLoopSlot.kSlot0, armFeedforward.calculate(positionToHold.getDegrees(), (Math.PI / 2)));*/
+            case RELEASE_LATCH:
+                latchServo.setSpeed(0.5);
                 break;
         }
-
-        PreviousState = (ClimberState)this.getCurrentState();
     }
 }

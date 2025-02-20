@@ -23,6 +23,7 @@ public class DriverInput {
                 new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "LB", RobotController.Action.CENTER_REEF_LEFT),
                 new Control(0, "RB", RobotController.Action.CENTER_REEF_RIGHT),
+                new Control(0, "DPAD_UP", RobotController.Action.CLIMBER_LATCH_RELEASE),
         };
     }
 
@@ -164,6 +165,8 @@ public class DriverInput {
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":
                 return controllers[controllerIndex].getRightBumperButton();
+            case "DPAD_UP":
+                return controllers[controllerIndex].getPOV() == 0;
         }
 
         return false;
