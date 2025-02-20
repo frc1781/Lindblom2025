@@ -22,6 +22,8 @@ public class DriverInput {
                 new Control(0, "Y", RobotController.Action.COLLECT),
                 new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
                 new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "LB", RobotController.Action.CENTER_REEF_LEFT),
+                new Control(0, "RB", RobotController.Action.CENTER_REEF_RIGHT),
         };
     }
 
@@ -35,16 +37,16 @@ public class DriverInput {
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
-        if (getButton("LB", 0)) {
-            driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
-        } else if (getButton("RB", 0)) {
-            driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-        }
-
         for (int i = 0; i < controlList.length; i++) {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
+                if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
+                    driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
+                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
+                    driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                }
+
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
                 if (subsystemSettingsFromAction == null) break;
 
@@ -172,10 +174,10 @@ public class DriverInput {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
         public RobotController.Action sequentialAction;
 
-        public ReefCenteringSide centeringSide = null;
-
         Translation2d driverLeftJoystickPosition;
         Translation2d driverRightJoystickPosition;
+
+        public ReefCenteringSide centeringSide = null;
 
         boolean resetNavX;
     }

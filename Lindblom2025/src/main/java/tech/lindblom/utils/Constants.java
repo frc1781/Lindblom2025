@@ -63,6 +63,9 @@ public class Constants {
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
         public static double TARGET_CORAL_DISTANCE = 0.4;
+        public static double ARM_TOF_DISTANCE = 200;
+
+        public static int ARM_TOF_ID = 0;
     }
 
     public class Auto {
