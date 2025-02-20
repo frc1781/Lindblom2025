@@ -22,9 +22,10 @@ import tech.lindblom.utils.EnumCollection;
  */
 public class Robot extends LoggedRobot {
   private RobotController controlSystem;
+  private int lastButton = -1;
 
   private static GenericHID[] buttonBoard = new GenericHID[] {
-            new GenericHID(1)
+            new GenericHID(0)
     };
 
 
@@ -55,13 +56,23 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
-    boolean isPressed = buttonBoard[0].getRawButton(2);
-    if (isPressed == true) {
-      buttonBoard[0].setOutput(2,false);
+    int button = getButton();
+    if (button != -1) {
+      lastButton = button;
     }
-    System.out.println(isPressed);
+    System.out.println("button " + lastButton);
   }
 
+  public int getButton() {
+    int button = -1;
+    for (int i = 1;  i <= 8; i++) {
+      if (buttonBoard[0].getRawButtonPressed(i)) {
+        button = i;
+      }
+    }
+
+    return button;
+  }
 
   @Override
   public void autonomousInit() {
