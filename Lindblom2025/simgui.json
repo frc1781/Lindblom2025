@@ -6,62 +6,15 @@
       }
     },
     "Other Devices": {
-      "SPARK MAX [12]": {
-        "header": {
-          "open": true
-        }
-      },
-      "SPARK MAX [13]": {
-        "header": {
-          "open": true
-        }
-      },
-      "SPARK MAX [13] ABSOLUTE ENCODER": {
-        "header": {
-          "open": true
-        }
-      },
-      "SPARK MAX [14]": {
-        "header": {
-          "open": true
-        }
-      },
       "SPARK MAX [61]": {
         "header": {
-          "open": true
+          "open": false
         }
       },
       "SPARK MAX [61] RELATIVE ENCODER": {
         "header": {
-          "open": true
+          "open": false
         }
-      },
-      "Talon FX (v6)[22]/Rotor Sensor": {
-        "header": {
-          "open": true
-        }
-      },
-      "Talon FX (v6)[28]": {
-        "header": {
-          "open": true
-        }
-      }
-    },
-    "RoboRIO": {
-      "3.3V Rail": {
-        "open": true
-      },
-      "5V Rail": {
-        "open": true
-      },
-      "6V Rail": {
-        "open": true
-      },
-      "RoboRIO Input": {
-        "open": true
-      },
-      "window": {
-        "visible": true
       }
     }
   },

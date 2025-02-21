@@ -94,7 +94,6 @@ public class Elevator extends StateSubsystem {
     public void init() {
     }
 
-
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
@@ -105,18 +104,18 @@ public class Elevator extends StateSubsystem {
         if (currentMode == OperatingMode.DISABLED) return;
 
         switch ((ElevatorState) getCurrentState()) {
-/*            case SAFE:
+            case SAFE:
                 motorRight.set(0);
-                break;*/
+                break;
             case MANUAL_DOWN:
                 motorRight.set(-0.1);
                 break;
             case MANUAL_UP:
                 motorRight.set(0.1);
                 break;
-            default:
+/*            default:
                 goToPosition();
-                break;
+                break;*/
         }
     }
 

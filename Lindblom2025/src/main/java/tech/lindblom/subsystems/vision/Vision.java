@@ -7,6 +7,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -79,10 +80,10 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
-        updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
-        updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
-        updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera, Camera.LEFT_SIDE);
+        frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
+        frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
+        backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
+        leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
     }
 
     public int getClosestReefApriltag(Camera camera) {
@@ -167,29 +168,18 @@ public class Vision extends Subsystem {
         return result;
     }
 
-    public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera, Camera type) {
+    public PhotonPipelineResult updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
-        if (!unreadResults.isEmpty()) {
-            switch (type) {
-                case BACK:
-                    backCameraPipelineResult = unreadResults.get(0);
-                    break;
-                case FRONT_LEFT:
-                    frontLeftCameraPipelineResult = unreadResults.get(0);
-                    break;
-                case FRONT_RIGHT:
-                    frontRightCameraPipelineResult = unreadResults.get(0);
-                    break;
-                case LEFT_SIDE:
-                    leftSideCameraPipelineResult = unreadResults.get(0);
-                    break;
-            }
-
+        if (!unreadResults.isEmpty() || camera.isConnected()) {
             for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
                 estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));
             }
+
+            return unreadResults.get(0);
         }
+
+        return null;
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
