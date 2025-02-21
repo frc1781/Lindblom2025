@@ -22,7 +22,6 @@ import tech.lindblom.utils.EnumCollection;
 public class Robot extends LoggedRobot {
   private RobotController controlSystem;
 
-
   @Override
   public void robotInit() {
     Logger.recordMetadata("RobotName", "GLaDOS");
@@ -50,9 +49,8 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
-    
-  }
 
+  }
 
   @Override
   public void autonomousInit() {

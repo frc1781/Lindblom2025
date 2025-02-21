@@ -1,17 +1,17 @@
 package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
 
 public class DriverInput {
     private RobotController robotController;
-    private static XboxController[] controllers = new XboxController[] {
-            new XboxController(0)
-    };
+    private static int lastButton = -1;
+    private static XboxController xBoxController = new XboxController(0);
+    private static GenericHID buttonBoard = new GenericHID(1);
 
     private Control[] controlList;
 
@@ -77,7 +77,7 @@ public class DriverInput {
     }
 
     public Translation2d getControllerJoyAxis(ControllerSide side, int controllerIndex) {
-        var selectedController = (XboxController) controllers[controllerIndex];
+        var selectedController = (XboxController) xBoxController;
         double x;
         double y;
 
@@ -140,33 +140,63 @@ public class DriverInput {
             return DriverInput.getButton(inputName, controllerIndex);
         }
 
+
         enum InputType {
             BUTTON
         }
     }
 
     public static boolean getButton(String buttonName, int controllerIndex) {
+        getButton();
         switch (buttonName) {
             case "START":
-                return controllers[controllerIndex].getStartButton();
+                return xBoxController.getStartButton();
             case "A":
-                return controllers[controllerIndex].getAButton();
+                return xBoxController.getAButton();
             case "B":
-                return controllers[controllerIndex].getBButton();
+                return xBoxController.getBButton();
             case "X":
-                return controllers[controllerIndex].getXButton();
+                return xBoxController.getXButton();
             case "Y":
-                return controllers[controllerIndex].getYButton();
+                return xBoxController.getYButton();
             case "LB":
-                return controllers[controllerIndex].getLeftBumperButton();
+                return xBoxController.getLeftBumperButton();
             case "RB":
-                return controllers[controllerIndex].getRightBumperButton();
+                return xBoxController.getRightBumperButton();
+            case "button1":
+                return (lastButton == 1 || buttonBoard.getRawButtonPressed(1)) && getButton("X", 0);
+            case "button2":
+                return (lastButton == 2 || buttonBoard.getRawButtonPressed(2)) && getButton("X", 0);
+            case "button3":
+                return (lastButton == 3 || buttonBoard.getRawButtonPressed(3)) && getButton("X", 0);
+            case "button4":
+                return (lastButton == 4 || buttonBoard.getRawButtonPressed(4)) && getButton("X", 0);
+            case "button5":
+                return (lastButton == 5 || buttonBoard.getRawButtonPressed(5)) && getButton("X", 0);
+            case "button6":
+                return (lastButton == 6 || buttonBoard.getRawButtonPressed(6)) && getButton("X", 0);
+            case "button7":
+                return (lastButton == 7 || buttonBoard.getRawButtonPressed(7)) && getButton("X", 0);
+            case "button8":
+                return (lastButton == 8 || buttonBoard.getRawButtonPressed(8)) && getButton("X", 0);
             case "DPAD_UP":
-                return controllers[controllerIndex].getPOV() == 0;
+                return xBoxController.getPOV() == 0;
         }
 
         return false;
     }
+
+    public static int getButton() {
+        int button = -1;
+        for (int i = 1;  i <= 8; i++) {
+          if (buttonBoard.getRawButtonPressed(i)) {
+            button = i;
+          }
+        }
+
+        lastButton = button;
+        return button;
+      }
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
