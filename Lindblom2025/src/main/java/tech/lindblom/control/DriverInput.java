@@ -1,6 +1,7 @@
 package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import tech.lindblom.utils.Constants;
 

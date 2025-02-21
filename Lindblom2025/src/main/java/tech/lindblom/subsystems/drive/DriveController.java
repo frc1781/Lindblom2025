@@ -274,9 +274,9 @@ public class DriveController extends StateSubsystem {
         }
 
         //FIRST TRY, WILL CONSIDER SPEEDING UP MODIFYING 0.1 P
-        double xVelo = getCurrentState() == DriverStates.FIND_POLE_RIGHT ? 0.1 : -0.1;  //GUESS FOR SPEED WE WANT TO MOVE LEFT AND RIGHT
-        double yVelo = 0.1 * (leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_CORAL_DISTANCE;  //GUESS FOR SPEED WE WANT TO MOVE FORWARD
-        double rot = 0.1 * (rightTOFdistance - leftTOFdistance); //GUESS FOR SPEED WE WANT TO ROTATE
+        double xVelo = EEUtil.clamp(-0.1, 0.1, 0.1 * (leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE);  //GUESS FOR SPEED WE WANT TO MOVE FORWARD
+        double yVelo = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);  //GUESS FOR SPEED WE WANT TO MOVE LEFT AND RIGHT
+        double rot = EEUtil.clamp(-0.1, 0.1, 0.1 * (rightTOFdistance - leftTOFdistance)); //GUESS FOR SPEED WE WANT TO ROTATE
         driveUsingVelocities(xVelo, yVelo, rot);
     }
 
