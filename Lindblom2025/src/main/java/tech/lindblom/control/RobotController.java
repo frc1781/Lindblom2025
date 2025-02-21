@@ -394,6 +394,8 @@ public class RobotController {
         L2,
         L3,
         L4,
+        CENTER_REEF_LEFT_L4,
+        CENTER_REEF_RIGHT_L4,
         COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
@@ -430,6 +432,20 @@ public class RobotController {
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
         defineAction(Action.CENTER_REEF_RIGHT,
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
+        defineAction(Action.CENTER_REEF_LEFT_L4,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
+                );
+        defineAction(Action.CENTER_REEF_RIGHT_L4,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
+                );
 /*        defineAction(Action.CLIMBER_DOWN,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
