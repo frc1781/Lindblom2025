@@ -1,23 +1,20 @@
 {
   "HALProvider": {
+    "DIO": {
+      "window": {
+        "visible": true
+      }
+    },
     "Other Devices": {
       "SPARK MAX [61]": {
         "header": {
-          "open": true
+          "open": false
         }
       },
       "SPARK MAX [61] RELATIVE ENCODER": {
         "header": {
-          "open": true
+          "open": false
         }
-      }
-    },
-    "RoboRIO": {
-      "RoboRIO Input": {
-        "open": true
-      },
-      "window": {
-        "visible": true
       }
     }
   },

@@ -32,6 +32,7 @@ public class DriverInput {
                 //new Control(1,"button6", RobotController.Action.CENTER_REEF_RIGHT_L2),
                 //new Control(1,"button7", RobotController.Action.CENTER_REEF_LEFT_L1),
                 //new Control(1,"button8", RobotController.Action.CENTER_REEF_RIGHT_L1),
+                new Control(0, "DPAD_UP", RobotController.Action.CLIMBER_LATCH_RELEASE),
         };
     }
 
@@ -191,6 +192,8 @@ public class DriverInput {
                 return (lastButton == 7 || buttonBoard.getRawButtonPressed(7)) && getButton("X", 0);
             case "button8":
                 return (lastButton == 8 || buttonBoard.getRawButtonPressed(8)) && getButton("X", 0);
+            case "DPAD_UP":
+                return controllers[controllerIndex].getPOV() == 0;
         }
 
         return false;

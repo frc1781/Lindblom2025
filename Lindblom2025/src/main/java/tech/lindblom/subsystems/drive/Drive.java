@@ -12,6 +12,10 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
+
+import java.lang.ModuleLayer.Controller;
+import java.util.ResourceBundle.Control;
+
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
@@ -19,6 +23,7 @@ import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
+import com.playingwithfusion.TimeOfFlight;
 
 public class Drive extends Subsystem {
 /*    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
@@ -57,7 +62,7 @@ public class Drive extends Subsystem {
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
-
+            
 /*    public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.BACK_RIGHT_MODULE_POSITION,
             Constants.Drive.BACK_LEFT_MODULE_POSITION, Constants.Drive.FRONT_RIGHT_MODULE_POSITION,
             Constants.Drive.FRONT_LEFT_MODULE_POSITION);*/
@@ -66,11 +71,14 @@ public class Drive extends Subsystem {
 
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
+
+
     public Drive() {
         super("Drive");
         navX.resetDisplacement();
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
+        
     }
 
     @Override
@@ -103,6 +111,24 @@ public class Drive extends Subsystem {
         frontRightModule.runDesiredModuleState(moduleStates[1]);
         backLeftModule.runDesiredModuleState(moduleStates[2]);
         backRightModule.runDesiredModuleState(moduleStates[3]);
+    }
+    
+    public void driveSide(boolean left, ChassisSpeeds speeds) {
+        SwerveModuleState zeroSpeedModuleState = new SwerveModuleState(0, Rotation2d.kZero);
+        SwerveModuleState speedModuleState = new SwerveModuleState(speeds.vxMetersPerSecond, Rotation2d.kZero);
+
+        if (left == true) {
+            frontLeftModule.runDesiredModuleState(zeroSpeedModuleState);
+            frontRightModule.runDesiredModuleState(speedModuleState);
+            backLeftModule.runDesiredModuleState(zeroSpeedModuleState);
+            backRightModule.runDesiredModuleState(speedModuleState);
+        }
+        if (left == false) {
+            frontLeftModule.runDesiredModuleState(speedModuleState);
+            frontRightModule.runDesiredModuleState(zeroSpeedModuleState);
+            backLeftModule.runDesiredModuleState(speedModuleState);
+            backRightModule.runDesiredModuleState(zeroSpeedModuleState);
+        }
     }
 
     public void setInitialPose(Pose2d pose) {
@@ -158,4 +184,6 @@ public class Drive extends Subsystem {
                 backRightModule.getCurrentState()
         };
     }
+
+   
 }

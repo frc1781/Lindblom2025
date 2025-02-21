@@ -30,4 +30,8 @@ public class EEUtil {
         }
         return newArray;
     }
+
+    public static double clamp(double min, double max, double input) {
+        return Math.min(max, Math.max(input, min));
+    }
 }

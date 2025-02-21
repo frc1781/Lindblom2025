@@ -7,6 +7,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -19,23 +20,27 @@ import tech.lindblom.utils.Constants;
 import java.util.*;
 
 public class Vision extends Subsystem {
-    private RobotController robotController;
+    private final RobotController robotController;
 
     private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
 
-    private PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
+    private final PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
     private PhotonPoseEstimator frontRightCameraPoseEstimator;
     private PhotonPipelineResult frontRightCameraPipelineResult;
 
-    private PhotonCamera frontLeftCamera = new PhotonCamera(Constants.Vision.FRONT_LEFT_CAMERA_NAME);
+    private final PhotonCamera frontLeftCamera = new PhotonCamera(Constants.Vision.FRONT_LEFT_CAMERA_NAME);
     private PhotonPoseEstimator frontLeftCameraPoseEstimator;
     private PhotonPipelineResult frontLeftCameraPipelineResult;
 
-    private PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
+    private final PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
     private PhotonPoseEstimator backCameraPoseEstimator;
     private PhotonPipelineResult backCameraPipelineResult;
 
-    private int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
+    private final PhotonCamera leftSideCamera = new PhotonCamera(Constants.Vision.LEFT_SIDE_CAMERA_NAME);
+    private PhotonPoseEstimator leftSideCameraPoseEstimator;
+    private PhotonPipelineResult leftSideCameraPipelineResult;
+
+    private final int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -45,19 +50,23 @@ public class Vision extends Subsystem {
         try {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
-/*            frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+            frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);*/
+                    Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
-/*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.BACK_CAMERA_POSITION);*/
+                    Constants.Vision.BACK_CAMERA_POSITION);
+            leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
-            //frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
@@ -71,9 +80,10 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
-        //updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera, Camera.FRONT_RIGHT);
-       updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera, Camera.FRONT_LEFT);
-        //updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera, Camera.BACK);
+        frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
+        frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
+        backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
+        leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
     }
 
     public int getClosestReefApriltag(Camera camera) {
@@ -150,36 +160,26 @@ public class Vision extends Subsystem {
             case FRONT_RIGHT:
                 result = frontRightCameraPipelineResult;
                 break;
+            case LEFT_SIDE:
+                result = leftSideCameraPipelineResult;
+                break;
         }
 
         return result;
     }
 
-    public void updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera, Camera type) {
+    public PhotonPipelineResult updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
-        if (!unreadResults.isEmpty()) {
-            switch (type) {
-                case BACK:
-                    backCameraPipelineResult = unreadResults.get(0);
-                    break;
-                case FRONT_LEFT:
-                    frontLeftCameraPipelineResult = unreadResults.get(0);
-                    break;
-                case FRONT_RIGHT:
-                    frontRightCameraPipelineResult = unreadResults.get(0);
-                    break;
-            }
-
+        if (!unreadResults.isEmpty() || camera.isConnected()) {
             for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
                 estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));
             }
+
+            return unreadResults.get(0);
         }
-    }
 
-    public Optional<Pose2d> getFrontCameraPose() {
-        return frontCameraRobotPose.map(estimatedRobotPose -> estimatedRobotPose.estimatedPose.toPose2d());
-
+        return null;
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
@@ -225,6 +225,6 @@ public class Vision extends Subsystem {
     }
 
     public enum Camera {
-        FRONT_RIGHT, FRONT_LEFT, BACK
+        FRONT_RIGHT, FRONT_LEFT, BACK, LEFT_SIDE
     }
 }

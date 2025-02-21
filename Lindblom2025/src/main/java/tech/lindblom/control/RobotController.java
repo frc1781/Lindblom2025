@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -12,6 +13,12 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.routines.*;
+import tech.lindblom.subsystems.climber.BaseClimber;
+import tech.lindblom.subsystems.climber.Climber;
+import tech.lindblom.subsystems.climber.ClimberSim;
+import tech.lindblom.subsystems.conveyor.BaseConveyor;
+import tech.lindblom.subsystems.conveyor.Conveyor;
+import tech.lindblom.subsystems.conveyor.ConveyorSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -35,7 +42,8 @@ public class RobotController {
     public LEDs ledsSystem;
     public Elevator elevatorSystem;
     public Arm armSystem;
-    //public BaseClimber climberSystem;
+    public BaseClimber climberSystem;
+    public BaseConveyor conveyorSystem;
 
     DriverInput driverInput;
 
@@ -68,17 +76,20 @@ public class RobotController {
         elevatorSystem = new Elevator();
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
-/*        if (RobotBase.isReal()) {*/
-            //climberSystem = new Climber();
-/*        } else {
+        if (RobotBase.isReal()) {
+            climberSystem = new Climber();
+            conveyorSystem = new Conveyor();
+        } else {
             climberSystem = new ClimberSim();
-        }*/
+            conveyorSystem = new ConveyorSim();
+        }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
+        stateSubsystems.add(climberSystem);
         stateSubsystems.add(driveController);
-        //stateSubsystems.add(climberSystem);
+        stateSubsystems.add(conveyorSystem);
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
@@ -179,7 +190,6 @@ public class RobotController {
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
             Logger.recordOutput(subsystem.name + "/MatchesState", subsystem.matchesState());
-            Logger.recordOutput(subsystem.name + "/currentState", subsystem.getCurrentState().toString());
         }
     }
 
@@ -401,9 +411,12 @@ public class RobotController {
         MANUAL_ELEVATOR_DOWN,
         CLIMBER_DOWN,
         CLIMBER_UP,
+        FIND_POLE_LEFT,
+        FIND_POLE_RIGHT,
+        CLIMBER_LATCH_RELEASE
     }
 
-    public void createActions() {
+    public void createActions(){
         defineAction(Action.LEDs_BLUE,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
         defineAction(Action.LEDs_RED,
@@ -447,9 +460,16 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
 /*        defineAction(Action.CLIMBER_DOWN,
-                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
+                  new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
-                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));*/
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
+        defineAction(Action.FIND_POLE_LEFT,
+                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
+        defineAction(Action.FIND_POLE_RIGHT,
+                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));
+        defineAction(Action.CLIMBER_LATCH_RELEASE,
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
+                */
     }
 
     public boolean isSafeForArmToMove() {
