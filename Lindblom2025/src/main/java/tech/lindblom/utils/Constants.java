@@ -177,6 +177,6 @@ public class Constants {
         public static final int BACK_RAMP_DIO = 4;
 
         //coralConveyor
-        public static final int CORAL_CONVEYOR_ID = 65;
+        public static final int CORAL_CONVEYOR_ID = 15;
     }
 }

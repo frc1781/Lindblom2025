@@ -407,6 +407,8 @@ public class RobotController {
         COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
+        MANUAL_ARM_DOWN,
+        MANUAL_ARM_UP,
         CLIMBER_DOWN,
         CLIMBER_UP,
         FIND_POLE_LEFT,
@@ -439,6 +441,10 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
+        defineAction(Action.MANUAL_ARM_DOWN,
+                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_DOWN, 3));
+        defineAction(Action.MANUAL_ARM_UP,
+                new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
         defineAction(Action.CENTER_REEF_LEFT,
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5));
         defineAction(Action.CENTER_REEF_RIGHT,

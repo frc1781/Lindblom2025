@@ -18,10 +18,11 @@ public class DriverInput {
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
         this.controlList = new Control[] {
-                new Control(0, "X", RobotController.Action.L4),
-                new Control(0, "Y", RobotController.Action.COLLECT),
-                new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
+               // new Control(0, "X", RobotController.Action.L4),
+                //new Control(0, "Y", RobotController.Action.COLLECT),
+                new Control(0, "A", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "B", RobotController.Action.MANUAL_ARM_UP),
+                //new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "LB", RobotController.Action.CENTER_REEF_LEFT),
                 new Control(0, "RB", RobotController.Action.CENTER_REEF_RIGHT),
                 new Control(0, "DPAD_UP", RobotController.Action.CLIMBER_LATCH_RELEASE),

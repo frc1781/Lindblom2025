@@ -94,6 +94,7 @@ public class Elevator extends StateSubsystem {
     public void init() {
     }
 
+
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
