@@ -459,17 +459,16 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
-/*        defineAction(Action.CLIMBER_DOWN,
-                  new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
-        defineAction(Action.CLIMBER_UP,
-                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
         defineAction(Action.FIND_POLE_LEFT,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
         defineAction(Action.FIND_POLE_RIGHT,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
-                */
+/*        defineAction(Action.CLIMBER_DOWN,
+                  new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
+        defineAction(Action.CLIMBER_UP,
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));*/
     }
 
     public boolean isSafeForArmToMove() {
