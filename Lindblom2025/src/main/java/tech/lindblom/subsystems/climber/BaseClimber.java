@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.climber;
 
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
@@ -23,6 +24,8 @@ public abstract class BaseClimber extends StateSubsystem {
         leverMotorConfig.inverted(true);
         leverMotorConfig.encoder.positionConversionFactor(Constants.Climber.RADIANS_PER_REVOLUTION);
         leverMotorConfig.closedLoop.apply(Constants.Climber.CLOSED_LOOP_CONFIG);
+
+        leverMotor.configure(leverMotorConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 
         armFeedforward = new ArmFeedforward(Constants.Climber.KS, Constants.Climber.KG, Constants.Climber.KV);
     }

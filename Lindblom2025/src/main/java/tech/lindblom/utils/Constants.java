@@ -171,8 +171,11 @@ public class Constants {
     public class Conveyor {
         public static final int CORAL_HOPPER_SENSOR_FRONT_DIO = 0;
         public static final int CORAL_HOPPER_SENSOR_BACK_DIO = 1;
-        public static final int CORAL_CONVEYOR_SENSOR_DIO = 2;
+        public static final int CORAL_CRADLE_SENSOR_DIO = 2;
         public static final int SIDE_RAMP_DIO = 3;
         public static final int BACK_RAMP_DIO = 4;
+
+        //coralConveyor
+        public static final int CORAL_CONVEYOR_ID = 65;
     }
 }
