@@ -1,15 +1,16 @@
 package tech.lindblom.utils;
 
 import com.revrobotics.spark.config.ClosedLoopConfig;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
@@ -35,16 +36,16 @@ public class Constants {
         public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 59;
 
         //Drive motor offsets
-        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.037842;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.218506;
-        public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.51123;
-        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.288818;
+        public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.38916;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.66748;
+        public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.709473;
+        public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.476074;
 
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.3;
-        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(25.75);
-        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.75);
+        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.73;
+        public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(26);
+        public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.5);
 
-        public static final double WHEEL_RADIUS = 0.1016;
+        public static final double WHEEL_RADIUS = 0.0508;
 
         public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
                 (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
