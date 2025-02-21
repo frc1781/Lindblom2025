@@ -15,7 +15,7 @@ public class Conveyor extends BaseConveyor {
 
     public Conveyor() {
         super("Conveyor", ConveyorState.IDLE);
-        // If .get() is true the beam was broken - Returns true if the circuit is open.
+        // If .get() is false the beam was broken - Returns false if the circuit is open.
         coralHopperSensorFront = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_FRONT_DIO);
         coralHopperSensorBack = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_BACK_DIO);
         coralCradleSensor = new DigitalInput(Constants.Conveyor.CORAL_CRADLE_SENSOR_DIO);

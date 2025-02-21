@@ -52,11 +52,9 @@ public class Arm extends StateSubsystem {
 
     @Override
     public boolean matchesState() {
-        return true;
-
-       //double tolerance = 6;
-       //Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
-       //return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
+       double tolerance = 6;
+       Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
+       return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
     }
 
     @Override
@@ -75,9 +73,9 @@ public class Arm extends StateSubsystem {
             case MANUAL_UP:
                 armMotor.set(0.1);
                 break;
-/*            default:
+             default:
                 getToPosition(positionMap.get(getCurrentState()));
-                break;*/
+                break;
 
         }
     }
