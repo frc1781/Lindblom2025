@@ -3,6 +3,7 @@ package tech.lindblom.control;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -182,7 +183,14 @@ public class DriverInput {
             case "DPAD_UP":
                 return xBoxController.getPOV() == 0;
         }
-
+        Logger.recordOutput("button1", lastButton == 1 || buttonBoard.getRawButtonPressed(1));
+        Logger.recordOutput("button2", lastButton == 2 || buttonBoard.getRawButtonPressed(2));
+        Logger.recordOutput("button3", lastButton == 3 || buttonBoard.getRawButtonPressed(3));
+        Logger.recordOutput("button4", lastButton == 4 || buttonBoard.getRawButtonPressed(4));
+        Logger.recordOutput("button5", lastButton == 5 || buttonBoard.getRawButtonPressed(5));
+        Logger.recordOutput("button6", lastButton == 6 || buttonBoard.getRawButtonPressed(6));
+        Logger.recordOutput("button7", lastButton == 7 || buttonBoard.getRawButtonPressed(7));
+        Logger.recordOutput("button8", lastButton == 8 || buttonBoard.getRawButtonPressed(8));
         return false;
     }
 
