@@ -193,7 +193,7 @@ public class DriverInput {
             case "button8":
                 return (lastButton == 8 || buttonBoard.getRawButtonPressed(8)) && getButton("X", 0);
             case "DPAD_UP":
-                return controllers[controllerIndex].getPOV() == 0;
+                return xBoxController.getPOV() == 0;
         }
 
         return false;
