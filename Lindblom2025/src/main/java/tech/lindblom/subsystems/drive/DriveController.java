@@ -97,7 +97,6 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void periodic() {
-        super.periodic();
         if (currentOperatingMode == DISABLED) return;
         driveSubsystem.periodic();
 

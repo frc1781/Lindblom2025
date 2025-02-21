@@ -5,16 +5,18 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.hal.SimDevice;
 import edu.wpi.first.wpilibj.DigitalInput;
-import tech.lindblom.subsystems.types.StateSubsystem;
+import edu.wpi.first.wpilibj.simulation.DIOSim;
+import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
-public class Conveyor extends BaseConveyor {
+public class ConveyorSim extends BaseConveyor {
 
-    public Conveyor() {
-        super("Conveyor", ConveyorState.IDLE);
-        // If .get() is true the beam was broken - Returns true if the circuit is open.
+    public ConveyorSim() {
+        super("ConveyorSim", BaseConveyor.ConveyorState.IDLE);
+        // If .get() is false the beam was broken - Returns false if the circuit is open.
         coralHopperSensorFront = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_FRONT_DIO);
         coralHopperSensorBack = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_BACK_DIO);
         coralCradleSensor = new DigitalInput(Constants.Conveyor.CORAL_CRADLE_SENSOR_DIO);
@@ -30,7 +32,7 @@ public class Conveyor extends BaseConveyor {
 
     @Override
     public boolean matchesState() {
-        return switch ((ConveyorState) getCurrentState()) {
+        return switch ((BaseConveyor.ConveyorState) getCurrentState()) {
             case IDLE:
                 yield false;
             case COLLECT:
@@ -47,30 +49,36 @@ public class Conveyor extends BaseConveyor {
 
     @Override
     public void periodic() {
+        Logger.recordOutput(this.name + "/coralHopperSensorFront", coralHopperSensorFront.get());
+        Logger.recordOutput(this.name + "/coralHopperSensorBack", coralHopperSensorBack.get());
+        Logger.recordOutput(this.name + "/sideRampSensor", sideRampSensor.get());
+        Logger.recordOutput(this.name + "/backRampSensor", backRampSensor.get());
+        Logger.recordOutput(this.name + "/coralCradleSensor", coralCradleSensor.get());
+
         if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) return;
-        if (hasConveyorHasCoral() && getCurrentState() == ConveyorState.IDLE) {
-            setState(ConveyorState.CONVEY);
+        if (hasConveyorHasCoral() && getCurrentState() == BaseConveyor.ConveyorState.IDLE) {
+            setState(BaseConveyor.ConveyorState.CONVEY);
         }
 
-        switch ((ConveyorState) getCurrentState()) {
+        switch ((BaseConveyor.ConveyorState) getCurrentState()) {
             case IDLE:
                 coralConveyor.set(0);
                 break;
             case CONVEY:
-                    if (cradleHasCoral()) {
-                        setState(ConveyorState.IDLE);
-                    }
+                if (cradleHasCoral()) {
+                    setState(BaseConveyor.ConveyorState.IDLE);
+                }
 
-                    coralConveyor.set(.7);
+                coralConveyor.set(.7);
                 break;
         }
     }
 
     public boolean hasConveyorHasCoral() {
-        return sideRampSensor.get() || backRampSensor.get() || coralHopperSensorFront.get() || coralHopperSensorBack.get();
+        return !sideRampSensor.get() || !backRampSensor.get() || !coralHopperSensorFront.get() || !coralHopperSensorBack.get();
     }
 
     public boolean cradleHasCoral() {
-        return coralCradleSensor.get();
+        return !coralCradleSensor.get();
     }
 }

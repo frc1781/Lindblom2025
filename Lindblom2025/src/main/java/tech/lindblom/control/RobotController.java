@@ -16,7 +16,9 @@ import tech.lindblom.subsystems.auto.routines.*;
 import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.climber.ClimberSim;
+import tech.lindblom.subsystems.conveyor.BaseConveyor;
 import tech.lindblom.subsystems.conveyor.Conveyor;
+import tech.lindblom.subsystems.conveyor.ConveyorSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -41,7 +43,7 @@ public class RobotController {
     public Elevator elevatorSystem;
     public Arm armSystem;
     public BaseClimber climberSystem;
-    public Conveyor conveyorSystem;
+    public BaseConveyor conveyorSystem;
 
     DriverInput driverInput;
 
@@ -74,11 +76,12 @@ public class RobotController {
         elevatorSystem = new Elevator();
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
-        conveyorSystem = new Conveyor();
         if (RobotBase.isReal()) {
             climberSystem = new Climber();
+            conveyorSystem = new Conveyor();
         } else {
             climberSystem = new ClimberSim();
+            conveyorSystem = new ConveyorSim();
         }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
@@ -187,7 +190,6 @@ public class RobotController {
         for (StateSubsystem subsystem : stateSubsystems) {
             subsystem.periodic();
             Logger.recordOutput(subsystem.name + "/MatchesState", subsystem.matchesState());
-            Logger.recordOutput(subsystem.name + "/currentState", subsystem.getCurrentState().toString());
         }
     }
 

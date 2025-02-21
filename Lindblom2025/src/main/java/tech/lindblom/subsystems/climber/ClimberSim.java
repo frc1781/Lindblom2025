@@ -34,7 +34,7 @@ public class ClimberSim extends BaseClimber {
                 1,
                 true,
                 0,
-                0);
+                0, 1);
     }
 
     @Override
@@ -65,8 +65,6 @@ public class ClimberSim extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                //armMotorSim.se
-                System.out.println("Climber/Idle");
                 break;
             case DOWN:
                 leverMotor.set(0.5);

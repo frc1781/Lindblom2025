@@ -14,6 +14,7 @@ public abstract class StateSubsystem extends Subsystem {
         super(_name);
         defaultState = _defaultState;
         currentState = defaultState;
+        timeInState = new Timer();
         Logger.recordOutput(name + "/currentState", currentState.toString());
     }
 
@@ -25,7 +26,7 @@ public abstract class StateSubsystem extends Subsystem {
 
     public abstract boolean matchesState();
 
-    private void changedState() {  
+    private void resetTimeInState() {
         timeInState.reset();
         timeInState.start();
     };
@@ -36,18 +37,15 @@ public abstract class StateSubsystem extends Subsystem {
         }
         System.out.println(name + " changed to " + newState.toString());
         currentState = newState;
-        changedState();
+        resetTimeInState();
         Logger.recordOutput(name + "/currentState", currentState.toString());
     }
+
     public SubsystemState getCurrentState() {
         return currentState;
     }
     public void restoreToDefaultState() {
         setState(defaultState);
-    }
-
-    public void periodic() {
-        Logger.recordOutput(name + "/timeInCurrentState", timeInState.get());
     }
 
     public interface SubsystemState {}
