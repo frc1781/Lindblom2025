@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3842391967773433,
-        "y": 6.063425500769365
+        "x": 2.5693921232876713,
+        "y": 6.519263698630136
       },
       "isLocked": false,
       "linkedName": "Collect North"
@@ -20,8 +20,8 @@
         "y": 5.164622996689436
       },
       "prevControl": {
-        "x": 2.4065627544719908,
-        "y": 5.629833989579358
+        "x": 2.794777397260274,
+        "y": 6.414083904109589
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -55.300090830286265
+    "rotation": 32.849898538627436
   },
   "useDefaultConstraints": true
 }

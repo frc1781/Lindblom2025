@@ -62,7 +62,9 @@ public class RobotController {
         autoSystem = new Auto(this,
                 new TestRoutine(),
                 new Collect(),
-                new OneCoralAuto()
+                new OneCoralAuto(),
+                new ThreeCoralAuto(),
+                new FourCoralAuto()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();

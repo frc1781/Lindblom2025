@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.2313741991191516,
-        "y": 2.469520975479859
+        "x": 2.4792380136986303,
+        "y": 2.297046232876712
       },
       "isLocked": false,
       "linkedName": "CD"
@@ -20,8 +20,8 @@
         "y": 1.0708040336509805
       },
       "prevControl": {
-        "x": 2.4660695055201067,
-        "y": 2.0375871181512726
+        "x": 1.9833904109589042,
+        "y": 1.9965325342465758
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 54.24219328723327
+    "rotation": 145.0775475808252
   },
   "reversed": false,
   "folder": null,
