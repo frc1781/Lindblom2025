@@ -20,7 +20,10 @@ public class DriverInput {
         this.robotController = robotController;
         //DO NOT ASSIGN A CONTROL TO X
         this.controlList = new Control[] {
-
+                new Control(0, "DPAD_UP", RobotController.Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "DPAD_DOWN", RobotController.Action.MANUAL_ELEVATOR_DOWN),
+                new Control(0, "LB", RobotController.Action.MANUAL_ARM_UP),
+                new Control(0, "RB", RobotController.Action.MANUAL_ARM_DOWN),
         };
     }
 
@@ -180,8 +183,16 @@ public class DriverInput {
                 return (lastButton == 7 || buttonBoard.getRawButtonPressed(7)) && getButton("X", 0);
             case "button8":
                 return (lastButton == 8 || buttonBoard.getRawButtonPressed(8)) && getButton("X", 0);
+            case "button9":
+                return buttonBoard.getRawButtonPressed(9);
+            case "button10":
+                return buttonBoard.getRawButtonPressed(10);
+            case "button11":
+                return buttonBoard.getRawButtonPressed(11);
             case "DPAD_UP":
                 return xBoxController.getPOV() == 0;
+            case "DPAD_DOWN":
+                return xBoxController.getPOV() == 180;
         }
         Logger.recordOutput("button1", lastButton == 1 || buttonBoard.getRawButtonPressed(1));
         Logger.recordOutput("button2", lastButton == 2 || buttonBoard.getRawButtonPressed(2));
@@ -203,6 +214,7 @@ public class DriverInput {
         }
 
         lastButton = button;
+
         return button;
       }
 
