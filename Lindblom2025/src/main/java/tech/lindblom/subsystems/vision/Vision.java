@@ -32,9 +32,9 @@ public class Vision extends Subsystem {
     private PhotonPoseEstimator frontLeftCameraPoseEstimator;
     private PhotonPipelineResult frontLeftCameraPipelineResult;
 
-    private final PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
+/*    private final PhotonCamera backCamera = new PhotonCamera(Constants.Vision.BACK_CAMERA_NAME);
     private PhotonPoseEstimator backCameraPoseEstimator;
-    private PhotonPipelineResult backCameraPipelineResult;
+    private PhotonPipelineResult backCameraPipelineResult;*/
 
     private final PhotonCamera leftSideCamera = new PhotonCamera(Constants.Vision.LEFT_SIDE_CAMERA_NAME);
     private PhotonPoseEstimator leftSideCameraPoseEstimator;
@@ -56,16 +56,16 @@ public class Vision extends Subsystem {
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
-            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+/*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.BACK_CAMERA_POSITION);
+                    Constants.Vision.BACK_CAMERA_POSITION);*/
             leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
             frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
@@ -82,7 +82,7 @@ public class Vision extends Subsystem {
     public void periodic() {
         frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
-        backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
+        //backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
         leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
     }
 
@@ -151,9 +151,9 @@ public class Vision extends Subsystem {
     public PhotonPipelineResult getCameraLatestResults(Camera camera) {
         PhotonPipelineResult result = null;
         switch (camera) {
-            case BACK:
+/*            case BACK:
                 result = backCameraPipelineResult;
-                break;
+                break;*/
             case FRONT_LEFT:
                 result = frontLeftCameraPipelineResult;
                 break;
@@ -170,7 +170,7 @@ public class Vision extends Subsystem {
 
     public PhotonPipelineResult updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
-        if (!unreadResults.isEmpty() || camera.isConnected()) {
+        if (!unreadResults.isEmpty() && camera.isConnected()) {
             for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
                 estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));

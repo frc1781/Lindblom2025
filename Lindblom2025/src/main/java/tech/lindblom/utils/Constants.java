@@ -89,8 +89,8 @@ public class Constants {
 
     public class Vision {
         public static final String BACK_CAMERA_NAME = "Back";
-        public static final String FRONT_LEFT_CAMERA_NAME = "Apriltag";
-        public static final String FRONT_RIGHT_CAMERA_NAME = "BackRight";
+        public static final String FRONT_LEFT_CAMERA_NAME = "LeftApriltag";
+        public static final String FRONT_RIGHT_CAMERA_NAME = "RightApriltag";
         public static final String LEFT_SIDE_CAMERA_NAME = "LeftSide";
         public static final int ERROR_CONSTANT = 1781;
 
