@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID;
 import org.littletonrobotics.junction.Logger;
+
+import tech.lindblom.control.RobotController.Action;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
@@ -20,10 +22,24 @@ public class DriverInput {
         this.robotController = robotController;
         //DO NOT ASSIGN A CONTROL TO X
         this.controlList = new Control[] {
-                new Control(0, "DPAD_UP", RobotController.Action.MANUAL_ELEVATOR_UP),
-                new Control(0, "DPAD_DOWN", RobotController.Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "LB", RobotController.Action.MANUAL_ARM_UP),
-                new Control(0, "RB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "Y", Action.COLLECT),
+                new Control(0, "DPAD_UP", Action.CLIMBER_UP),
+                new Control(0, "DPAD_DOWN", Action.CLIMBER_DOWN),
+                new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
+                new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "A", Action.L4),
+                new Control(1, "button1", Action.CENTER_REEF_LEFT_L4),
+                new Control(1, "button2", Action.CENTER_REEF_LEFT_L3),
+                new Control(1, "button3", Action.CENTER_REEF_LEFT_L2),
+                new Control(1, "button4", Action.CENTER_REEF_LEFT_L1),
+                new Control(1, "button5", Action.CENTER_REEF_RIGHT_L4),
+                new Control(1, "button6", Action.CENTER_REEF_RIGHT_L3),
+                new Control(1, "button7", Action.CENTER_REEF_RIGHT_L2),
+                new Control(1, "button8", Action.CENTER_REEF_RIGHT_L1),
+                new Control(1, "button9", Action.CLIMBER_UP),
+                new Control(1, "button10", Action.CLIMBER_DOWN),
+                new Control(1, "button11", Action.CLIMBER_LATCH_RELEASE)
+
         };
     }
 
@@ -34,6 +50,7 @@ public class DriverInput {
         driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
         driverInputHolder.resetNavX = getButton("START", 0);
+        driverInputHolder.toggleManualControl = getButton("B", 0);
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
@@ -41,10 +58,22 @@ public class DriverInput {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
-                if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
-                    driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
-                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
-                    driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                switch (control.requestedAction) {
+                    case CENTER_REEF_LEFT_L1,
+                         CENTER_REEF_LEFT_L2,
+                         CENTER_REEF_LEFT_L3,
+                         CENTER_REEF_LEFT_L4:
+                        driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
+                    break;
+                    case CENTER_REEF_RIGHT_L1,
+                         CENTER_REEF_RIGHT_L2,
+                         CENTER_REEF_RIGHT_L3,
+                         CENTER_REEF_RIGHT_L4:
+                        driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                    break;
+                    default:
+                        driverInputHolder.centeringSide = null;
+                        break;
                 }
 
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
@@ -168,40 +197,32 @@ public class DriverInput {
             case "RB":
                 return xBoxController.getRightBumperButton();
             case "button1":
-                return (lastButton == 1 || buttonBoard.getRawButtonPressed(1)) && getButton("X", 0);
+                return (lastButton == 1 || buttonBoard.getRawButton(1)) && getButton("X", 0);
             case "button2":
-                return (lastButton == 2 || buttonBoard.getRawButtonPressed(2)) && getButton("X", 0);
+                return (lastButton == 2 || buttonBoard.getRawButton(2)) && getButton("X", 0);
             case "button3":
-                return (lastButton == 3 || buttonBoard.getRawButtonPressed(3)) && getButton("X", 0);
+                return (lastButton == 3 || buttonBoard.getRawButton(3)) && getButton("X", 0);
             case "button4":
-                return (lastButton == 4 || buttonBoard.getRawButtonPressed(4)) && getButton("X", 0);
+                return (lastButton == 4 || buttonBoard.getRawButton(4)) && getButton("X", 0);
             case "button5":
-                return (lastButton == 5 || buttonBoard.getRawButtonPressed(5)) && getButton("X", 0);
+                return (lastButton == 5 || buttonBoard.getRawButton(5)) && getButton("X", 0);
             case "button6":
-                return (lastButton == 6 || buttonBoard.getRawButtonPressed(6)) && getButton("X", 0);
+                return (lastButton == 6 || buttonBoard.getRawButton(6)) && getButton("X", 0);
             case "button7":
-                return (lastButton == 7 || buttonBoard.getRawButtonPressed(7)) && getButton("X", 0);
+                return (lastButton == 7 || buttonBoard.getRawButton(7)) && getButton("X", 0);
             case "button8":
-                return (lastButton == 8 || buttonBoard.getRawButtonPressed(8)) && getButton("X", 0);
+                return (lastButton == 8 || buttonBoard.getRawButton(8)) && getButton("X", 0);
             case "button9":
-                return buttonBoard.getRawButtonPressed(9);
+                return buttonBoard.getRawButton(9);
             case "button10":
-                return buttonBoard.getRawButtonPressed(10);
+                return buttonBoard.getRawButton(10);
             case "button11":
-                return buttonBoard.getRawButtonPressed(11);
+                return buttonBoard.getRawButton(11);
             case "DPAD_UP":
                 return xBoxController.getPOV() == 0;
             case "DPAD_DOWN":
                 return xBoxController.getPOV() == 180;
         }
-        Logger.recordOutput("button1", lastButton == 1 || buttonBoard.getRawButtonPressed(1));
-        Logger.recordOutput("button2", lastButton == 2 || buttonBoard.getRawButtonPressed(2));
-        Logger.recordOutput("button3", lastButton == 3 || buttonBoard.getRawButtonPressed(3));
-        Logger.recordOutput("button4", lastButton == 4 || buttonBoard.getRawButtonPressed(4));
-        Logger.recordOutput("button5", lastButton == 5 || buttonBoard.getRawButtonPressed(5));
-        Logger.recordOutput("button6", lastButton == 6 || buttonBoard.getRawButtonPressed(6));
-        Logger.recordOutput("button7", lastButton == 7 || buttonBoard.getRawButtonPressed(7));
-        Logger.recordOutput("button8", lastButton == 8 || buttonBoard.getRawButtonPressed(8));
         return false;
     }
 
@@ -213,7 +234,9 @@ public class DriverInput {
           }
         }
 
-        lastButton = button;
+        if (button != -1) {
+            lastButton = button;
+        }
 
         return button;
       }
@@ -226,6 +249,7 @@ public class DriverInput {
         Translation2d driverRightJoystickPosition;
 
         public ReefCenteringSide centeringSide = null;
+        public boolean toggleManualControl = false;
 
         boolean resetNavX;
     }

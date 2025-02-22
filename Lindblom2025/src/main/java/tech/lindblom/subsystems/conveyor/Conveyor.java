@@ -7,14 +7,18 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.DigitalInput;
 import org.littletonrobotics.junction.Logger;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Conveyor extends BaseConveyor {
 
-    public Conveyor() {
+    RobotController controller;
+
+    public Conveyor(RobotController controller) {
         super("Conveyor", ConveyorState.IDLE);
+        this.controller = controller;
         // If .get() is false the beam was broken - Returns false if the circuit is open.
         coralHopperSensorFront = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_FRONT_DIO);
         coralHopperSensorBack = new DigitalInput(Constants.Conveyor.CORAL_HOPPER_SENSOR_BACK_DIO);
@@ -64,11 +68,12 @@ public class Conveyor extends BaseConveyor {
                 coralConveyor.set(0);
                 break;
             case CONVEY:
+                    if (!controller.elevatorInConveyPosition()) return;
                     if (cradleHasCoral() || !hasConveyorHasCoral()) {
                         setState(ConveyorState.IDLE);
                     }
 
-                        coralConveyor.set(.7);
+                        coralConveyor.set(.5);
                 break;
         }
     }

@@ -9,6 +9,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import java.util.HashMap;
 
+import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
 
 
@@ -23,19 +24,26 @@ public class Arm extends StateSubsystem {
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
+    private TimeOfFlight coralTimeOfFlight;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
+        coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+        armMotor.setControlFramePeriodMs(20);
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.absoluteEncoder.positionConversionFactor(360.0);
+        armMotorConfig.absoluteEncoder.positionConversionFactor(360);
+        armMotorConfig.absoluteEncoder.zeroOffset(.4457963);
         armMotorConfig.closedLoop.pid(0.01, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
+        armMotorConfig.closedLoop.positionWrappingEnabled(true);
+        armMotorConfig.softLimit.forwardSoftLimit(180);
+        armMotorConfig.softLimit.reverseSoftLimit(0);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
 
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -47,11 +55,15 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L3, 0.0);
         positionMap.put(ArmState.L4, 90.0);
         positionMap.put(ArmState.WAIT, 25.0);
-        positionMap.put(ArmState.COLLECT, 195.0);
+        positionMap.put(ArmState.COLLECT, 175.0);
     }
 
     @Override
     public boolean matchesState() {
+        if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
+            return true;
+        }
+
        double tolerance = 6;
        Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
        return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
@@ -65,18 +77,22 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
+        Logger.recordOutput(this.name + "/ArmTOF", coralTimeOfFlight.getRange());
         if(currentMode == OperatingMode.DISABLED) return;
-        switch ((ArmState) getCurrentState()) {
-            case MANUAL_DOWN:
-                armMotor.set(-0.1);
-                break;
-            case MANUAL_UP:
-                armMotor.set(0.1);
-                break;
-             default:
-                getToPosition(positionMap.get(getCurrentState()));
-                break;
-
+        if (robotController.isManualControlMode()) {
+            switch ((ArmState) getCurrentState()) {
+                case IDLE:
+                    armMotor.set(0);
+                    break;
+                case MANUAL_DOWN:
+                    armMotor.set(-0.1);
+                    break;
+                case MANUAL_UP:
+                    armMotor.set(0.1);
+                    break;
+            }
+        } else if (positionMap.containsKey(getCurrentState())) {
+            getToPosition(positionMap.get(getCurrentState()));
         }
     }
 

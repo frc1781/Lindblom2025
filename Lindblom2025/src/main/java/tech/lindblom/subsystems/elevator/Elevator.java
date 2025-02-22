@@ -17,6 +17,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismObject2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -49,10 +50,11 @@ public class Elevator extends StateSubsystem {
             );
 
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
+    private RobotController robotController;
 
-    public Elevator() {
+    public Elevator(RobotController robotController) {
         super("Elevator", ElevatorState.SAFE);
-
+        this.robotController = robotController;
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
 
@@ -72,7 +74,7 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 220.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
         positions.put(ElevatorState.L3, new Double[]{250.0, minSecondStageDistance});
@@ -112,19 +114,20 @@ public class Elevator extends StateSubsystem {
 
         if (currentMode == OperatingMode.DISABLED) return;
 
-        switch ((ElevatorState) getCurrentState()) {
-            //case SAFE:
-            //    motorRight.set(0);
-            //    break;
-            case MANUAL_DOWN:
-                motorRight.set(-0.1);
-                break;
-            case MANUAL_UP:
-                motorRight.set(0.1);
-                break;
-            default:
-                goToPosition();
-                break;
+        if (robotController.isManualControlMode()) {
+            switch ((ElevatorState) getCurrentState()) {
+                case SAFE:
+                    motorRight.set(0);
+                    break;
+                case MANUAL_DOWN:
+                    motorRight.set(-0.1);
+                    break;
+                case MANUAL_UP:
+                    motorRight.set(0.1);
+                    break;
+            }
+        } else if (positions.containsKey(getCurrentState())) {
+            goToPosition();
         }
     }
 

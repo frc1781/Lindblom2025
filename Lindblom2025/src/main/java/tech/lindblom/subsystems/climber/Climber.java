@@ -59,7 +59,7 @@ public class Climber extends BaseClimber {
                 leverMotor.set(-0.5);
                 break;
             case RELEASE_LATCH:
-                latchServo.setSpeed(0.5);
+                latchServo.setPosition(0.5);
                 break;
         }
     }

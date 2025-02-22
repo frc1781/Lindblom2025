@@ -64,6 +64,9 @@ public class RobotController {
     private Action currentSequentialAction = null;
     private EnumCollection.OperatingMode currentOperatingMode = null;
 
+    private boolean manualControlMode = false;
+    private boolean toggleSwitch = false;
+
     public RobotController() {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
@@ -73,12 +76,12 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
-        elevatorSystem = new Elevator();
+        elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
         if (RobotBase.isReal()) {
             climberSystem = new Climber();
-            conveyorSystem = new Conveyor();
+            conveyorSystem = new Conveyor(this);
         } else {
             climberSystem = new ClimberSim();
             conveyorSystem = new ConveyorSim();
@@ -206,6 +209,14 @@ public class RobotController {
         driverDriving(inputHolder.driverLeftJoystickPosition, inputHolder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
+        if (inputHolder.toggleManualControl && !toggleSwitch) {
+            manualControlMode = !manualControlMode;
+        }
+
+        Logger.recordOutput("RobotController/manualControlMode", manualControlMode);
+
+        toggleSwitch = inputHolder.toggleManualControl;
+
         if (inputHolder.resetNavX) {
             driveController.resetNavX();
         }
@@ -298,9 +309,12 @@ public class RobotController {
                 return null;
             }
             return switch (currentAction) {
-                case CENTER_REEF_LEFT -> DriverInput.ReefCenteringSide.LEFT;
-                case CENTER_REEF_RIGHT -> DriverInput.ReefCenteringSide.RIGHT;
-                default -> null;
+                case CENTER_REEF_LEFT:
+                    yield DriverInput.ReefCenteringSide.LEFT;
+                case CENTER_REEF_RIGHT:
+                    yield DriverInput.ReefCenteringSide.RIGHT;
+                default:
+                    yield null;
             };
         }
 
@@ -362,7 +376,7 @@ public class RobotController {
                 }
             }
         } else {
-            if (currentAction == Action.CENTER_REEF_LEFT || currentAction == Action.CENTER_REEF_RIGHT) {
+            if (getCenteringSide() != null) {
                 return driveController.hasFinishedCentering();
             }
 
@@ -373,6 +387,14 @@ public class RobotController {
             }
         }
         return true;
+    }
+
+    public boolean elevatorInConveyPosition() {
+        return elevatorSystem.getCurrentState() == Elevator.ElevatorState.SAFE && elevatorSystem.matchesState();
+    }
+
+    public boolean isManualControlMode() {
+        return manualControlMode;
     }
 
     public Action getCurrentAction() {
@@ -406,6 +428,12 @@ public class RobotController {
         L4,
         CENTER_REEF_LEFT_L4,
         CENTER_REEF_RIGHT_L4,
+        CENTER_REEF_LEFT_L3,
+        CENTER_REEF_RIGHT_L3,
+        CENTER_REEF_LEFT_L2,
+        CENTER_REEF_RIGHT_L2,
+        CENTER_REEF_LEFT_L1,
+        CENTER_REEF_RIGHT_L1,
         COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
@@ -436,13 +464,13 @@ public class RobotController {
         defineAction(Action.L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
         );
         defineAction(Action.L2,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.PLACE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
         defineAction(Action.COLLECT,
                 new SubsystemSetting(true),
@@ -476,16 +504,58 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
+        defineAction(Action.CENTER_REEF_LEFT_L3,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
+                );
+        defineAction(Action.CENTER_REEF_RIGHT_L3,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
+                );
+        defineAction(Action.CENTER_REEF_LEFT_L2,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
+                );
+        defineAction(Action.CENTER_REEF_RIGHT_L2,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
+                );
+        defineAction(Action.CENTER_REEF_LEFT_L1,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
+                );
+        defineAction(Action.CENTER_REEF_RIGHT_L1,
+                new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
+                );
         defineAction(Action.FIND_POLE_LEFT,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
         defineAction(Action.FIND_POLE_RIGHT,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
-/*        defineAction(Action.CLIMBER_DOWN,
+        defineAction(Action.CLIMBER_DOWN,
                   new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
-                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));*/
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
     }
 
     public boolean isSafeForArmToMove() {
