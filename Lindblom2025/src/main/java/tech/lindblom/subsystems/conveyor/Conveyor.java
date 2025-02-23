@@ -73,7 +73,7 @@ public class Conveyor extends BaseConveyor {
                         setState(ConveyorState.IDLE);
                     }
 
-                        coralConveyor.set(.5);
+                        coralConveyor.set(.3);
                 break;
         }
     }
