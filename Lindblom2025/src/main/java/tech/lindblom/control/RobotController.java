@@ -273,7 +273,7 @@ public class RobotController {
     }
 
     private void driverDriving(Translation2d translation, Translation2d rotation) {
-        int flipForRed = isRed() ? 1 : -1;
+        int flipForRed = isRed() ? -1 : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -283,6 +283,7 @@ public class RobotController {
         Logger.recordOutput("Driver/rotation/x", rotation.getX());
         Logger.recordOutput("Driver/movement/y", translation.getY());
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
+        Logger.recordOutput("Driver/isRed", isRed());
 
         double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
         double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
