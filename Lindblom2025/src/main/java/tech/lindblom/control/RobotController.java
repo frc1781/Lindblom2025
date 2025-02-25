@@ -552,11 +552,17 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
                 );
         defineAction(Action.FIND_POLE_LEFT,
+                new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 0),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 0),
-                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
+                new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_LEFT,0),
+                new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 0));
         defineAction(Action.FIND_POLE_RIGHT,
-                new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 6),
+                new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_RIGHT,6),
+                new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 6));
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
         defineAction(Action.CLIMBER_DOWN,

@@ -139,10 +139,6 @@ public class DriveController extends StateSubsystem {
                 }
                 break;
             case FIND_POLE_RIGHT, FIND_POLE_LEFT:
-                if (hasFoundReefPole()) {
-                    driveSubsystem.drive(zeroSpeed);
-                    return;
-                }
                 findReefPole();
                 break;
         }

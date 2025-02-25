@@ -64,7 +64,7 @@ public class Constants {
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
         public static double TARGET_CORAL_DISTANCE = 0.4;
-        public static double ARM_TOF_DISTANCE = 750;
+        public static double ARM_TOF_DISTANCE = 700;
         public static double MAX_TIME_LOOKING_FOR_POLE = 0.5;
 
 
@@ -75,7 +75,7 @@ public class Constants {
         public static double DISTANCE_TOLERANCE = 0.05;
         public static double OFFSET_TOLERANCE = 0.02;
 
-        public static double TARGET_TOF_PARALLEL_DISTANCE = 200;
+        public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
         public static double TARGET_CORAL_DISTANCE_LEFT = 0.45;
         public static double TARGET_CORAL_DISTANCE_RIGHT = 0.55;
         // I have no idea what unit this is in -ally
