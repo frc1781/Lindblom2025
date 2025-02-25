@@ -139,9 +139,11 @@ public class DriveController extends StateSubsystem {
                 }
                 break;
             case FIND_POLE_RIGHT, FIND_POLE_LEFT:
-                if (!matchesState()) {
-                    findReefPole();
+                if (hasFoundReefPole()) {
+                    driveSubsystem.drive(zeroSpeed);
+                    return;
                 }
+                findReefPole();
                 break;
         }
     }
@@ -282,16 +284,6 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/leftTOFDistance", leftTOFdistance);
         Logger.recordOutput(this.name + "/rightTOFDistance", rightTOFdistance);
 
-/*        //CHECK FOR UNUSUAL ERROR CONDITION
-        if (leftTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
-                rightTOFdistance > Constants.Drive.TARGET_CORAL_DISTANCE * 1.5 ||
-                Math.abs(rightTOFdistance - leftTOFdistance) > 1.4 ||
-                hasFoundReefPole() ||
-                timeInState.get() > Constants.Drive.MAX_TIME_LOOKING_FOR_POLE) {
-            driveUsingVelocities(0.0, 0.0, 0.0);
-            return;
-        }*/
-
         ChassisSpeeds reefPoleSpeeds = zeroSpeed;
 
         //FIRST TRY, WILL CONSIDER SPEEDING UP MODIFYING 0.1 P
@@ -309,7 +301,6 @@ public class DriveController extends StateSubsystem {
         }
 
         if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0 && !hasFoundReefPole()) {
-            preventFalloff = true;
             reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);
         }
 
@@ -318,7 +309,11 @@ public class DriveController extends StateSubsystem {
 
 
     public boolean hasFoundReefPole() {
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid();
+        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid();
+        if (hasFoundReefPole) {
+            detectedPole = true;
+        }
+        return hasFoundReefPole || detectedPole;
     }
 
     public void setAutoPath(PathPlannerPath path) {
