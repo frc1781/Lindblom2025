@@ -162,7 +162,7 @@ public class DriveController extends StateSubsystem {
 
         double targetOffset = 0;
         double targetDistance = 0;
-
+        
         switch (robotController.getCenteringSide()) {
             case LEFT:
                 targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
@@ -192,7 +192,7 @@ public class DriveController extends StateSubsystem {
             inputSpeeds = zeroSpeed;
         }
 
-        if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT) {
+        if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT && cameraDistance != 0.0) {  //0.0 indicates it is not estimating distance
             if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
