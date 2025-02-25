@@ -148,8 +148,14 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.getRotation())
                 : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
 
-        speeds = getCenteringChassisSpeeds(speeds);
-
+        if (getCurrentState() == DriverStates.CENTERING) {
+            if (hasFinishedCentering()) {
+                setCurrentState(DriverStates.DRIVER);
+            } else {
+                speeds = getCenteringChassisSpeeds(speeds);
+            }
+        }
+        
         driveSubsystem.drive(speeds);
     }
 
@@ -194,11 +200,11 @@ public class DriveController extends StateSubsystem {
 
         if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT && cameraDistance != 0.0) {  //0.0 indicates it is not estimating distance
             if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
-                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, centeringYawController.calculate(cameraOffset, targetOffset));
             }
 
             if (!(Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE)) {
-                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, targetDistance);
+                inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.1, 0.1, -distanceController.calculate(cameraDistance, targetDistance));
             }
         }
 
