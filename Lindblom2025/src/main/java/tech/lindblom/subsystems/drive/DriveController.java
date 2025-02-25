@@ -147,14 +147,6 @@ public class DriveController extends StateSubsystem {
                         rotSpeed),
                 driveSubsystem.getRotation())
                 : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
-
-        if (getCurrentState() == DriverStates.CENTERING) {
-            if (hasFinishedCentering()) {
-                setCurrentState(DriverStates.DRIVER);
-            } else {
-                speeds = getCenteringChassisSpeeds(speeds);
-            }
-        }
         
         driveSubsystem.drive(speeds);
     }
