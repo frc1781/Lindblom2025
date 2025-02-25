@@ -104,7 +104,7 @@ public class Vision extends Subsystem {
         PhotonPipelineResult result = getCameraLatestResults(camera);
 
         if (result == null) {
-            return 1781;
+            return Constants.Vision.ERROR_CONSTANT;
         }
 
         for (PhotonTrackedTarget target : result.getTargets()) {
@@ -114,14 +114,14 @@ public class Vision extends Subsystem {
         }
 
 
-        return 1781;
+        return Constants.Vision.ERROR_CONSTANT;
     }
 
     public double getCameraSkew(Camera camera, int tagID) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
 
         if (result == null) {
-            return 1781;
+            return Constants.Vision.ERROR_CONSTANT;
         }
 
         for (PhotonTrackedTarget target : result.getTargets()) {
@@ -130,13 +130,13 @@ public class Vision extends Subsystem {
             }
         }
 
-        return 1781;
+        return Constants.Vision.ERROR_CONSTANT;
     }
 
     public double getCameraDistanceX(Camera camera, int tagID) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
         if (result == null) {
-            return 1781;
+            return Constants.Vision.ERROR_CONSTANT;
         }
 
         for (PhotonTrackedTarget target : result.getTargets()) {
@@ -145,7 +145,7 @@ public class Vision extends Subsystem {
             }
         }
 
-        return 1781;
+        return Constants.Vision.ERROR_CONSTANT;
     }
 
     public PhotonPipelineResult getCameraLatestResults(Camera camera) {

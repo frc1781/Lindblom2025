@@ -579,7 +579,7 @@ public class RobotController {
             }
         }
 
-        return 1781;
+        return Constants.Vision.ERROR_CONSTANT;
     }
 
 
