@@ -174,6 +174,10 @@ public class RobotController {
                 }
                 break;
             case TELEOP:
+                if (driveController.getCurrentState() == DriveController.DriverStates.IDLE) {
+                    driveController.setState(DriveController.DriverStates.DRIVER);
+                }
+
                 processDriverInputs();
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
@@ -548,6 +552,8 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
                 );
         defineAction(Action.FIND_POLE_LEFT,
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 0),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 0),
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_LEFT,0));
         defineAction(Action.FIND_POLE_RIGHT,
                 new SubsystemSetting(driveController,DriveController.DriverStates.FIND_POLE_RIGHT,0));

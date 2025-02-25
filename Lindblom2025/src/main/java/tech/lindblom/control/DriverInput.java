@@ -25,6 +25,7 @@ public class DriverInput {
                 new Control(0, "Y", Action.COLLECT),
                 new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
                 new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "A", Action.FIND_POLE_LEFT),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),
