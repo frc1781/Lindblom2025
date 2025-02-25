@@ -47,16 +47,10 @@ public class Drive extends Subsystem {
     public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.FRONT_LEFT_MODULE_POSITION,
             Constants.Drive.FRONT_RIGHT_MODULE_POSITION, Constants.Drive.BACK_LEFT_MODULE_POSITION,
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
-            
-/*    public final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(Constants.Drive.BACK_RIGHT_MODULE_POSITION,
-            Constants.Drive.BACK_LEFT_MODULE_POSITION, Constants.Drive.FRONT_RIGHT_MODULE_POSITION,
-            Constants.Drive.FRONT_LEFT_MODULE_POSITION);*/
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
 
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
-
-
 
     public Drive() {
         super("Drive");

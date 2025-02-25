@@ -206,6 +206,7 @@ public class RobotController {
     private void processDriverInputs() {
         DriverInput.InputHolder inputHolder = driverInput.getDriverInputs();
         mostRecentInputHolder = inputHolder;
+        Logger.recordOutput("RobotController/DriverCenteringSide", mostRecentInputHolder.centeringSide);
         driverDriving(inputHolder.driverLeftJoystickPosition, inputHolder.driverRightJoystickPosition);
         List<StateSubsystem> setSubsystems = new ArrayList<>();
 
@@ -475,7 +476,6 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
         defineAction(Action.COLLECT,
                 new SubsystemSetting(true),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_HIGH, 2),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
                 );

@@ -74,12 +74,11 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 220.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
         positions.put(ElevatorState.L3, new Double[]{250.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
         elevatorMechSimulation = new LoggedMechanism2d(100,maxFirstStageDistance + maxSecondStageDistance);
@@ -183,7 +182,6 @@ public class Elevator extends StateSubsystem {
         L4,
         MANUAL_DOWN,
         MANUAL_UP,
-        COLLECT_HIGH,
         COLLECT_LOW
     }
 }
