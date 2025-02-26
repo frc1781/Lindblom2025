@@ -325,11 +325,11 @@ public class DriveController extends StateSubsystem {
             } else {
                 reefPoleSpeeds.omegaRadiansPerSecond = 0;
             }
-        }
 
-        if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0 && !hasFoundReefPole()) {
-            preventFalloff = true;
-            reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);
+            if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0 && !hasFoundReefPole()) {
+                preventFalloff = true;
+                reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);
+            }
         }
 
         driveSubsystem.drive(reefPoleSpeeds);
