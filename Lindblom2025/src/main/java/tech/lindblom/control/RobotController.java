@@ -446,6 +446,7 @@ public class RobotController {
         CENTER_REEF_LEFT_L1,
         CENTER_REEF_RIGHT_L1,
         COLLECT,
+        EAT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
         MANUAL_ARM_DOWN,
@@ -455,7 +456,7 @@ public class RobotController {
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
-        COLLECT
+        SPIT
     }
 
     public void createActions(){
@@ -477,7 +478,7 @@ public class RobotController {
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
         );
         defineAction(Action.L2,
                 new SubsystemSetting(true),
@@ -559,10 +560,10 @@ public class RobotController {
                 );
         defineAction(Action.FIND_POLE_LEFT,
                 new SubsystemSetting(true),
-                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 0),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 0),
-                new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_LEFT,0),
-                new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 0));
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 6),
+                new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_LEFT,6),
+                new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 6));
         defineAction(Action.FIND_POLE_RIGHT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6),
@@ -575,8 +576,10 @@ public class RobotController {
                   new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
-        defineAction(Action.COLLECT,
-                new SubsystemSetting(mouthSystem, Mouth.MouthState.DOWN, 5));
+        defineAction(Action.EAT,
+                new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
+        defineAction(Action.SPIT,
+                new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
     }
 
     public boolean isSafeForArmToMove() {

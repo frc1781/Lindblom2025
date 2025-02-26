@@ -26,6 +26,8 @@ public class Arm extends StateSubsystem {
     private RobotController robotController;
     private TimeOfFlight coralTimeOfFlight;
 
+    private ArmState previousState;
+
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
@@ -53,7 +55,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.IDLE, 10.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 0.0);
+        positionMap.put(ArmState.L3, 90.0);
         positionMap.put(ArmState.L4, 80.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 175.0);
@@ -95,10 +97,17 @@ public class Arm extends StateSubsystem {
         } else if (positionMap.containsKey(getCurrentState())) {
             getToPosition(positionMap.get(getCurrentState()));
         }
+
     }
 
-    private void getToPosition(double position ){
-        if (getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) return;
+    @Override
+    public void setState(SubsystemState newState) {
+        previousState = (ArmState) getCurrentState();
+        super.setState(newState);
+    }
+
+    private void getToPosition(double position){
+        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || (getCurrentState() == defaultState && previousState == ArmState.L3 && timeInState.get() < 2)) return;
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }

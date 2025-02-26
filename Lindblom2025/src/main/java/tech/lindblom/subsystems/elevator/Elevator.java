@@ -78,7 +78,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
-        positions.put(ElevatorState.L3, new Double[]{250.0, minSecondStageDistance});
+        positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 

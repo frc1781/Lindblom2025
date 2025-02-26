@@ -76,11 +76,11 @@ public class Constants {
         public static double OFFSET_TOLERANCE = 0.02;
 
         public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
-        public static double TARGET_CORAL_DISTANCE_LEFT = 0.45;
-        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.55;
+        public static double TARGET_CORAL_DISTANCE_LEFT = 0.33;
+        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.39;
         // I have no idea what unit this is in -ally
-        public static double TARGET_CORAL_OFFSET_LEFT = 0;
-        public static double TARGET_CORAL_OFFSET_RIGHT = 0;
+        public static double TARGET_CORAL_OFFSET_LEFT = -18;
+        public static double TARGET_CORAL_OFFSET_RIGHT = 10;
     }
 
     public class Auto {
@@ -182,7 +182,7 @@ public class Constants {
     }
 
     public class Mouth {
-        public static final int SPIN_MOUTH_MOTOR = 0;
-        public static final int POSITION_MOUTH_MOTOR = 0;
+        public static final int SPIN_MOUTH_MOTOR = 17;
+        public static final int POSITION_MOUTH_MOTOR = 16;
     }
 }

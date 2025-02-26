@@ -48,8 +48,8 @@ public class DriveController extends StateSubsystem {
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
-    private final PIDController centeringYawController = new PIDController(0.025, 0, 0);
-    private final PIDController distanceController = new PIDController(1.6  , 0, 0);
+    private final PIDController centeringYawController = new PIDController(0.015, 0, 0);
+    private final PIDController distanceController = new PIDController(1, 0, 0);
     private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
@@ -110,6 +110,15 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/armTOFSTD", armTOF.getRangeSigma());
         Logger.recordOutput(this.name + "/armTOFLatecy", armTOF.getSampleTime());
 
+        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+        if (apriltagId != -1) {
+            double cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+            double cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            Logger.recordOutput(this.name + "/apriltagId", apriltagId);
+            Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
+            Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
+        }
+
         switch ((DriverStates) getCurrentState()) {
             case IDLE:
                 preventFalloff = false;
@@ -117,8 +126,7 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.drive(zeroSpeed);
                 break;
             case CENTERING:
-                preventFalloff = false;
-                detectedPole = false;
+
                 centerOnReef();
                 break;
             case DRIVER:
@@ -210,13 +218,25 @@ public class DriveController extends StateSubsystem {
         }
 
         if (cameraOffset != Constants.Vision.ERROR_CONSTANT &&  cameraDistance != Constants.Vision.ERROR_CONSTANT && cameraDistance != 0.0 && cameraOffset != 0.0) {  //0.0 indicates it is not estimating distance
+            double leftTOFdistance = leftTOF.getRange();
+            double rightTOFdistance = rightTOF.getRange();
+            Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
+
             if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-
             }
 
             if (!(Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE)) {
                 inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, targetDistance);
+            }
+
+            if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
+                if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20 && !preventFalloff) {
+                    inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
+                } else {
+                    preventFalloff = true;
+                    inputSpeeds.omegaRadiansPerSecond = 0;
+                }
             }
         }
 
@@ -283,24 +303,26 @@ public class DriveController extends StateSubsystem {
 
         Logger.recordOutput(this.name + "/leftTOFDistance", leftTOFdistance);
         Logger.recordOutput(this.name + "/rightTOFDistance", rightTOFdistance);
+        Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
 
         ChassisSpeeds reefPoleSpeeds = zeroSpeed;
 
-        //FIRST TRY, WILL CONSIDER SPEEDING UP MODIFYING 0.1 P
-        if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50 && !preventFalloff) { //flip sign later
-            reefPoleSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
-        } else {
-            reefPoleSpeeds.vxMetersPerSecond = 0;
-        }
+        if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
+            if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50 && !preventFalloff) {
+                reefPoleSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
+            } else {
+                reefPoleSpeeds.vxMetersPerSecond = 0;
+            }
 
-        Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
-        if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20 && !preventFalloff) {
-            reefPoleSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
-        } else {
-            reefPoleSpeeds.omegaRadiansPerSecond = 0;
+            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20 && !preventFalloff) {
+                reefPoleSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
+            } else {
+                reefPoleSpeeds.omegaRadiansPerSecond = 0;
+            }
         }
 
         if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0 && !hasFoundReefPole()) {
+            preventFalloff = true;
             reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);
         }
 

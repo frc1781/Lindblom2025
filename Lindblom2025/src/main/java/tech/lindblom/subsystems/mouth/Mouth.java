@@ -1,25 +1,26 @@
 package tech.lindblom.subsystems.mouth;
 
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkClosedLoopController;
 
-import edu.wpi.first.math.util.Units;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
 import java.util.HashMap;
 
 import org.littletonrobotics.junction.Logger;
+import tech.lindblom.utils.EEUtil;
 
 
 public class Mouth extends StateSubsystem {
-    private final SparkMax spinMotor;
+    private final SparkFlex spinMotor;
     private final SparkMax positionMotor;
     private final SparkClosedLoopController motionController;
 
@@ -29,8 +30,8 @@ public class Mouth extends StateSubsystem {
         super("Mouth", MouthState.UP);
 
         //Spin Motor
-        spinMotor = new SparkMax(Constants.Mouth.SPIN_MOUTH_MOTOR, MotorType.kBrushless);
-        SparkMaxConfig spinMotorConfig = new SparkMaxConfig();
+        spinMotor = new SparkFlex(Constants.Mouth.SPIN_MOUTH_MOTOR, MotorType.kBrushless);
+        SparkFlexConfig spinMotorConfig = new SparkFlexConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
         spinMotorConfig.inverted(false);
@@ -43,10 +44,16 @@ public class Mouth extends StateSubsystem {
         positionMotorConfig.idleMode(IdleMode.kBrake);
         positionMotorConfig.smartCurrentLimit(30);
         positionMotorConfig.inverted(false);
+        positionMotorConfig.closedLoop.pid(0.05, 0, 0);
+        positionMotorConfig.encoder.positionConversionFactor((360 * ((double) 1/5) * ((double) 1 /5) * ((double) 1/5)));
         positionMotor.configure(positionMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+        positionMotor.getEncoder().setPosition(0.0);
+
         positions.put(MouthState.UP, 0.0);
-        positions.put(MouthState.DOWN, 0.0);
+        positions.put(MouthState.SPIT, 0.0);
+        positions.put(MouthState.EAT, -45.0);
+
     }
 
 
@@ -67,17 +74,20 @@ public class Mouth extends StateSubsystem {
     @Override
     public void periodic() {
         switch ((MouthState) getCurrentState()) {
-            case UP: 
+            case UP:
+                spinMotor.set(0);
                 goToPosition(positions.get(MouthState.UP));
                 break;
-            case DOWN:
-                goToPosition(positions.get(MouthState.DOWN));
+            case EAT:
+                if (spinMotor.getEncoder().getPosition() > 200) {}
+                goToPosition(positions.get(MouthState.EAT));
                 collect();
                 break;
+            case SPIT:
+                spinMotor.set(-1);
+                positionMotor.set(0);
+                break;
         }
-        Logger.recordOutput(this.name + "/position", getPosition());
-        Logger.recordOutput(this.name + "/desired position", positions.get(getCurrentState()));
-        Logger.recordOutput(this.name + "/collect speed", spinMotor.get());
     }
 
     public double getPosition() {
@@ -85,15 +95,22 @@ public class Mouth extends StateSubsystem {
     }
 
     public void goToPosition(double position) {
-        motionController.setReference(position, ControlType.kPosition);
+        if (Math.abs(position - getPosition()) > 3) {
+            positionMotor.set(EEUtil.clamp(-0.3,0.3, position - getPosition() * 0.01));
+        } else {
+            positionMotor.set(0);
+        }
     }
 
     private void collect() {
-        spinMotor.set(0.01);
+        spinMotor.set(1);
     }
 
     public enum MouthState implements SubsystemState {
         UP,
-        DOWN
+        EAT,
+        SPIT,
+        OPEN,
+        CLOSE
     }
 }

@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.PWM;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
-public abstract class BaseClimber extends StateSubsystem {
+public abstract class   BaseClimber extends StateSubsystem {
     protected SparkMax leverMotor;
     protected ArmFeedforward armFeedforward;
     protected PWM latchServo;

@@ -25,7 +25,10 @@ public class DriverInput {
                 new Control(0, "Y", Action.COLLECT),
                 new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
                 new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
-                new Control(0, "A", Action.FIND_POLE_RIGHT),
+                new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
+                new Control(0, "A", Action.EAT),
+                new Control(0, "X", Action.SPIT),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),
@@ -53,25 +56,6 @@ public class DriverInput {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
-/*
-                switch (control.requestedAction) {
-                    case CENTER_REEF_LEFT_L1,
-                         CENTER_REEF_LEFT_L2,
-                         CENTER_REEF_LEFT_L3,
-                         CENTER_REEF_LEFT_L4:
-                        driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
-                    break;
-                    case CENTER_REEF_RIGHT_L1,
-                         CENTER_REEF_RIGHT_L2,
-                         CENTER_REEF_RIGHT_L3,
-                         CENTER_REEF_RIGHT_L4:
-                        driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-                    break;
-                    default:
-                        driverInputHolder.centeringSide = null;
-                        break;
-                }
-*/
                 if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
                 } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
