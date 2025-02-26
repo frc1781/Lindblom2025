@@ -25,6 +25,7 @@ import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
+import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
@@ -44,6 +45,7 @@ public class RobotController {
     public Arm armSystem;
     public BaseClimber climberSystem;
     public BaseConveyor conveyorSystem;
+    public Mouth mouthSystem;
 
     DriverInput driverInput;
 
@@ -76,6 +78,7 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs();
+        mouthSystem = new Mouth();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         driverInput = new DriverInput(this);
@@ -88,6 +91,7 @@ public class RobotController {
         }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
+        stateSubsystems.add(mouthSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
         stateSubsystems.add(climberSystem);
@@ -96,6 +100,7 @@ public class RobotController {
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
+        subsystems.add(mouthSystem);
         createActions();
     }
 
@@ -449,7 +454,8 @@ public class RobotController {
         CLIMBER_UP,
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
-        CLIMBER_LATCH_RELEASE
+        CLIMBER_LATCH_RELEASE,
+        COLLECT
     }
 
     public void createActions(){
@@ -569,6 +575,8 @@ public class RobotController {
                   new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
+        defineAction(Action.COLLECT,
+                new SubsystemSetting(mouthSystem, Mouth.MouthState.DOWN, 5));
     }
 
     public boolean isSafeForArmToMove() {

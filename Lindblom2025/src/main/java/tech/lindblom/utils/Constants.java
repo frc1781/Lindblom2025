@@ -180,4 +180,9 @@ public class Constants {
         //coralConveyor
         public static final int CORAL_CONVEYOR_ID = 15;
     }
+
+    public class Mouth {
+        public static final int SPIN_MOUTH_MOTOR = 0;
+        public static final int POSITION_MOUTH_MOTOR = 0;
+    }
 }
