@@ -64,8 +64,12 @@ public class DriveController extends StateSubsystem {
         driveSubsystem = new Drive();
         robotController = controller;
         armTOF = new TimeOfFlight(Constants.Drive.ARM_TOF_ID);
+        armTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
+        armTOF.setRangeOfInterest(6, 1, 10, 16);
         leftTOF = new TimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID);
+        leftTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
         rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID);
+        rightTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
