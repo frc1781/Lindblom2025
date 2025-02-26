@@ -126,7 +126,6 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.drive(zeroSpeed);
                 break;
             case CENTERING:
-
                 centerOnReef();
                 break;
             case DRIVER:
@@ -224,18 +223,25 @@ public class DriveController extends StateSubsystem {
 
             if (!(Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE)) {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-            }
-
-            if (!(Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE)) {
-                inputSpeeds.vxMetersPerSecond = -distanceController.calculate(cameraDistance, targetDistance);
+            } else {
+                inputSpeeds.vyMetersPerSecond = 0;
             }
 
             if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
+                if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50 && !preventFalloff) {
+                    inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
+                } else {
+                    inputSpeeds.vxMetersPerSecond = 0;
+                }
+
                 if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20 && !preventFalloff) {
                     inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
                 } else {
-                    preventFalloff = true;
                     inputSpeeds.omegaRadiansPerSecond = 0;
+                }
+
+                if (inputSpeeds.omegaRadiansPerSecond == 0 && inputSpeeds.vxMetersPerSecond == 0) {
+                    preventFalloff = true;
                 }
             }
         }

@@ -76,11 +76,11 @@ public class Constants {
         public static double OFFSET_TOLERANCE = 0.02;
 
         public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
-        public static double TARGET_CORAL_DISTANCE_LEFT = 0.33;
-        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.39;
+        public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
+        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -18;
-        public static double TARGET_CORAL_OFFSET_RIGHT = 10;
+        public static double TARGET_CORAL_OFFSET_RIGHT = -7;
     }
 
     public class Auto {
@@ -121,7 +121,7 @@ public class Constants {
         public static final Matrix<N3, N1> SINGLE_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds, if you only see one tag, ie less accuracy/trust so higher values bc we don't trust it
         public static final Matrix<N3, N1> MULTI_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds,  if you see multiple tags, ie more accuracy/trust so lower values bc we trust it
 
-        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
+        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
 
     }
 
