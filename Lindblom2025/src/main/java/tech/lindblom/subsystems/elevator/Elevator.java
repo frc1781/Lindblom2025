@@ -9,8 +9,15 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismObject2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -25,7 +32,6 @@ public class Elevator extends StateSubsystem {
 
     private TimeOfFlight firstStageTOF;
     private TimeOfFlight secondStageTOF;
-    private TimeOfFlight lowerTroughTOF;
     // measure the max distance
     private double minSecondStageDistance = 0;
     private double maxSecondStageDistance = 680;
@@ -34,6 +40,7 @@ public class Elevator extends StateSubsystem {
     private double maxFirstStageDistance = 810;
 
     private LoggedMechanism2d elevatorMechSimulation;
+    private LoggedMechanismRoot2d elevatorFirstStageRoot;
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -43,13 +50,13 @@ public class Elevator extends StateSubsystem {
             );
 
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
+    private RobotController robotController;
 
-    public Elevator() {
+    public Elevator(RobotController robotController) {
         super("Elevator", ElevatorState.SAFE);
-
+        this.robotController = robotController;
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
-        lowerTroughTOF = new TimeOfFlight(Constants.Elevator.LOWER_TROUGH__TOF);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -67,15 +74,16 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+        positions.put(ElevatorState.POLE, new Double[]{250.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
-        positions.put(ElevatorState.L2, new Double[]{0.0, 0.0});
-        positions.put(ElevatorState.L3, new Double[]{0.0, 0.0});
+        positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
+        positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.COLLECT_HIGH, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
-        elevatorMechSimulation = new LoggedMechanism2d(3,3);
+        elevatorMechSimulation = new LoggedMechanism2d(100,maxFirstStageDistance + maxSecondStageDistance);
+        elevatorFirstStageRoot = elevatorMechSimulation.getRoot("Climber", 0, maxFirstStageDistance);
     }
 
 
@@ -102,24 +110,24 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
-        Logger.recordOutput(this.name + "/LowerTroughTOF", lowerTroughTOF.getRange());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
         if (currentMode == OperatingMode.DISABLED) return;
 
-        switch ((ElevatorState) getCurrentState()) {
-/*            case SAFE:
-                motorRight.set(0);
-                break;*/
-            case MANUAL_DOWN:
-                motorRight.set(-0.1);
-                break;
-            case MANUAL_UP:
-                motorRight.set(0.1);
-                break;
-            default:
-                goToPosition();
-                break;
+        if (robotController.isManualControlMode()) {
+            switch ((ElevatorState) getCurrentState()) {
+                case SAFE:
+                    motorRight.set(0);
+                    break;
+                case MANUAL_DOWN:
+                    motorRight.set(-0.1);
+                    break;
+                case MANUAL_UP:
+                    motorRight.set(0.1);
+                    break;
+            }
+        } else if (positions.containsKey(getCurrentState())) {
+            goToPosition();
         }
     }
 
@@ -129,10 +137,6 @@ public class Elevator extends StateSubsystem {
 
     public double getSecondStagePosition() {
         return secondStageTOF.getRange();
-    }
-
-    public boolean hasCoral() {
-        return lowerTroughTOF.getRange() <= 125;
     }
 
     public void goToPosition() {
@@ -179,7 +183,7 @@ public class Elevator extends StateSubsystem {
         L4,
         MANUAL_DOWN,
         MANUAL_UP,
-        COLLECT_HIGH,
-        COLLECT_LOW
+        COLLECT_LOW,
+        POLE
     }
 }

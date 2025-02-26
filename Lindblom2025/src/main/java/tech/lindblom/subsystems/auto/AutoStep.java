@@ -9,7 +9,7 @@ public class AutoStep {
 
     private int maxTime;
     private RobotController.Action action;
-    private PathPlannerPath path;
+    private PathPlannerPath path = null;
     private Reaction reaction;
 
     public AutoStep(int maxTime, PathPlannerPath path) {

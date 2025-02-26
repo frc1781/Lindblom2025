@@ -2,25 +2,42 @@ package tech.lindblom.control;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
+
+import tech.lindblom.control.RobotController.Action;
 import tech.lindblom.utils.Constants;
 
 import java.util.ArrayList;
 
 public class DriverInput {
     private RobotController robotController;
+    private static int lastButton = -1;
     private static XboxController[] controllers = new XboxController[] {
-            new XboxController(0)
+            new XboxController(0),
+            new XboxController(1)
     };
 
     private Control[] controlList;
 
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
+        //DO NOT ASSIGN A CONTROL TO X
         this.controlList = new Control[] {
-                new Control(0, "X", RobotController.Action.L4),
-                new Control(0, "Y", RobotController.Action.COLLECT),
-                new Control(0, "B", RobotController.Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", RobotController.Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "Y", Action.COLLECT),
+                new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
+                new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
+                new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
+                new Control(0, "A", Action.EAT),
+                new Control(0, "X", Action.SPIT),
+                new Control(1, "DPAD_UP", Action.CLIMBER_UP),
+                new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
+                new Control(1, "RB", Action.CENTER_REEF_RIGHT),
+                new Control(1, "LB", Action.CENTER_REEF_LEFT),
+                new Control(1, "A", Action.L4),
+                new Control(1, "B", Action.L3),
+                new Control(1, "X", Action.L2),
+                new Control(1, "Y", Action.L1),
+
         };
     }
 
@@ -31,19 +48,20 @@ public class DriverInput {
         driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
         driverInputHolder.resetNavX = getButton("START", 0);
+        driverInputHolder.toggleManualControl = getButton("B", 0);
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
-
-        if (getButton("LB", 0)) {
-            driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
-        } else if (getButton("RB", 0)) {
-            driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-        }
 
         for (int i = 0; i < controlList.length; i++) {
             Control control = controlList[i];
 
             if (control.getButtonValue()) {
+                if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
+                    driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
+                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
+                    driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                }
+
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
                 if (subsystemSettingsFromAction == null) break;
 
@@ -141,12 +159,14 @@ public class DriverInput {
             return DriverInput.getButton(inputName, controllerIndex);
         }
 
+
         enum InputType {
             BUTTON
         }
     }
 
     public static boolean getButton(String buttonName, int controllerIndex) {
+        //getButton();
         switch (buttonName) {
             case "START":
                 return controllers[controllerIndex].getStartButton();
@@ -162,19 +182,60 @@ public class DriverInput {
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":
                 return controllers[controllerIndex].getRightBumperButton();
+ /*           case "button1":
+                return (lastButton == 1 || buttonBoard.getRawButton(1)) && getButton("X", 0);
+            case "button2":
+                return (lastButton == 2 || buttonBoard.getRawButton(2)) && getButton("X", 0);
+            case "button3":
+                return (lastButton == 3 || buttonBoard.getRawButton(3)) && getButton("X", 0);
+            case "button4":
+                return (lastButton == 4 || buttonBoard.getRawButton(4)) && getButton("X", 0);
+            case "button5":
+                return (lastButton == 5 || buttonBoard.getRawButton(5)) && getButton("X", 0);
+            case "button6":
+                return (lastButton == 6 || buttonBoard.getRawButton(6)) && getButton("X", 0);
+            case "button7":
+                return (lastButton == 7 || buttonBoard.getRawButton(7)) && getButton("X", 0);
+            case "button8":
+                return (lastButton == 8 || buttonBoard.getRawButton(8)) && getButton("X", 0);
+            case "button9":
+                return buttonBoard.getRawButton(9);
+            case "button10":
+                return buttonBoard.getRawButton(10);
+            case "button11":
+                return buttonBoard.getRawButton(11);*/
+            case "DPAD_UP":
+                return controllers[controllerIndex].getPOV() == 0;
+            case "DPAD_DOWN":
+                return controllers[controllerIndex].getPOV() == 180;
         }
-
         return false;
     }
+
+/*    public static int getButton() {
+        int button = -1;
+        for (int i = 1;  i <= 8; i++) {
+          if (buttonBoard.getRawButtonPressed(i)) {
+            button = i;
+          }
+        }
+
+        if (button != -1) {
+            lastButton = button;
+        }
+
+        return button;
+      }*/
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
         public RobotController.Action sequentialAction;
 
-        public ReefCenteringSide centeringSide = null;
-
         Translation2d driverLeftJoystickPosition;
         Translation2d driverRightJoystickPosition;
+
+        public ReefCenteringSide centeringSide = null;
+        public boolean toggleManualControl = false;
 
         boolean resetNavX;
     }
