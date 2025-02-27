@@ -468,6 +468,25 @@ public class RobotController {
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+                /* 
+                 * 	Collect Action
+                    1	Inhibit movement until any sensor detects a coral
+                    1	Turn on conveyor if coral is detected by any beam break and not detected by the cradel front beam break
+                    1	Move arm to collect if elevator and arm are in positions
+                    2	move elevator to collect if cradel front beam break detects coral
+                    3	move elevator to L4 if arm TOF detects coral
+                    3	move arm to POLE if arm TOF detects coral and safe to do so
+                    4   Leave in those states unless no longer detecting coral in Arm TOF
+	                ANAYA: Check that using the correct beam break for turning off conveyor should be the front conveyor 
+                    right I mean in theory you should be able to walk the coral through this hole thing right beam 
+                    break happens here it lands in the trough or the conveyor has two different ones assuming this 
+                    is up and a non blocking position then it should convey until neither of those is seen and 
+                    the front one does see I wish at that point the hand should be able to grab the coral from 
+                    this beam break and when it lifts the coral up we should see no Coral anywhere in the cradle 
+                    and only see Coral in the time of flight and then after we place we should see no Coral in 
+                    the time of flight that it then we should sense it all the way through the entire robot or 
+                    we have that possibility I don't know how useful some of that is but well
+                 */
         defineAction(Action.COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
