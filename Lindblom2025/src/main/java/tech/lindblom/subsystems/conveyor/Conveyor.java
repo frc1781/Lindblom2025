@@ -12,9 +12,15 @@ import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
-public class Conveyor extends BaseConveyor {
-
+public class Conveyor extends StateSubsystem {
     RobotController controller;
+    protected DigitalInput coralHopperSensorFront;
+    protected DigitalInput coralHopperSensorBack;
+    protected DigitalInput coralCradleSensor;
+    protected DigitalInput sideRampSensor;
+    protected DigitalInput backRampSensor;
+
+    protected SparkMax coralConveyor;
 
     public Conveyor(RobotController controller) {
         super("Conveyor", ConveyorState.IDLE);
@@ -69,11 +75,11 @@ public class Conveyor extends BaseConveyor {
                 break;
             case CONVEY:
                     if (!controller.elevatorInConveyPosition()) return;
-                    if (cradleHasCoral() || !hasConveyorHasCoral()) {
+                    if (cradleHasCoral() && !hasConveyorHasCoral()) {
                         setState(ConveyorState.IDLE);
                     }
 
-                        coralConveyor.set(.5);
+                    coralConveyor.set(.5);
                 break;
         }
     }
@@ -84,5 +90,9 @@ public class Conveyor extends BaseConveyor {
 
     public boolean cradleHasCoral() {
         return !coralCradleSensor.get();
+    }
+
+    public enum ConveyorState implements SubsystemState {
+        IDLE, CONVEY, COLLECT
     }
 }

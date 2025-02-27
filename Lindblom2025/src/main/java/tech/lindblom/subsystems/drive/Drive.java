@@ -13,17 +13,12 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
 
-import java.lang.ModuleLayer.Controller;
-import java.util.ResourceBundle.Control;
-
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
-import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
-import com.playingwithfusion.TimeOfFlight;
 
 public class Drive extends Subsystem {
     private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
@@ -62,7 +57,7 @@ public class Drive extends Subsystem {
 
     @Override
     public void init() {
-        switch (currentMode) {
+        switch (currentOperatingMode) {
             case AUTONOMOUS:
                 break;
         }
@@ -76,7 +71,7 @@ public class Drive extends Subsystem {
     }
 
     public void drive(ChassisSpeeds speeds) {
-        if (currentMode == EnumCollection.OperatingMode.DISABLED) {
+        if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) {
             System.out.println("MOVING IN DISABLED");
             return;
         }

@@ -1,18 +1,17 @@
 package tech.lindblom.subsystems.types;
 
-import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.utils.EnumCollection;
 
 public abstract class Subsystem {
     public final String name;
-    protected EnumCollection.OperatingMode currentMode;
+    protected EnumCollection.OperatingMode currentOperatingMode;
 
     protected Subsystem(String name) {
         this.name = name;
     }
 
     public void setOperatingMode(EnumCollection.OperatingMode mode) {
-        currentMode = mode;
+        currentOperatingMode = mode;
         System.out.println(name + " initialized into operating mode " + mode.toString());
         init();
     }

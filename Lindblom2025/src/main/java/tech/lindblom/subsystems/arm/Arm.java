@@ -67,9 +67,17 @@ public class Arm extends StateSubsystem {
             return true;
         }
 
-       double tolerance = 6;
-       Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
-       return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
+        if (getCurrentState() == ArmState.POLE) {
+            return robotController.driveController.matchesState();
+        }
+
+        if (positionMap.containsKey(getCurrentState())) {
+            double tolerance = 6;
+            Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
+            return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
+        }
+
+        return false;
     }
 
     @Override
@@ -81,7 +89,7 @@ public class Arm extends StateSubsystem {
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/ArmTOF", coralTimeOfFlight.getRange());
-        if(currentMode == OperatingMode.DISABLED) return;
+        if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
                 case IDLE:
@@ -95,21 +103,27 @@ public class Arm extends StateSubsystem {
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
+            if (getCurrentState() == ArmState.IDLE && coralTimeOfFlight.getRange() < 20.0 && currentOperatingMode == OperatingMode.TELEOP) {
+                setState(ArmState.COLLECT);
+            }
+
             getToPosition(positionMap.get(getCurrentState()));
         }
-
     }
 
     @Override
-    public void setState(SubsystemState newState) {
-        previousState = (ArmState) getCurrentState();
-        super.setState(newState);
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        this.previousState = (ArmState) previousState;
     }
 
     private void getToPosition(double position){
-        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || (getCurrentState() == defaultState && previousState == ArmState.L3 && timeInState.get() < 2)) return;
+        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) return;
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+    }
+
+    private boolean preventDescore() {
+        return (getCurrentState() == defaultState && (previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1) && timeInState.get() < 2);
     }
 
     public enum ArmState implements SubsystemState {

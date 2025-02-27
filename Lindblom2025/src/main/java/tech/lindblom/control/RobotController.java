@@ -16,9 +16,7 @@ import tech.lindblom.subsystems.auto.routines.*;
 import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.climber.ClimberSim;
-import tech.lindblom.subsystems.conveyor.BaseConveyor;
 import tech.lindblom.subsystems.conveyor.Conveyor;
-import tech.lindblom.subsystems.conveyor.ConveyorSim;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -44,7 +42,7 @@ public class RobotController {
     public Elevator elevatorSystem;
     public Arm armSystem;
     public BaseClimber climberSystem;
-    public BaseConveyor conveyorSystem;
+    public Conveyor conveyorSystem;
     public Mouth mouthSystem;
 
     DriverInput driverInput;
@@ -81,13 +79,12 @@ public class RobotController {
         mouthSystem = new Mouth();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
+        conveyorSystem = new Conveyor(this);
         driverInput = new DriverInput(this);
         if (RobotBase.isReal()) {
             climberSystem = new Climber();
-            conveyorSystem = new Conveyor(this);
         } else {
             climberSystem = new ClimberSim();
-            conveyorSystem = new ConveyorSim();
         }
         stateSubsystems = new ArrayList<>();
         stateSubsystems.add(ledsSystem);
@@ -142,40 +139,7 @@ public class RobotController {
                 break;
             case AUTONOMOUS:
                 if (currentAction != null) {
-                    if (isSequentialAction(currentAction)) {
-                        if (currentSequentialAction != currentAction) {
-                            currentSequentialAction = currentAction;
-                            sequentialActionStatus = new ArrayList<>();
-                            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
-                            for (SubsystemSetting subsystemSetting : subsystemSettings) {
-                                sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
-                            }
-                        }
-                        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
-
-                        for (int i = 0; i < subsystemSettings.length; i++) {
-                            SubsystemSetting setting = subsystemSettings[i];
-                            if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
-                                setting.subsystem.setState(setting.state);
-                            }
-
-                            if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
-                                sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
-                            }
-                        }
-                        break;
-                    } else if (currentSequentialAction != null) {
-                        currentSequentialAction = null;
-                        sequentialActionStatus = new ArrayList<>();
-                    }
-
-
-                    SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
-                    for (SubsystemSetting subsystemSetting : subsystemSettings) {
-                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
-
-                        subsystemSetting.subsystem.setState(subsystemSetting.state);
-                    }
+                    processActions();
                 }
                 break;
             case TELEOP:
@@ -279,6 +243,41 @@ public class RobotController {
                 }
                 subsystem.restoreToDefaultState();
             }
+        }
+    }
+
+    private void processActions() {
+        if (isSequentialAction(currentAction)) {
+            if (currentSequentialAction != currentAction) {
+                currentSequentialAction = currentAction;
+                sequentialActionStatus = new ArrayList<>();
+                SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                    sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                }
+            }
+            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+
+            for (int i = 0; i < subsystemSettings.length; i++) {
+                SubsystemSetting setting = subsystemSettings[i];
+                if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                    setting.subsystem.setState(setting.state);
+                }
+
+                if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                    sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                }
+            }
+        } else if (currentSequentialAction != null) {
+            currentSequentialAction = null;
+            sequentialActionStatus = new ArrayList<>();
+        }
+
+
+        SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
+        for (SubsystemSetting subsystemSetting : subsystemSettings) {
+            if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
+            subsystemSetting.subsystem.setState(subsystemSetting.state);
         }
     }
 
@@ -502,15 +501,11 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
 
         defineAction(Action.CENTER_REEF_LEFT,  //terminates when pole down, ignore button down if L1-L4 are down already
-            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 6),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 6),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6)
+            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 6)
         );
 
         defineAction(Action.CENTER_REEF_RIGHT, //terminates when pole down, ignore button down if L1-L4 are down already
-            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 6),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6)
+            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6)
         );
 
         defineAction(Action.L4,
@@ -523,8 +518,7 @@ public class RobotController {
         defineAction(Action.L3,
             new SubsystemSetting(true),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5), 
-            new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),  //How long? wait for elevator to get to L3
+            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
         );
 
@@ -532,7 +526,6 @@ public class RobotController {
             new SubsystemSetting(true),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),  //How long? wait for elevator to get to L2
             new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
         );
 
@@ -540,7 +533,6 @@ public class RobotController {
             new SubsystemSetting(true),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),  //How long? wait for elevator to get to L1
             new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
         );
 
@@ -600,18 +592,6 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
                 );
-        // defineAction(Action.FIND_POLE_LEFT,
-        //         new SubsystemSetting(true),
-        //         new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6),
-        //         new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 6),
-        //         new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_LEFT,6),
-        //         new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 6));
-        // defineAction(Action.FIND_POLE_RIGHT,
-        //         new SubsystemSetting(true),
-        //         new SubsystemSetting(armSystem, Arm.ArmState.POLE, 6),
-        //         new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 6),
-        //         new SubsystemSetting(driveController, DriveController.DriverStates.FIND_POLE_RIGHT,6),
-        //         new SubsystemSetting(driveController, DriveController.DriverStates.DRIVER, 6));
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
         defineAction(Action.CLIMBER_DOWN,
@@ -625,11 +605,7 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToMove() {
-        if (elevatorSystem.getCurrentState() == elevatorSystem.defaultState) {
-            return elevatorSystem.matchesState();
-        }
-
-        return false;
+        return elevatorSystem.matchesState();
     }
 
     public double getCenteringDistance() {
@@ -647,6 +623,13 @@ public class RobotController {
         return Constants.Vision.ERROR_CONSTANT;
     }
 
+    public boolean isArmInPoleState() {
+        return armSystem.getCurrentState() == Arm.ArmState.POLE && armSystem.matchesState();
+    }
+
+    public boolean driveControllerMatchesState() {
+        return driveController.matchesState();
+    }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
         ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();

@@ -41,18 +41,6 @@ public class DriverInput {
         };
     }
 
-    private boolean levelButtonDown() {  //MUST HIT THIS BUTTON AFTER PRESSING RB OR LB TO CHOOSE SIDE
-        return 
-            getButton("A", 1) ||
-            getButton("B", 1) ||
-            getButton("X", 1) ||
-            getButton("Y", 1);
-    }
-
-    private boolean ignoreCenteringButtonDownBecasueFoundPoleMoveOnToScoring() {
-        return (levelButtonDown() && robotController.driveController.hasFoundReefPole());
-    }
-
     public InputHolder getDriverInputs() {
         InputHolder driverInputHolder = new InputHolder();
 
@@ -67,11 +55,6 @@ public class DriverInput {
         for (int i = 0; i < controlList.length; i++) {
             Control control = controlList[i];
 
-            if ((control.requestedAction == RobotController.Action.CENTER_REEF_LEFT  || 
-                control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) &&
-                ignoreCenteringButtonDownBecasueFoundPoleMoveOnToScoring()) {
-                    continue;
-                }
             if (control.getButtonValue()) {
                 if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
@@ -199,28 +182,6 @@ public class DriverInput {
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":
                 return controllers[controllerIndex].getRightBumperButton();
- /*           case "button1":
-                return (lastButton == 1 || buttonBoard.getRawButton(1)) && getButton("X", 0);
-            case "button2":
-                return (lastButton == 2 || buttonBoard.getRawButton(2)) && getButton("X", 0);
-            case "button3":
-                return (lastButton == 3 || buttonBoard.getRawButton(3)) && getButton("X", 0);
-            case "button4":
-                return (lastButton == 4 || buttonBoard.getRawButton(4)) && getButton("X", 0);
-            case "button5":
-                return (lastButton == 5 || buttonBoard.getRawButton(5)) && getButton("X", 0);
-            case "button6":
-                return (lastButton == 6 || buttonBoard.getRawButton(6)) && getButton("X", 0);
-            case "button7":
-                return (lastButton == 7 || buttonBoard.getRawButton(7)) && getButton("X", 0);
-            case "button8":
-                return (lastButton == 8 || buttonBoard.getRawButton(8)) && getButton("X", 0);
-            case "button9":
-                return buttonBoard.getRawButton(9);
-            case "button10":
-                return buttonBoard.getRawButton(10);
-            case "button11":
-                return buttonBoard.getRawButton(11);*/
             case "DPAD_UP":
                 return controllers[controllerIndex].getPOV() == 0;
             case "DPAD_DOWN":
@@ -228,21 +189,6 @@ public class DriverInput {
         }
         return false;
     }
-
-/*    public static int getButton() {
-        int button = -1;
-        for (int i = 1;  i <= 8; i++) {
-          if (buttonBoard.getRawButtonPressed(i)) {
-            button = i;
-          }
-        }
-
-        if (button != -1) {
-            lastButton = button;
-        }
-
-        return button;
-      }*/
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;

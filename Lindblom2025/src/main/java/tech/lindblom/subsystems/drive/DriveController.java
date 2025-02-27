@@ -20,13 +20,11 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.control.DriverInput.ReefCenteringSide;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
-import edu.wpi.first.wpilibj.Timer;
 
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
@@ -53,7 +51,7 @@ public class DriveController extends StateSubsystem {
 
     private RobotConfig robotConfig;
     private boolean isFieldOriented = true;
-    private boolean inCenteredPosition = false;
+    private boolean reachedDesiredDistance = false;
     private boolean detectedPole = false;
 
     public DriveController(RobotController controller) {
@@ -168,11 +166,9 @@ public class DriveController extends StateSubsystem {
         driveSubsystem.drive(speeds);
     }
 
-    private boolean areLegitReadings(double cameraOffset, double cameraDistance) {
+    private boolean areValidCameraReading(double cameraOffset) {
        return 
-        cameraOffset != Constants.Vision.ERROR_CONSTANT &&  
-        cameraDistance != Constants.Vision.ERROR_CONSTANT && 
-        cameraDistance != 0.0 && 
+        cameraOffset != Constants.Vision.ERROR_CONSTANT &&
         cameraOffset != 0.0; //0.0 indicates it is not estimating distance
     }
 
@@ -201,11 +197,11 @@ public class DriveController extends StateSubsystem {
             }
         }
 
-        if (currentMode == AUTONOMOUS) {
-            return cameraDistance < 1.5 ? inputSpeeds : zeroSpeed();
+        if (currentOperatingMode == AUTONOMOUS) {
+            return cameraDistance < 1 ? inputSpeeds : zeroSpeed();
         }
 
-        if (areLegitReadings(cameraOffset, cameraDistance)) {  
+        if (areValidCameraReading(cameraOffset)) {
             if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE) {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             } else {
@@ -227,14 +223,14 @@ public class DriveController extends StateSubsystem {
             } else {
                 inputSpeeds.omegaRadiansPerSecond = 0;
             }
-        }
 
-        if (inputSpeeds.omegaRadiansPerSecond == 0 && inputSpeeds.vxMetersPerSecond == 0) {
-            inCenteredPosition = true;
+            if (inputSpeeds.omegaRadiansPerSecond == 0 && inputSpeeds.vxMetersPerSecond == 0) {
+                reachedDesiredDistance = true;
+            }
         }
 
         Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
-        Logger.recordOutput(this.name + "/inCenteredPosition", inCenteredPosition);
+        Logger.recordOutput(this.name + "/inCenteredPosition", reachedDesiredDistance);
         Logger.recordOutput(this.name + "/driveUsingVelocities", inputSpeeds);
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
         Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
@@ -242,13 +238,19 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/leftTOFDistance", leftTOF.getRange());
         Logger.recordOutput(this.name + "/rightTOFDistance", rightTOF.getRange());
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
+        Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
+
+        if (reachedDesiredDistance && hasFoundReefPole()) {
+            return zeroSpeed();
+        }
         return inputSpeeds;
     }
 
+    @Override
     public void stateTransition(SubsystemState previousState, SubsystemState newState) {
         if (newState == DriverStates.CENTERING_LEFT || newState == DriverStates.CENTERING_RIGHT) {
             detectedPole = false;
-            inCenteredPosition = false;
+            reachedDesiredDistance = false;
         }
     }
 
@@ -257,13 +259,8 @@ public class DriveController extends StateSubsystem {
             return;
         }
 
-        if (inCenteredPosition) {
-            findReefPole();
-        }
-        else {
-            ChassisSpeeds centeringSpeeds = getCenteringChassisSpeeds(zeroSpeed());
-            driveSubsystem.drive(centeringSpeeds);
-        }
+        ChassisSpeeds centeringSpeeds = getCenteringChassisSpeeds(zeroSpeed());
+        driveSubsystem.drive(centeringSpeeds);
     }
 
     public boolean hasFinishedCentering() {
@@ -271,83 +268,11 @@ public class DriveController extends StateSubsystem {
             return false;
         }
 
-        if (inCenteredPosition)
-        {
-            return true;
-        }
-
-        int apriltagId = 0;
-        double cameraOffset = 0.0;
-        double cameraDistance = 0.0;
-
-        double targetOffset = 0;
-        double targetDistance = 0;
-
-        switch (robotController.getCenteringSide()) {
-            case LEFT:
-                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_LEFT;
-                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_LEFT;
-
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
-                if (apriltagId != -1) {
-                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
-                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
-                }
-                break;
-            case RIGHT:
-                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_RIGHT;
-                targetDistance = Constants.Drive.TARGET_CORAL_DISTANCE_RIGHT;
-
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
-                if (apriltagId != -1) {
-                    cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
-                }
-                break;
-        }
-
-
-        if (apriltagId != -1) {
-            return Math.abs(targetOffset - cameraOffset) < Constants.Drive.OFFSET_TOLERANCE && Math.abs(targetDistance - cameraDistance) < Constants.Drive.DISTANCE_TOLERANCE;
-        }
-
-        return false;
+        return reachedDesiredDistance && hasFoundReefPole();
     }
-
-    public void findReefPole() {
-        double leftTOFdistance = leftTOF.getRange();
-        double rightTOFdistance = rightTOF.getRange();
-
-        Logger.recordOutput(this.name + "/leftTOFDistance", leftTOFdistance);
-        Logger.recordOutput(this.name + "/rightTOFDistance", rightTOFdistance);
-        Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
-
-        ChassisSpeeds reefPoleSpeeds = zeroSpeed();
-
-        if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
-            if (!inCenteredPosition) {
-                if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50) {
-                    reefPoleSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
-                } 
-                if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20) {
-                    reefPoleSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
-                } 
-                if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0) {
-                    inCenteredPosition = true;
-                }
-            }
-
-            if (inCenteredPosition && !hasFoundReefPole()) {
-                reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
-            }
-        }
-
-        driveSubsystem.drive(reefPoleSpeeds);
-    }
-
 
     public boolean hasFoundReefPole() {
-        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid();
+        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState();
         if (hasFoundReefPole) {
             detectedPole = true;
         }
@@ -429,8 +354,7 @@ public class DriveController extends StateSubsystem {
     @Override
     public boolean matchesState() {
         return switch ((DriverStates) getCurrentState()) {
-            case CENTERING_RIGHT -> hasFinishedCentering();
-            case CENTERING_LEFT -> hasFinishedCentering();
+            case CENTERING_RIGHT, CENTERING_LEFT -> hasFinishedCentering();
             case PATH -> hasReachedTargetPose();
             case IDLE -> false;
             case DRIVER -> false;

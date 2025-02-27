@@ -37,7 +37,7 @@ public class Climber extends BaseClimber {
 
     @Override
     public void periodic() {
-        if (currentMode == EnumCollection.OperatingMode.DISABLED) return;
+        if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) return;
 
         Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();

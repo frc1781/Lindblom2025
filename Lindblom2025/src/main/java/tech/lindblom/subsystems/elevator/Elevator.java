@@ -9,13 +9,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismObject2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
@@ -112,12 +107,12 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
-        if (currentMode == OperatingMode.DISABLED) return;
+        if (currentOperatingMode == OperatingMode.DISABLED) return;
 
         if (robotController.isManualControlMode()) {
             switch ((ElevatorState) getCurrentState()) {
                 case SAFE:
-                    motorRight.set(0);
+                    motorRight.set(0.02);
                     break;
                 case MANUAL_DOWN:
                     motorRight.set(-0.1);
