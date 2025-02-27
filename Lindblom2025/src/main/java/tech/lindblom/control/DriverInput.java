@@ -31,14 +31,26 @@ public class DriverInput {
                 new Control(0, "X", Action.SPIT),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
-                new Control(1, "RB", Action.CENTER_REEF_RIGHT),
-                new Control(1, "LB", Action.CENTER_REEF_LEFT),
+                new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
+                new Control(1, "LB", Action.CENTER_REEF_LEFT), //Ignore if pole already found and still holding down button
                 new Control(1, "A", Action.L4),
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
                 new Control(1, "Y", Action.L1),
 
         };
+    }
+
+    private boolean levelButtonDown() {  //MUST HIT THIS BUTTON AFTER PRESSING RB OR LB TO CHOOSE SIDE
+        return 
+            getButton("A", 1) ||
+            getButton("B", 1) ||
+            getButton("X", 1) ||
+            getButton("Y", 1);
+    }
+
+    private boolean ignoreCenteringButtonDownBecasueFoundPoleMoveOnToScoring() {
+        return (levelButtonDown() && robotController.driveController.hasFoundReefPole());
     }
 
     public InputHolder getDriverInputs() {
@@ -55,6 +67,11 @@ public class DriverInput {
         for (int i = 0; i < controlList.length; i++) {
             Control control = controlList[i];
 
+            if ((control.requestedAction == RobotController.Action.CENTER_REEF_LEFT  || 
+                control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) &&
+                ignoreCenteringButtonDownBecasueFoundPoleMoveOnToScoring()) {
+                    continue;
+                }
             if (control.getButtonValue()) {
                 if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
