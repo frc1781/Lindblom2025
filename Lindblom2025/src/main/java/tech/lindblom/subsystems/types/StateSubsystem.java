@@ -36,9 +36,14 @@ public abstract class StateSubsystem extends Subsystem {
             return;
         }
         System.out.println(name + " changed to " + newState.toString());
+        stateTransition(currentState, newState);
         currentState = newState;
         resetTimeInState();
         Logger.recordOutput(name + "/currentState", currentState.toString());
+    }
+
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        //define in sub classes
     }
 
     public SubsystemState getCurrentState() {
