@@ -39,8 +39,6 @@ public class DriveController extends StateSubsystem {
     private HolonomicDriveController trajectoryController;
     private TimeOfFlight leftTOF;
     private TimeOfFlight rightTOF;
-    private Timer timeInState;
-
     private final TimeOfFlight armTOF;
 
     private final PIDController XController = new PIDController(3, 0, 0);
@@ -56,7 +54,7 @@ public class DriveController extends StateSubsystem {
     private final ChassisSpeeds zeroSpeed = new ChassisSpeeds(0.0, 0.0, 0.0);
     private RobotConfig robotConfig;
     private boolean isFieldOriented = true;
-    private boolean preventFalloff = false;
+    private boolean inCenteredPosition = false;
     private boolean detectedPole = false;
 
     public DriveController(RobotController controller) {
@@ -121,22 +119,15 @@ public class DriveController extends StateSubsystem {
 
         switch ((DriverStates) getCurrentState()) {
             case IDLE:
-                preventFalloff = false;
-                detectedPole = false;
                 driveSubsystem.drive(zeroSpeed);
                 break;
             case CENTERING:
                 centerOnReef();
                 break;
             case DRIVER:
-                preventFalloff = false;
-                detectedPole = false;
                 //RobotController is inputing speeds from driver input
                 break;
             case PATH:
-                preventFalloff = false;
-                detectedPole = false;
-
                 boolean hasRobotReachedTargetPose = hasReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
 
@@ -256,15 +247,31 @@ public class DriveController extends StateSubsystem {
         return inputSpeeds;
     }
 
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        if (newState == DriverStates.CENTERING) {
+            detectedPole = false;
+            inCenteredPosition = false;
+        }
+    }
+
     public void centerOnReef() {
-        if (robotController.getCenteringSide() == null) return;
+        if (robotController.getCenteringSide() == null) {
+            return;
+        }
+
         ChassisSpeeds centeringSpeeds = zeroSpeed;
         centeringSpeeds = getCenteringChassisSpeeds(centeringSpeeds);
         driveSubsystem.drive(centeringSpeeds);
     }
 
     public boolean hasFinishedCentering() {
-        if (robotController.getCenteringSide() == null) return false;
+        if (robotController.getCenteringSide() == null)  {
+            return false;
+        }
+
+        if (inCenteredPosition) {
+            return true;
+        }
         int apriltagId = 0;
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
@@ -314,20 +321,24 @@ public class DriveController extends StateSubsystem {
         ChassisSpeeds reefPoleSpeeds = zeroSpeed;
 
         if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
-            if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50 && !preventFalloff) {
-                reefPoleSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
-            } else {
-                reefPoleSpeeds.vxMetersPerSecond = 0;
+            if (!inCenteredPosition) {
+                if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50) {
+                    reefPoleSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
+                } else {
+                    reefPoleSpeeds.vxMetersPerSecond = 0;
+                }
+
+                if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20) {
+                    reefPoleSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
+                } else {
+                    reefPoleSpeeds.omegaRadiansPerSecond = 0;
+                }
+                if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0) {
+                    inCenteredPosition = true;
+                }
             }
 
-            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20 && !preventFalloff) {
-                reefPoleSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
-            } else {
-                reefPoleSpeeds.omegaRadiansPerSecond = 0;
-            }
-
-            if (reefPoleSpeeds.omegaRadiansPerSecond == 0 && reefPoleSpeeds.vxMetersPerSecond == 0 && !hasFoundReefPole()) {
-                preventFalloff = true;
+            if (inCenteredPosition && !hasFoundReefPole()) {
                 reefPoleSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.FIND_POLE_RIGHT ? -0.1 : 0.1);
             }
         }
