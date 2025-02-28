@@ -28,6 +28,7 @@ import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
+import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +89,6 @@ public class RobotController {
             climberSystem = new ClimberSim();
         }
         stateSubsystems = new ArrayList<>();
-        stateSubsystems.add(ledsSystem);
         stateSubsystems.add(mouthSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
@@ -99,6 +99,7 @@ public class RobotController {
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
         subsystems.add(mouthSystem);
+        subsystems.add(ledsSystem);
         createActions();
     }
 
