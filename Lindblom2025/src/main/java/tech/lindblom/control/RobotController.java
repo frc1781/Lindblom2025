@@ -442,8 +442,6 @@ public class RobotController {
         CENTER_REEF_RIGHT_L3,
         CENTER_REEF_LEFT_L2,
         CENTER_REEF_RIGHT_L2,
-        CENTER_REEF_LEFT_L1,
-        CENTER_REEF_RIGHT_L1,
         COLLECT,
         EAT,
         MANUAL_ELEVATOR_UP,
@@ -455,7 +453,8 @@ public class RobotController {
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
-        SPIT
+        SPIT,
+        CONVEY_AND_COLLECT
     }
 
     public void createActions(){
@@ -539,58 +538,56 @@ public class RobotController {
         defineAction(Action.CENTER_REEF_LEFT_L4,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L4,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.CENTER_REEF_LEFT_L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
                 );
         defineAction(Action.CENTER_REEF_LEFT_L2,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L2,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
                 );
-        defineAction(Action.CENTER_REEF_LEFT_L1,
+        defineAction(Action.CONVEY_AND_COLLECT,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
-                );
-        defineAction(Action.CENTER_REEF_RIGHT_L1,
-                new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.WAIT, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT,5),
+                new SubsystemSetting(conveyorSystem, Conveyor.ConveyorState.CONVEY, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5)
                 );
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));

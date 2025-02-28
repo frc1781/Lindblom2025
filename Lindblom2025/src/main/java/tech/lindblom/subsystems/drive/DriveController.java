@@ -98,12 +98,14 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void periodic() {
-        if (currentOperatingMode == DISABLED) return;
-        driveSubsystem.periodic();
         Logger.recordOutput(this.name + "/armTOF", armTOF.getRange());
         Logger.recordOutput(this.name + "/armTOFVaild", armTOF.isRangeValid());
-        Logger.recordOutput(this.name + "/armTOFSTD", armTOF.getRangeSigma());
-        Logger.recordOutput(this.name + "/armTOFLatecy", armTOF.getSampleTime());
+        Logger.recordOutput(this.name + "/leftTOF", leftTOF.getRange());
+        Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
+        Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValid());
+
+        if (currentOperatingMode == DISABLED) return;
 
         int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
         if (apriltagId != -1) {
@@ -138,6 +140,8 @@ public class DriveController extends StateSubsystem {
                 }
                 break;
         }
+
+        driveSubsystem.periodic();
     }
 
     private ChassisSpeeds zeroSpeed() {

@@ -117,7 +117,10 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position){
-        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) return;
+        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) {
+            armMotor.set(0);
+            return;
+        }
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
