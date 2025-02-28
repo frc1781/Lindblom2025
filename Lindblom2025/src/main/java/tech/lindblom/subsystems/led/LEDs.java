@@ -5,20 +5,20 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 public class LEDs extends StateSubsystem {
-    private final int LED_LENGTH = 75;
+    private final int LED_LENGTH = 75 + 75;
 
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
 
     public LEDs() {
-        super("LEDs", LEDState.WHITE);
+        super("LEDs", LEDState.OPERATING_COLOR);
     }
 
 
     @Override
     public void init() {
         if (mLedController == null) {
-            mLedController = new AddressableLED(9);
+            mLedController = new AddressableLED(1);
             mLedBuffer = new AddressableLEDBuffer(LED_LENGTH + 1);
 
             mLedController.setLength(mLedBuffer.getLength());
@@ -29,11 +29,25 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public void periodic() {
+  
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }
 
         switch ((LEDState) getCurrentState()) {
+            case OPERATING_COLOR:
+                switch(currentOperatingMode) {
+                    case TELEOP:
+                      solid(255, 255, 0);
+                      break;
+                    case AUTONOMOUS:
+                      solid(255, 0, 0);
+                      break; 
+                    default:
+                      solid(255, 255, 255);
+                      break;                                          
+                }
+                break;
             case RED:
                 solid(255,0,0);
                 break;
@@ -64,6 +78,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
+        OPERATING_COLOR, WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
     }
 }

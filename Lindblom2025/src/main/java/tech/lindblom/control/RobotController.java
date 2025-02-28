@@ -20,6 +20,7 @@ import tech.lindblom.subsystems.conveyor.Conveyor;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
+import tech.lindblom.subsystems.led.LEDs.LEDState;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
@@ -112,6 +113,7 @@ public class RobotController {
                 break;
             case TELEOP:
                 driveController.setState(DriveController.DriverStates.DRIVER);
+                ledsSystem.setState(LEDState.RED);
                 break;
             case TEST:
                 break;
