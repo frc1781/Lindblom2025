@@ -49,6 +49,7 @@ public class DriverInput {
 
         driverInputHolder.resetNavX = getButton("START", 0);
         driverInputHolder.toggleManualControl = getButton("B", 0);
+        driverInputHolder.armConfirm = getButton("BACK", 0);
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
@@ -186,6 +187,8 @@ public class DriverInput {
                 return controllers[controllerIndex].getPOV() == 0;
             case "DPAD_DOWN":
                 return controllers[controllerIndex].getPOV() == 180;
+            case "BACK":
+                    return controllers[controllerIndex].getBackButton();
         }
         return false;
     }
@@ -199,6 +202,7 @@ public class DriverInput {
 
         public ReefCenteringSide centeringSide = null;
         public boolean toggleManualControl = false;
+        public boolean armConfirm = false;
 
         boolean resetNavX;
     }

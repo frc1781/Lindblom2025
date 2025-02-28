@@ -77,7 +77,7 @@ public class RobotController {
                 new OneCoralAuto()
         );
         visionSystem = new Vision(this);
-        ledsSystem = new LEDs();
+        ledsSystem = new LEDs(this);
         mouthSystem = new Mouth();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
@@ -624,7 +624,7 @@ public class RobotController {
     }
 
     public boolean isArmInPoleState() {
-        return armSystem.getCurrentState() == Arm.ArmState.POLE && armSystem.matchesState();
+        return armSystem.getCurrentState() == Arm.ArmState.POLE;
     }
 
     public boolean driveControllerMatchesState() {

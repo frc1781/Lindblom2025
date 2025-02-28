@@ -105,16 +105,16 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
         Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValid());
 
-        if (currentOperatingMode == DISABLED) return;
-
-        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
         if (apriltagId != -1) {
-            double cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-            double cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            double cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+            double cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
             Logger.recordOutput(this.name + "/apriltagId", apriltagId);
             Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
             Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
         }
+
+        if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
             case IDLE:
@@ -205,12 +205,10 @@ public class DriveController extends StateSubsystem {
             return cameraDistance < 1 ? inputSpeeds : zeroSpeed();
         }
 
-        if (areValidCameraReading(cameraOffset)) {
-            if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE) {
-                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-            } else {
-                inputSpeeds.vyMetersPerSecond = 0;
-            }
+        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE && areValidCameraReading(cameraOffset)) {
+            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+        } else {
+            inputSpeeds.vyMetersPerSecond = 0;
         }
 
         double leftTOFdistance = leftTOF.getRange();
@@ -222,7 +220,7 @@ public class DriveController extends StateSubsystem {
                 inputSpeeds.vxMetersPerSecond = 0;
             }
 
-            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 20) {
+            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 30 && Math.abs(rightTOFdistance - leftTOFdistance) < 200) {
                 inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
             } else {
                 inputSpeeds.omegaRadiansPerSecond = 0;
@@ -247,6 +245,7 @@ public class DriveController extends StateSubsystem {
         if (reachedDesiredDistance && hasFoundReefPole()) {
             return zeroSpeed();
         }
+
         return inputSpeeds;
     }
 

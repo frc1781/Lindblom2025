@@ -14,8 +14,9 @@ public class LEDs extends StateSubsystem {
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
 
-    public LEDs() {
+    public LEDs(RobotController _robotController) {
         super("LEDs", LEDState.OPERATING_COLOR);
+        this.robotController = _robotController;
     }
 
 

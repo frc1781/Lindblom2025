@@ -67,10 +67,6 @@ public class Arm extends StateSubsystem {
             return true;
         }
 
-        if (getCurrentState() == ArmState.POLE) {
-            return robotController.driveController.matchesState();
-        }
-
         if (positionMap.containsKey(getCurrentState())) {
             double tolerance = 6;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
@@ -103,9 +99,11 @@ public class Arm extends StateSubsystem {
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
+/*
             if (getCurrentState() == ArmState.IDLE && coralTimeOfFlight.getRange() < 20.0 && currentOperatingMode == OperatingMode.TELEOP) {
                 setState(ArmState.COLLECT);
             }
+*/
 
             getToPosition(positionMap.get(getCurrentState()));
         }

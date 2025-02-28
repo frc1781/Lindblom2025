@@ -79,7 +79,7 @@ public class Constants {
         public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
         public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
-        public static double TARGET_CORAL_OFFSET_LEFT = -18;
+        public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
     }
 

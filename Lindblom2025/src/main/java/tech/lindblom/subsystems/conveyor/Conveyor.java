@@ -78,6 +78,9 @@ public class Conveyor extends StateSubsystem {
                     if (cradleHasCoral() && !hasConveyorHasCoral()) {
                         setState(ConveyorState.IDLE);
                     }
+                    if (timeInState.get() < 0.5) {
+                        return;
+                    }
 
                     coralConveyor.set(.5);
                 break;
