@@ -15,6 +15,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.HashMap;
@@ -72,8 +73,8 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.POLE, new Double[]{250.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
-        positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
-        positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
 
@@ -163,11 +164,11 @@ public class Elevator extends StateSubsystem {
     }
 
     public double clampDutyCycle(double dutyCycle) {
-        if (getCurrentState() == ElevatorState.COLLECT_LOW) {
-            return Math.min(0.5, Math.max(dutyCycle, -0.5));
+        if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
+            return EEUtil.clamp(-0.5, 0.5, dutyCycle);
         }
 
-        return Math.min(0.5, Math.max(dutyCycle, 0));
+        return EEUtil.clamp(0, 0.5, dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {

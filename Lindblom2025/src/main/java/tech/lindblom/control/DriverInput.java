@@ -33,11 +33,11 @@ public class DriverInput {
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
                 new Control(1, "LB", Action.CENTER_REEF_LEFT), //Ignore if pole already found and still holding down button
+                new Control(1, "BACK", Action.CLIMBER_LATCH_RELEASE),
                 new Control(1, "A", Action.L4),
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
                 new Control(1, "Y", Action.L1),
-
         };
     }
 

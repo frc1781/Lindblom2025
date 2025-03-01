@@ -493,20 +493,24 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
                 );
+
         defineAction(Action.MANUAL_ELEVATOR_DOWN,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
+
         defineAction(Action.MANUAL_ELEVATOR_UP,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_UP, 3));
+
         defineAction(Action.MANUAL_ARM_DOWN,
                 new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_DOWN, 3));
+
         defineAction(Action.MANUAL_ARM_UP,
                 new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
 
-        defineAction(Action.CENTER_REEF_LEFT,  //terminates when pole down, ignore button down if L1-L4 are down already
+        defineAction(Action.CENTER_REEF_LEFT,
             new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 6)
         );
 
-        defineAction(Action.CENTER_REEF_RIGHT, //terminates when pole down, ignore button down if L1-L4 are down already
+        defineAction(Action.CENTER_REEF_RIGHT,
             new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6)
         );
 
@@ -592,14 +596,19 @@ public class RobotController {
                 new SubsystemSetting(conveyorSystem, Conveyor.ConveyorState.CONVEY, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5)
                 );
+
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
+
         defineAction(Action.CLIMBER_DOWN,
                   new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
+
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
+
         defineAction(Action.EAT,
                 new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
+
         defineAction(Action.SPIT,
                 new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
     }
@@ -624,11 +633,7 @@ public class RobotController {
     }
 
     public boolean isArmInPoleState() {
-        return armSystem.getCurrentState() == Arm.ArmState.POLE;
-    }
-
-    public boolean driveControllerMatchesState() {
-        return driveController.matchesState();
+        return armSystem.getCurrentState() == Arm.ArmState.POLE && armSystem.matchesDesiredPosition();
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {

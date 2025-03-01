@@ -205,6 +205,9 @@ public class DriveController extends StateSubsystem {
             return cameraDistance < 1 ? inputSpeeds : zeroSpeed();
         }
 
+        if (apriltagId == -1) {
+            inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
+        }
         if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE && areValidCameraReading(cameraOffset)) {
             inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         } else {
@@ -359,9 +362,7 @@ public class DriveController extends StateSubsystem {
         return switch ((DriverStates) getCurrentState()) {
             case CENTERING_RIGHT, CENTERING_LEFT -> hasFinishedCentering();
             case PATH -> hasReachedTargetPose();
-            case IDLE -> false;
-            case DRIVER -> false;
-            default -> false;
+            case IDLE, DRIVER -> false;
         };
     }
 

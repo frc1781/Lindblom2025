@@ -15,6 +15,7 @@ import com.revrobotics.spark.SparkLowLevel;
 
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
@@ -67,12 +68,19 @@ public class Arm extends StateSubsystem {
             return true;
         }
 
+        if (getCurrentState() == ArmState.POLE && robotController.getCenteringSide() != null) {
+            return robotController.driveController.matchesState();
+        }
+
+        return matchesDesiredPosition();
+    }
+
+    public boolean matchesDesiredPosition() {
         if (positionMap.containsKey(getCurrentState())) {
             double tolerance = 6;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
             return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
         }
-
         return false;
     }
 
