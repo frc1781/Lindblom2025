@@ -74,10 +74,12 @@ public class Conveyor extends StateSubsystem {
                 coralConveyor.set(0);
                 break;
             case CONVEY:
-                    if (!controller.elevatorInConveyPosition()) return;
-                    if (cradleHasCoral() && !hasConveyorHasCoral()) {
+                    if (!controller.elevatorInConveyPosition()) 
+                        return;
+                    if ((cradleHasCoral() && !hasConveyorHasCoral()) || (!cradleHasCoral() && !hasConveyorHasCoral())) {
                         setState(ConveyorState.IDLE);
                     }
+
                     if (timeInState.get() < 0.5) {
                         return;
                     }
@@ -85,6 +87,8 @@ public class Conveyor extends StateSubsystem {
                     coralConveyor.set(.5);
                 break;
         }
+
+        coralConveyor.set(.5);
     }
 
     public boolean hasConveyorHasCoral() {

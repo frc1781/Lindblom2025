@@ -96,7 +96,7 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
-        Logger.recordOutput(this.name + "/ArmTOF", coralTimeOfFlight.getRange());
+        Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {

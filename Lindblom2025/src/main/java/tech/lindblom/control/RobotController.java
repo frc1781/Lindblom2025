@@ -636,6 +636,10 @@ public class RobotController {
         return armSystem.getCurrentState() == Arm.ArmState.POLE && armSystem.matchesDesiredPosition();
     }
 
+    public boolean isElevatorInPoleState() {
+        return elevatorSystem.getCurrentState() == Elevator.ElevatorState.POLE && elevatorSystem.matchesState();
+    }
+
     public ArrayList<StateSubsystem> getFailedSubsystems() {
         ArrayList<StateSubsystem> failedSubsystems = new ArrayList<>();
         for (StateSubsystem stateSubsystem : stateSubsystems) {

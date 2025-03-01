@@ -39,32 +39,20 @@ public class LEDs extends StateSubsystem {
             return;
         }
 
-        switch ((LEDState) getCurrentState()) {
-            case OPERATING_COLOR:
-                if (currentOperatingMode == OperatingMode.TELEOP) {
-                    solid(128, 0, 0);                                         
-                } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
-                    solid(255, 215, 0);       
-                }
-                if (robotController.driveController.reefPoleDetected()) {
-                    solid(0, 255, 0);
-                }
-                break;
-            case RED:
-                solid(255,0,0);
-                break;
-            case WHITE:
-                solid(255, 255, 255);
-                break;
-            case GREEN:
-                solid(0,255,0);
-                break;
-            case BLUE:
-                solid(0, 0, 255);
-                break;
-            case EXPECTED_FAIL:
-                break;
+        if (currentOperatingMode == OperatingMode.TELEOP) {
+            solid(128, 0, 0);                                         
+        } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
+            solid(255, 215, 0);       
         }
+
+        if (robotController.driveController.hasFoundReefPole()) {
+            solid(0, 255, 0);
+        }
+
+        if (robotController.isManualControlMode() && robotController.driveController.reefPoleDetected()) {
+            solid(0, 255, 0);
+        }
+
         mLedController.setData(mLedBuffer);
     }
 

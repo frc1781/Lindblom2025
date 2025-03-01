@@ -88,6 +88,7 @@ public class Elevator extends StateSubsystem {
         if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
             return false;
         }
+        
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());

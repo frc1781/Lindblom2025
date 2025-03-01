@@ -282,7 +282,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean hasFoundReefPole() {
-        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState();
+        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState() && robotController.elevatorInConveyPosition();
         if (hasFoundReefPole) {
             detectedPole = true;
         }
