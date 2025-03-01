@@ -104,16 +104,6 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValid());
         Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
         Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValid());
-
-        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
-        if (apriltagId != -1) {
-            double cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
-            double cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
-            Logger.recordOutput(this.name + "/apriltagId", apriltagId);
-            Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
-            Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-        }
-
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
@@ -201,10 +191,6 @@ public class DriveController extends StateSubsystem {
             }
         }
 
-        if (currentOperatingMode == AUTONOMOUS) {
-            return cameraDistance < 1 ? inputSpeeds : zeroSpeed();
-        }
-
         if (apriltagId == -1) {
             inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
         }
@@ -282,7 +268,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean hasFoundReefPole() {
-        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState() && robotController.elevatorInConveyPosition();
+        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState() && robotController.isElevatorInPoleState();
         if (hasFoundReefPole) {
             detectedPole = true;
         }
@@ -332,7 +318,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean hasReachedTargetPose() {
-        if (targetPose == null) return true;
+        if (targetPose == null) return false;
 
         Pose2d currentPose = driveSubsystem.getRobotPose();
         boolean reachedTargetTranslation = currentPose.getTranslation().getDistance(targetPose.getTranslation()) < 0.1;

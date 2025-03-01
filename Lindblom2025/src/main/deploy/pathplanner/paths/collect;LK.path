@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3842391967773433,
-        "y": 6.063425500769365
+        "x": 2.6923295454545455,
+        "y": 6.4039366883116875
       },
       "isLocked": false,
       "linkedName": "Collect North"
@@ -20,8 +20,8 @@
         "y": 5.164622996689436
       },
       "prevControl": {
-        "x": 2.4065627544719908,
-        "y": 5.629833989579358
+        "x": 3.1980316558441557,
+        "y": 6.040685876623376
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.3,
+    "maxVelocity": 1.0,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,

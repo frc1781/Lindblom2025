@@ -74,7 +74,9 @@ public class RobotController {
         autoSystem = new Auto(this,
                 new TestRoutine(),
                 new Collect(),
-                new OneCoralAuto()
+                new OneCoralAuto(),
+                new LeftThreeCoral(),
+                new RightThreeCoral()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
@@ -142,7 +144,44 @@ public class RobotController {
                 break;
             case AUTONOMOUS:
                 if (currentAction != null) {
-                    processActions();
+                    if (isSequentialAction(currentAction)) {
+                        if (currentSequentialAction != currentAction) {
+                            currentSequentialAction = currentAction;
+                            sequentialActionStatus = new ArrayList<>();
+                            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+                            for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                                sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
+                            }
+                        }
+
+                        SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
+
+                        for (int i = 0; i < subsystemSettings.length; i++) {
+                            SubsystemSetting setting = subsystemSettings[i];
+                            if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
+                                if (sequentialActionStatus.size() != subsystemSettings.length || !sequentialActionStatus.get(i).stateHasBeenMet) {
+                                    setting.subsystem.setState(setting.state);
+                                }
+                            }
+
+                            if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
+                                sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
+                            }
+                        }
+
+                        break;
+                    } else if (currentSequentialAction != null) {
+                        currentSequentialAction = null;
+                        sequentialActionStatus = new ArrayList<>();
+                    }
+
+
+                    SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
+                    for (SubsystemSetting subsystemSetting : subsystemSettings) {
+                        if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
+
+                        subsystemSetting.subsystem.setState(subsystemSetting.state);
+                    }
                 }
                 break;
             case TELEOP:
@@ -249,41 +288,6 @@ public class RobotController {
         }
     }
 
-    private void processActions() {
-        if (isSequentialAction(currentAction)) {
-            if (currentSequentialAction != currentAction) {
-                currentSequentialAction = currentAction;
-                sequentialActionStatus = new ArrayList<>();
-                SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
-                for (SubsystemSetting subsystemSetting : subsystemSettings) {
-                    sequentialActionStatus.add(new SequentialActionStatus(false, subsystemSetting));
-                }
-            }
-            SubsystemSetting[] subsystemSettings = getSequentialActionSubsystemSettings(currentSequentialAction);
-
-            for (int i = 0; i < subsystemSettings.length; i++) {
-                SubsystemSetting setting = subsystemSettings[i];
-                if ((i == 0 || sequentialActionStatus.get(i - 1).stateHasBeenMet)) {
-                    setting.subsystem.setState(setting.state);
-                }
-
-                if (!sequentialActionStatus.get(i).stateHasBeenMet && setting.subsystem.getCurrentState() == setting.state) {
-                    sequentialActionStatus.get(i).stateHasBeenMet = setting.subsystem.matchesState();
-                }
-            }
-        } else if (currentSequentialAction != null) {
-            currentSequentialAction = null;
-            sequentialActionStatus = new ArrayList<>();
-        }
-
-
-        SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
-        for (SubsystemSetting subsystemSetting : subsystemSettings) {
-            if (subsystemSetting.subsystem.getCurrentState() == subsystemSetting.state) continue;
-            subsystemSetting.subsystem.setState(subsystemSetting.state);
-        }
-    }
-
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? -1 : 1;
 
@@ -326,6 +330,10 @@ public class RobotController {
                     yield DriverInput.ReefCenteringSide.LEFT;
                 case CENTER_REEF_RIGHT:
                     yield DriverInput.ReefCenteringSide.RIGHT;
+                case CENTER_REEF_RIGHT_L4:
+                    yield DriverInput.ReefCenteringSide.RIGHT;
+                case CENTER_REEF_LEFT_L4:
+                    yield DriverInput.ReefCenteringSide.LEFT;
                 default:
                     yield null;
             };
@@ -335,7 +343,7 @@ public class RobotController {
     }
 
     public boolean shouldBeCentering() {
-        return getCenteringSide() != null && getCenteringDistance() < 1.5;
+        return getCenteringSide() != null && getCenteringDistance() < .75;
     }
 
     // Auto
@@ -544,22 +552,25 @@ public class RobotController {
 
         defineAction(Action.CENTER_REEF_LEFT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
                 );
         defineAction(Action.CENTER_REEF_LEFT_L3,
                 new SubsystemSetting(true),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
@@ -655,7 +666,7 @@ public class RobotController {
         if (getCenteringSide() != null
                 && currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
                 && autoSystem.getCurrentAutoStep().getPath() != null) {
-            return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
+             return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
         }
 
         return actionMap.get(action);

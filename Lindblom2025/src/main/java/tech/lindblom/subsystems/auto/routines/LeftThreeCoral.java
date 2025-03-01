@@ -1,6 +1,7 @@
 package tech.lindblom.subsystems.auto.routines;
 
 import tech.lindblom.control.RobotController;
+import tech.lindblom.control.RobotController.Action;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoRoutine;
 import tech.lindblom.subsystems.auto.AutoStep;
@@ -19,11 +20,11 @@ public class LeftThreeCoral implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(
                     new AutoStep[] {
-                        new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;IJ")),
-                        new AutoStep(RobotController.Action.CONVEY_AND_COLLECT, Auto.getPathFromName("IJ;collect")),
-                        new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;LK")),
-                        new AutoStep(RobotController.Action.CONVEY_AND_COLLECT, Auto.getPathFromName("LK;collect")),
-                        new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("collect;LK")),
+                        new AutoStep(Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;IJ")),
+                        new AutoStep(Auto.getPathFromName("IJ;collect")),
+                        new AutoStep(Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;LK")),
+                        new AutoStep(Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("collect;LK")),
                     }
                 )
         };
