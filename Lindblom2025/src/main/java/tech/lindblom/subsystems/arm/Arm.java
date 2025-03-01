@@ -89,6 +89,10 @@ public class Arm extends StateSubsystem {
        
     }
 
+    public double getPosition() {
+        return armMotor.getAbsoluteEncoder().getPosition();
+    }
+    
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());

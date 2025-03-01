@@ -46,7 +46,7 @@ public class LEDs extends StateSubsystem {
                 } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
                     solid(255, 215, 0);       
                 }
-                if (robotController.driveController.hasFoundReefPole()) {
+                if (robotController.driveController.reefPoleDetected()) {
                     solid(0, 255, 0);
                 }
                 break;
