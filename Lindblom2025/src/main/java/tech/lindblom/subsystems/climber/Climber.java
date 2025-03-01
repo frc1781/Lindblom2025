@@ -47,19 +47,19 @@ public class Climber extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                latchServo.setSpeed(0);
+                latchServo.setPosition(0);
                 leverMotor.set(0);
                 break;
             case DOWN:
-                latchServo.setSpeed(0);
+                latchServo.setPosition(1);
                 leverMotor.set(1);
                 break;
             case UP:
-                latchServo.setSpeed(0);
+                latchServo.setPosition(1);
                 leverMotor.set(-1);
                 break;
             case RELEASE_LATCH:
-                latchServo.setSpeed(-1);
+                latchServo.setPosition(1);
                 break;
         }
     }
