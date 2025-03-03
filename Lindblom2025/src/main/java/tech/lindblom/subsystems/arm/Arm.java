@@ -32,7 +32,7 @@ public class Arm extends StateSubsystem {
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
-        coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
+            coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);

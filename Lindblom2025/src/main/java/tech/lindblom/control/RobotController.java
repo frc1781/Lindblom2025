@@ -291,7 +291,7 @@ public class RobotController {
     }
 
     private void driverDriving(Translation2d translation, Translation2d rotation) {
-        int flipForRed = isRed() ? -1 : 1;
+        int flipForRed = isRed() ? 1 : -1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
