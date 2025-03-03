@@ -76,7 +76,9 @@ public class RobotController {
                 new Collect(),
                 new OneCoralAuto(),
                 new LeftThreeCoral(),
-                new RightThreeCoral()
+                new RightThreeCoral(),
+                new RightFourCoral(),
+                new LeftFourCoral()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
@@ -326,14 +328,10 @@ public class RobotController {
                 return null;
             }
             return switch (currentAction) {
-                case CENTER_REEF_LEFT:
+                case CENTER_REEF_LEFT, CENTER_REEF_LEFT_L4, CENTER_REEF_LEFT_L3, CENTER_REEF_LEFT_L2:
                     yield DriverInput.ReefCenteringSide.LEFT;
-                case CENTER_REEF_RIGHT:
+                case CENTER_REEF_RIGHT, CENTER_REEF_RIGHT_L4, CENTER_REEF_RIGHT_L3, CENTER_REEF_RIGHT_L2:
                     yield DriverInput.ReefCenteringSide.RIGHT;
-                case CENTER_REEF_RIGHT_L4:
-                    yield DriverInput.ReefCenteringSide.RIGHT;
-                case CENTER_REEF_LEFT_L4:
-                    yield DriverInput.ReefCenteringSide.LEFT;
                 default:
                     yield null;
             };
@@ -571,33 +569,36 @@ public class RobotController {
         defineAction(Action.CENTER_REEF_LEFT_L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L3,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
                 );
         defineAction(Action.CENTER_REEF_LEFT_L2,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L2,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
                 );
@@ -636,6 +637,12 @@ public class RobotController {
             apriltagId = visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
             if (apriltagId != -1) {
                 cameraDistance = visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+                return cameraDistance;
+            }
+        } else {
+            apriltagId = visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT);
+            if (apriltagId != -1) {
+                cameraDistance = visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
                 return cameraDistance;
             }
         }
