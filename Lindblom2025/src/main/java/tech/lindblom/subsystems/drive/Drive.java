@@ -49,7 +49,7 @@ public class Drive extends Subsystem {
 
     public Drive() {
         super("Drive");
-        navX.resetDisplacement();
+        navX.resetDisplacement();  //Why is this called?
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
         
@@ -106,6 +106,7 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
+        navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
@@ -126,20 +127,25 @@ public class Drive extends Subsystem {
     }
 
     public Rotation2d getRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+        return new Rotation2d(-navX.getRotation2d().getRadians());  //why negative?  we are not sure
     }
     
-    public void resetNavX() {
+    //This function is called by the driver if for some reason the robot field orientation has gotten off
+    //in an emergency they can face the robot towards the red alliance wall and hit a button
+    //to reset field orientation zero in the direction the robot is facing
+    //note that the driver control if they are at red alliance are reversed.
+    public void setFieldZeroToRobotOrientation() {
         navX.reset();
-    }
-
-    public void zeroRotation() {
-        navX.setAngleAdjustment(0);
-        navX.zeroYaw();
-        
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
+
+    // public void zeroRotation() {
+    //     navX.zeroYaw();
+        
+    //     swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
+    //             new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
+    // }
 
     private SwerveModulePosition[] getModulePositions() {
         return new SwerveModulePosition[] {

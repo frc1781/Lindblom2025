@@ -80,8 +80,6 @@ public class DriveController extends StateSubsystem {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                driveSubsystem.resetNavX();
-                driveSubsystem.zeroRotation();
                 setInitialRobotPose(currentOperatingMode);
                 break;
             case TELEOP:
@@ -134,12 +132,13 @@ public class DriveController extends StateSubsystem {
         driveSubsystem.periodic();
     }
 
-    private ChassisSpeeds zeroSpeed() {
-        return new ChassisSpeeds(0.0, 0.0, 0.0);
+    public void setFieldZeroToRobotOrientation( ) {
+        driveSubsystem.setFieldZeroToRobotOrientation();
     }
 
-    public void resetNavX() {
-        driveSubsystem.zeroRotation();
+
+    private ChassisSpeeds zeroSpeed() {
+        return new ChassisSpeeds(0.0, 0.0, 0.0);
     }
 
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
