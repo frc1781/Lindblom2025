@@ -342,7 +342,7 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.setInitialPose(new Pose2d());
             }
         } else if (mode == TELEOP) {
-           double startingDegRotation = RobotController.isRed() ? 0 : 180;
+           double startingDegRotation = 0;
            driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(startingDegRotation)));
         }
     }

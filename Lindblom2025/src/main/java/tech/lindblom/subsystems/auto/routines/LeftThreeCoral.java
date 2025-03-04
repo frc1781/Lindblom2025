@@ -20,7 +20,7 @@ public class LeftThreeCoral implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(
                     new AutoStep[] {
-                        new AutoStep(Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;IJ")),
+                        new AutoStep(Auto.getPathFromName("start;IJ")),
                         new AutoStep(Action.CONVEY_AND_COLLECT, Auto.getPathFromName("IJ;collect")),
                         new AutoStep(Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;LK")),
                         new AutoStep(Action.CONVEY_AND_COLLECT, Auto.getPathFromName("LK;collect")),

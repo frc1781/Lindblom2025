@@ -604,6 +604,7 @@ public class RobotController {
                 );
         defineAction(Action.CONVEY_AND_COLLECT,
                 new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT,5),
                 new SubsystemSetting(conveyorSystem, Conveyor.ConveyorState.CONVEY, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5)
@@ -670,8 +671,7 @@ public class RobotController {
     }
 
     public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
-        if (getCenteringSide() != null
-                && currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
+        if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
                 && autoSystem.getCurrentAutoStep().getPath() != null) {
              return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
         }
