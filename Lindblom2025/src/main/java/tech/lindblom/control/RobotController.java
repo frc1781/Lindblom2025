@@ -40,6 +40,7 @@ import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
+import tech.lindblom.swerve.DoubleKrakenSwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
@@ -474,7 +475,8 @@ public class RobotController {
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
         SPIT,
-        CONVEY_AND_COLLECT
+        CONVEY_AND_COLLECT,
+        READY_FOR_COLLECT
     }
 
     public void createActions(){
@@ -624,6 +626,10 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5)
                 );
 
+        defineAction(Action.READY_FOR_COLLECT,
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFE, 0),
+            new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0));
+
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
 
@@ -690,7 +696,9 @@ public class RobotController {
 
     public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
-                && autoSystem.getCurrentAutoStep().getPath() != null) {
+                && autoSystem.getCurrentAutoStep().getPath() != null
+                && actionMap.get(action)[0].reliesOnOthers
+                ) {
              return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
         }
 
