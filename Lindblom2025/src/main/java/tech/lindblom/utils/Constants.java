@@ -95,23 +95,23 @@ public class Constants {
         public static final int ERROR_CONSTANT = 1781;
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(5.5), Units.inchesToMeters(9.5), Units.inchesToMeters(0)),
+                new Translation3d(Units.inchesToMeters(6.75), Units.inchesToMeters(7.75), Units.inchesToMeters(11.5)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
         );
 
         public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Translation3d(Units.inchesToMeters(9.5), Units.inchesToMeters(-9), Units.inchesToMeters(10.5)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
         );
 
         public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
-                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+                new Translation3d(Units.inchesToMeters(4.75), Units.inchesToMeters(14), Units.inchesToMeters(26.5)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(180))
         );
 
         public static final Transform3d LEFT_SIDE_CAMERA_POSITION = new Transform3d(
-                new Translation3d(),
-                new Rotation3d()
+                new Translation3d(Units.inchesToMeters(-15.5), Units.inchesToMeters(0), Units.inchesToMeters(26.5)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(90))
         );
 
 

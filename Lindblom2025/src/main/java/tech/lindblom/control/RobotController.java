@@ -1,18 +1,33 @@
 package tech.lindblom.control;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.targeting.PhotonPipelineResult;
+
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
-import org.littletonrobotics.junction.Logger;
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.targeting.PhotonPipelineResult;
 import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
-import tech.lindblom.subsystems.auto.routines.*;
+import tech.lindblom.subsystems.auto.routines.CenterOneCoral;
+import tech.lindblom.subsystems.auto.routines.Collect;
+import tech.lindblom.subsystems.auto.routines.LeftFourCoral;
+import tech.lindblom.subsystems.auto.routines.LeftOneCoral;
+import tech.lindblom.subsystems.auto.routines.LeftThreeCoral;
+import tech.lindblom.subsystems.auto.routines.RightFourCoral;
+import tech.lindblom.subsystems.auto.routines.RightOneCoral;
+import tech.lindblom.subsystems.auto.routines.RightThreeCoral;
+import tech.lindblom.subsystems.auto.routines.TestRoutine;
 import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.climber.ClimberSim;
@@ -21,18 +36,13 @@ import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
 import tech.lindblom.subsystems.led.LEDs.LEDState;
+import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.subsystems.vision.Vision;
-import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -290,7 +300,7 @@ public class RobotController {
             }
         }
     }
-
+    
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? 1 : -1;
 
@@ -523,22 +533,25 @@ public class RobotController {
 
         defineAction(Action.L4,
             new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
         );
 
         defineAction(Action.L3,
             new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
         );
 
         defineAction(Action.L2,
             new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
         );
 
@@ -658,6 +671,10 @@ public class RobotController {
 
     public boolean isElevatorInPoleState() {
         return elevatorSystem.getCurrentState() == Elevator.ElevatorState.POLE && elevatorSystem.matchesState();
+    }
+
+    public Rotation2d getRobotHeading() {
+        return driveController.getRobotHeading();
     }
 
     public ArrayList<StateSubsystem> getFailedSubsystems() {
