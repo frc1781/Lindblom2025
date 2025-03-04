@@ -7,7 +7,7 @@ import tech.lindblom.subsystems.auto.AutoStep;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
 import tech.lindblom.subsystems.auto.groups.DependGroup;
 
-public class OneCoralAuto implements AutoRoutine {
+public class CenterOneCoral implements AutoRoutine {
     @Override
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
@@ -19,6 +19,6 @@ public class OneCoralAuto implements AutoRoutine {
 
     @Override
     public String getName() {
-        return "OneCoralAuto";
+        return "Center One Coral";
     }
 }

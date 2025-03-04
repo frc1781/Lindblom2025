@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
-import tech.lindblom.subsystems.auto.routines.OneCoralAuto;
+import tech.lindblom.subsystems.auto.routines.CenterOneCoral;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
@@ -42,7 +42,7 @@ public class Auto extends Subsystem {
         Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
         this.robotController = robotController;
 
-        testRoutine = new OneCoralAuto();
+        testRoutine = new CenterOneCoral();
     }
 
     @Override
