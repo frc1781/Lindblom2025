@@ -22,8 +22,6 @@ import java.util.*;
 public class Vision extends Subsystem {
     private final RobotController robotController;
 
-    private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
-
     private final PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
     private PhotonPoseEstimator frontRightCameraPoseEstimator;
     private PhotonPipelineResult frontRightCameraPipelineResult;
@@ -36,9 +34,9 @@ public class Vision extends Subsystem {
     private PhotonPoseEstimator backCameraPoseEstimator;
     private PhotonPipelineResult backCameraPipelineResult;*/
 
-/*    private final PhotonCamera leftSideCamera = new PhotonCamera(Constants.Vision.LEFT_SIDE_CAMERA_NAME);
+    private final PhotonCamera leftSideCamera = new PhotonCamera(Constants.Vision.LEFT_SIDE_CAMERA_NAME);
     private PhotonPoseEstimator leftSideCameraPoseEstimator;
-    private PhotonPipelineResult leftSideCameraPipelineResult;*/
+    private PhotonPipelineResult leftSideCameraPipelineResult;
 
     private final int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
 
@@ -58,15 +56,15 @@ public class Vision extends Subsystem {
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
 /*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.BACK_CAMERA_POSITION);
+                    Constants.Vision.BACK_CAMERA_POSITION);*/
             leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.LEFT_SIDE_CAMERA_POSITION);*/
+                    Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
             frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            //leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
@@ -83,7 +81,7 @@ public class Vision extends Subsystem {
         frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
         //backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
-        //leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
+        leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
     }
 
     public int getClosestReefApriltag(Camera camera) {
@@ -160,9 +158,9 @@ public class Vision extends Subsystem {
             case FRONT_RIGHT:
                 result = frontRightCameraPipelineResult;
                 break;
-/*            case LEFT_SIDE:
+            case LEFT_SIDE:
                 result = leftSideCameraPipelineResult;
-                break;*/
+                break;
         }
 
         return result;

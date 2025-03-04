@@ -28,7 +28,6 @@ import tech.lindblom.subsystems.mouth.Mouth;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
-import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,11 +73,13 @@ public class RobotController {
         autoSystem = new Auto(this,
                 new TestRoutine(),
                 new Collect(),
-                new OneCoralAuto(),
                 new LeftThreeCoral(),
                 new RightThreeCoral(),
                 new RightFourCoral(),
-                new LeftFourCoral()
+                new LeftFourCoral(),
+                new LeftOneCoral(),
+                new RightOneCoral(),
+                new CenterOneCoral()
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);

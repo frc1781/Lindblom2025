@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "start;IJ"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "IJ;collect"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "collect;LK"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LK;collect"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "collect;LK"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
