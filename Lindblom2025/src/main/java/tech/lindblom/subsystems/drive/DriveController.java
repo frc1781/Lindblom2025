@@ -80,8 +80,6 @@ public class DriveController extends StateSubsystem {
             case DISABLED:
                 break;
             case AUTONOMOUS:
-                driveSubsystem.resetNavX();
-                driveSubsystem.zeroRotation();
                 setInitialRobotPose(currentOperatingMode);
                 break;
             case TELEOP:
@@ -347,8 +345,8 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.setInitialPose(new Pose2d());
             }
         } else if (mode == TELEOP) {
-           double startingDegRotation = 0;
-           driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(startingDegRotation)));
+            //will have no effect if already set in auto
+           driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(0)));
         }
     }
 

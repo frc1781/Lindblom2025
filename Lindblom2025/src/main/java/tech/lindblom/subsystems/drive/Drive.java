@@ -44,7 +44,7 @@ public class Drive extends Subsystem {
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
-
+    private boolean hasSetInitialPosition;
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
     public Drive() {
@@ -52,7 +52,7 @@ public class Drive extends Subsystem {
         navX.resetDisplacement();
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
-        
+        hasSetInitialPosition = false;
     }
 
     @Override
@@ -88,6 +88,13 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
+        //Can only set initial position once, normally in auto
+        if (hasSetInitialPosition) {
+            return;
+        }
+
+        hasSetInitialPosition = true;
+        navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
@@ -110,15 +117,11 @@ public class Drive extends Subsystem {
     public Rotation2d getRotation() {
         return new Rotation2d(-navX.getRotation2d().getRadians());
     }
-    
-    public void resetNavX() {
-        navX.reset();
-    }
 
     public void zeroRotation() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
-        
+        navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
