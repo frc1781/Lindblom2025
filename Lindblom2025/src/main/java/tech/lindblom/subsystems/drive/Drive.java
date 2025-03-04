@@ -109,7 +109,7 @@ public class Drive extends Subsystem {
     }
 
     public Rotation2d getRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());  //why negative?  we are not sure
+        return new Rotation2d(-navX.getRotation2d().getRadians());  //negative because the navX is upsidedown
     }
     
     //This function is called by the driver if for some reason the robot field orientation has gotten off
