@@ -60,7 +60,7 @@ public class DriveController extends StateSubsystem {
         robotController = controller;
         armTOF = new TimeOfFlight(Constants.Drive.ARM_TOF_ID);
         armTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
-        armTOF.setRangeOfInterest(6, 1, 10, 16);
+        armTOF.setRangeOfInterest(6, 6, 10, 10);
         leftTOF = new TimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID);
         leftTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
         rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID);
@@ -191,13 +191,14 @@ public class DriveController extends StateSubsystem {
             }
         }
 
-        if (apriltagId == -1) {
-            inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
-        }
         if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE && areValidCameraReading(cameraOffset)) {
             inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         } else {
-            inputSpeeds.vyMetersPerSecond = 0;
+            if (apriltagId == -1) {
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
+            } else {
+                inputSpeeds.vyMetersPerSecond = 0;
+            }
         }
 
         double leftTOFdistance = leftTOF.getRange();
@@ -244,6 +245,10 @@ public class DriveController extends StateSubsystem {
             detectedPole = false;
             reachedDesiredDistance = false;
         }
+    }
+
+    public Rotation2d getRobotHeading() {
+        return driveSubsystem.getRobotRotation();
     }
 
     public void centerOnReef() {
