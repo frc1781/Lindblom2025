@@ -112,6 +112,17 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
+    public void checkCoral() {
+        double coralTimeOfFlightDistance = coralTimeOfFlight.getRange();
+        Logger.recordOutput(this.name + "/coralTimeOfFlightDistance", coralTimeOfFlightDistance);
+
+        if (coralTimeOfFlight.isRangeValid()) {
+            if (coralTimeOfFlightDistance - Constants.Arm.TARGET_TOF_DISTANCE) {
+                
+            }
+        }
+    }
+
     public enum ArmState implements SubsystemState {
         IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE
     }
