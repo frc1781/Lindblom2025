@@ -53,6 +53,7 @@ public class DriveController extends StateSubsystem {
     private boolean isFieldOriented = true;
     private boolean reachedDesiredDistance = false;
     private boolean detectedPole = false;
+    private boolean hasSetInitialPose = false;
 
     public DriveController(RobotController controller) {
         super("DriveController", DriverStates.IDLE);
@@ -344,10 +345,11 @@ public class DriveController extends StateSubsystem {
                 e.printStackTrace();
                 driveSubsystem.setInitialPose(new Pose2d());
             }
-        } else if (mode == TELEOP) {
-            //will have no effect if already set in auto
+ 
+        } else if (mode == TELEOP && !hasSetInitialPose) {
            driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(0)));
         }
+        hasSetInitialPose = true;
     }
 
     @Override
