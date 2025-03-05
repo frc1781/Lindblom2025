@@ -17,6 +17,8 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.Timer;
+
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
@@ -33,6 +35,7 @@ public class DriveController extends StateSubsystem {
     private final RobotController robotController;
     private PathPlannerPath followingPath;
     private PathPlannerTrajectory followingTrajectory;
+    private Timer trajectoryTime;
     private Pose2d targetPose;
     private HolonomicDriveController trajectoryController;
     private TimeOfFlight leftTOF;
@@ -303,10 +306,13 @@ public class DriveController extends StateSubsystem {
         XController.reset();
         YController.reset();
         rotController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
+        trajectoryTime = new Timer();
+        trajectoryTime.reset();
+        trajectoryTime.start();
     }
 
     public void followPath() {
-        PathPlannerTrajectoryState pathplannerState = followingTrajectory.sample(robotController.autoTimer.get());
+        PathPlannerTrajectoryState pathplannerState = followingTrajectory.sample(trajectoryTime.get());
         Pose2d targetPose = new Pose2d(pathplannerState.pose.getTranslation(), pathplannerState.heading);
         Rotation2d targetOrientation = EEUtil.normalizeAngle(pathplannerState.pose.getRotation());
         Logger.recordOutput(name + "/TrajectoryPose", targetPose);
