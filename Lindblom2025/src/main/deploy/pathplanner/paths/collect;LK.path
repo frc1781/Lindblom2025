@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.309933873226768,
-        "y": 7.098006032642566
+        "x": 1.3372859589041095,
+        "y": 6.977547089041095
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3842391967773433,
-        "y": 6.063425500769365
+        "x": 2.5994434931506847,
+        "y": 6.692059075342465
       },
       "isLocked": false,
       "linkedName": "Collect North"
@@ -20,15 +20,20 @@
         "y": 5.164622996689436
       },
       "prevControl": {
-        "x": 2.4065627544719908,
-        "y": 5.629833989579358
+        "x": 2.8849315068493144,
+        "y": 6.391545376712328
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "LK"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.438877755511022,
+      "rotationDegrees": -42.032525725327766
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -48,7 +53,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -55.300090830286265
+    "rotation": 36.86989764584407
   },
   "useDefaultConstraints": true
 }

@@ -16,19 +16,24 @@
     },
     {
       "anchor": {
-        "x": 1.309933873226768,
-        "y": 7.098006032642566
+        "x": 1.3372859589041095,
+        "y": 6.977547089041095
       },
       "prevControl": {
-        "x": 2.61019405534996,
-        "y": 5.663538878323237
+        "x": 2.6375461410273013,
+        "y": 5.543079934721766
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Collect North"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.653306613226453,
+      "rotationDegrees": 37.580975919894044
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -55.300090830286265
+    "rotation": 35.753887254436805
   },
   "reversed": false,
   "folder": null,

@@ -35,9 +35,6 @@ public class Elevator extends StateSubsystem {
     private double minFirstStageDistance = 0;
     private double maxFirstStageDistance = 810;
 
-    private LoggedMechanism2d elevatorMechSimulation;
-    private LoggedMechanismRoot2d elevatorFirstStageRoot;
-
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
                     Constants.Elevator.ELEVATOR_KG,
@@ -77,9 +74,6 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
-
-        elevatorMechSimulation = new LoggedMechanism2d(100,maxFirstStageDistance + maxSecondStageDistance);
-        elevatorFirstStageRoot = elevatorMechSimulation.getRoot("Climber", 0, maxFirstStageDistance);
     }
 
 
@@ -104,7 +98,6 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void periodic() {
-        Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());

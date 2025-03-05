@@ -359,6 +359,7 @@ public class DriveController extends StateSubsystem {
         } else if (mode == TELEOP && !hasSetInitialPose) {
            driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(0)));
         }
+        
         hasSetInitialPose = true;
     }
 

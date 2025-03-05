@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.309933873226768,
-        "y": 7.098006032642566
+        "x": 1.3372859589041095,
+        "y": 6.977547089041095
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3815474404917136,
-        "y": 5.894229004599831
+        "x": 1.2471318493150683,
+        "y": 3.506613869863013
       },
       "isLocked": false,
       "linkedName": "Collect North"
     },
     {
       "anchor": {
-        "x": 3.1821647774089468,
-        "y": 4.002809801968661
+        "x": 2.9600599315068497,
+        "y": 4.032512842465753
       },
       "prevControl": {
-        "x": 2.599164752836351,
-        "y": 5.494163783184893
+        "x": 1.3372859589041097,
+        "y": 3.972410102739726
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -55.300090830286265
+    "rotation": 37.7468053872747
   },
   "useDefaultConstraints": true
 }
