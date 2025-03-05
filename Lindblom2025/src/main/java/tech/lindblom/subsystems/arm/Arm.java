@@ -28,6 +28,8 @@ public class Arm extends StateSubsystem {
 
     private ArmState previousState;
 
+    private boolean detectedCoral = false;
+
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
@@ -85,16 +87,25 @@ public class Arm extends StateSubsystem {
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
                 case IDLE:
+                    detectedCoral = false;
                     armMotor.set(0);
                     break;
                 case MANUAL_DOWN:
+                    detectedCoral = false;
                     armMotor.set(-0.1);
                     break;
                 case MANUAL_UP:
+                    detectedCoral = false;
                     armMotor.set(0.1);
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
+            if (hasCoral()) {
+                return;
+            }
+            else {
+                getToPosition(positionMap.get(ArmState.COLLECT));
+            }
             getToPosition(positionMap.get(getCurrentState()));
         }
 
@@ -112,15 +123,12 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
-    public void checkCoral() {
-        double coralTimeOfFlightDistance = coralTimeOfFlight.getRange();
-        Logger.recordOutput(this.name + "/coralTimeOfFlightDistance", coralTimeOfFlightDistance);
-
-        if (coralTimeOfFlight.isRangeValid()) {
-            if (coralTimeOfFlightDistance - Constants.Arm.TARGET_TOF_DISTANCE) {
-                
-            }
+    public boolean hasCoral() {
+        boolean hasCoral = coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
+        if (hasCoral) {
+            detectedCoral = true;
         }
+        return hasCoral || detectedCoral;
     }
 
     public enum ArmState implements SubsystemState {
