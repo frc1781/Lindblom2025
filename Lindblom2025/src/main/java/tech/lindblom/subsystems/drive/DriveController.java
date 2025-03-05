@@ -106,7 +106,9 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValid());
         Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
         Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValid());
-        Logger.recordOutput(this.name + "/trajectoryTime", trajectoryTime.get());
+        if (trajectoryTime != null) {
+            Logger.recordOutput(this.name + "/trajectoryTime", trajectoryTime.get());
+        }
         
         if (currentOperatingMode == DISABLED) return;
 
