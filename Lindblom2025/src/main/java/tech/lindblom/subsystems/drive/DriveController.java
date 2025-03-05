@@ -109,7 +109,8 @@ public class DriveController extends StateSubsystem {
         if (trajectoryTime != null) {
             Logger.recordOutput(this.name + "/trajectoryTime", trajectoryTime.get());
         }
-        
+        Logger.recordOutput(this.name + "/hasSetInitialPose", hasSetInitialPose);
+
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {

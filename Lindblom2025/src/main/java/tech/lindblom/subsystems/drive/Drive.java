@@ -86,7 +86,7 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        navX.reset();
+        //navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
