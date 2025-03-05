@@ -9,17 +9,13 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismObject2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.HashMap;
@@ -38,9 +34,6 @@ public class Elevator extends StateSubsystem {
 
     private double minFirstStageDistance = 0;
     private double maxFirstStageDistance = 810;
-
-    private LoggedMechanism2d elevatorMechSimulation;
-    private LoggedMechanismRoot2d elevatorFirstStageRoot;
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -77,13 +70,10 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.POLE, new Double[]{250.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
-        positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 300.0});
-        positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
-
-        elevatorMechSimulation = new LoggedMechanism2d(100,maxFirstStageDistance + maxSecondStageDistance);
-        elevatorFirstStageRoot = elevatorMechSimulation.getRoot("Climber", 0, maxFirstStageDistance);
     }
 
 
@@ -92,6 +82,7 @@ public class Elevator extends StateSubsystem {
         if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
             return false;
         }
+        
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
@@ -107,17 +98,16 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void periodic() {
-        Logger.recordOutput(this.name + "/SimulationMech", elevatorMechSimulation);
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
-        if (currentMode == OperatingMode.DISABLED) return;
+        if (currentOperatingMode == OperatingMode.DISABLED) return;
 
         if (robotController.isManualControlMode()) {
             switch ((ElevatorState) getCurrentState()) {
                 case SAFE:
-                    motorRight.set(0);
+                    motorRight.set(0.02);
                     break;
                 case MANUAL_DOWN:
                     motorRight.set(-0.1);
@@ -168,11 +158,11 @@ public class Elevator extends StateSubsystem {
     }
 
     public double clampDutyCycle(double dutyCycle) {
-        if (getCurrentState() == ElevatorState.COLLECT_LOW) {
-            return Math.min(0.5, Math.max(dutyCycle, -0.5));
+        if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
+            return EEUtil.clamp(-0.5, 0.5, dutyCycle);
         }
 
-        return Math.min(0.5, Math.max(dutyCycle, 0));
+        return EEUtil.clamp(0, 0.5, dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {

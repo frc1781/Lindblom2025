@@ -2,18 +2,14 @@ package tech.lindblom.subsystems.auto;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.auto.groups.AutoStepGroup;
-import tech.lindblom.subsystems.auto.routines.OneCoralAuto;
-import tech.lindblom.subsystems.auto.routines.TestRoutine;
+import tech.lindblom.subsystems.auto.routines.CenterOneCoral;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
-
-import java.nio.file.Path;
 
 public class Auto extends Subsystem {
     private SendableChooser<AutoRoutine> autoChooser;
@@ -46,12 +42,12 @@ public class Auto extends Subsystem {
         Constants.Auto.AUTONOMOUS_TAB.add(autoChooser);
         this.robotController = robotController;
 
-        testRoutine = new OneCoralAuto();
+        testRoutine = new CenterOneCoral();
     }
 
     @Override
     public void init() {
-        if (currentMode == EnumCollection.OperatingMode.AUTONOMOUS) {
+        if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
             robotController.autoTimer.reset();
             currentStepIndex = 0;
             checkSelectedRoutine();
@@ -68,7 +64,7 @@ public class Auto extends Subsystem {
 
     @Override
     public void periodic() {
-        switch (currentMode) {
+        switch (currentOperatingMode) {
             case DISABLED:
                 checkSelectedRoutine();
                 break;

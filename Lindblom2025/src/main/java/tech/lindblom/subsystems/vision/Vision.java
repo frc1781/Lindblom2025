@@ -7,10 +7,13 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import frc.robot.Robot;
+
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import tech.lindblom.control.RobotController;
@@ -21,8 +24,6 @@ import java.util.*;
 
 public class Vision extends Subsystem {
     private final RobotController robotController;
-
-    private Optional<EstimatedRobotPose> frontCameraRobotPose = Optional.empty();
 
     private final PhotonCamera frontRightCamera = new PhotonCamera(Constants.Vision.FRONT_RIGHT_CAMERA_NAME);
     private PhotonPoseEstimator frontRightCameraPoseEstimator;
@@ -51,21 +52,21 @@ public class Vision extends Subsystem {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
             frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                     Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
 /*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.BACK_CAMERA_POSITION);*/
             leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                     Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
             frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
             leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
@@ -80,10 +81,15 @@ public class Vision extends Subsystem {
 
     @Override
     public void periodic() {
+        frontRightCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
+        frontLeftCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
+        leftSideCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
+        //backCameraPoseEstimator.addHeadingData();
+
         frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
-        //backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
         leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
+        //backCameraPipelineResult = updatePhotonPoseEstimator(backCameraPoseEstimator, backCamera);
     }
 
     public int getClosestReefApriltag(Camera camera) {
@@ -169,9 +175,11 @@ public class Vision extends Subsystem {
     }
 
     public PhotonPipelineResult updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
+        List<PhotonTrackedTarget> seenAprilTags = new ArrayList();
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
         if (!unreadResults.isEmpty() && camera.isConnected()) {
-            for (PhotonPipelineResult result : unreadResults) { //Test adding all results, or just the lastest
+            for (PhotonPipelineResult result : unreadResults) {
+                seenAprilTags.addAll(result.targets);
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
                 estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));
             }

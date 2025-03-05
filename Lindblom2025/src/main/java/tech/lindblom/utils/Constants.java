@@ -41,7 +41,7 @@ public class Constants {
         public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.709473;
         public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.476074;
 
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.73;
+        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.65;
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(26);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.5);
 
@@ -76,11 +76,11 @@ public class Constants {
         public static double OFFSET_TOLERANCE = 0.02;
 
         public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
-        public static double TARGET_CORAL_DISTANCE_LEFT = 0.33;
-        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.39;
+        public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
+        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
-        public static double TARGET_CORAL_OFFSET_LEFT = -18;
-        public static double TARGET_CORAL_OFFSET_RIGHT = 10;
+        public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
+        public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
     }
 
     public class Auto {
@@ -95,23 +95,23 @@ public class Constants {
         public static final int ERROR_CONSTANT = 1781;
 
         public static final Transform3d FRONT_LEFT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(5.5), Units.inchesToMeters(9.5), Units.inchesToMeters(0)),
+                new Translation3d(Units.inchesToMeters(6.75), Units.inchesToMeters(7.75), Units.inchesToMeters(11.5)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
         );
 
         public static final Transform3d FRONT_RIGHT_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
+                new Translation3d(Units.inchesToMeters(9.5), Units.inchesToMeters(-9), Units.inchesToMeters(10.5)),
                 new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
         );
 
         public static final Transform3d BACK_CAMERA_POSITION = new Transform3d(
-                new Translation3d(Units.inchesToMeters(1), Units.inchesToMeters(0), Units.inchesToMeters(1)),
-                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))
+                new Translation3d(Units.inchesToMeters(4.75), Units.inchesToMeters(14), Units.inchesToMeters(26.5)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(180))
         );
 
         public static final Transform3d LEFT_SIDE_CAMERA_POSITION = new Transform3d(
-                new Translation3d(),
-                new Rotation3d()
+                new Translation3d(Units.inchesToMeters(-15.5), Units.inchesToMeters(0), Units.inchesToMeters(26.5)),
+                new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(90))
         );
 
 
@@ -121,7 +121,7 @@ public class Constants {
         public static final Matrix<N3, N1> SINGLE_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds, if you only see one tag, ie less accuracy/trust so higher values bc we don't trust it
         public static final Matrix<N3, N1> MULTI_STD = VecBuilder.fill(1.5, 1.5, 6.24); //stds,  if you see multiple tags, ie more accuracy/trust so lower values bc we trust it
 
-        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
+        public static final double[] TAG_WEIGHTS = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // how significantly important each tag is
 
     }
 
@@ -132,7 +132,7 @@ public class Constants {
 
     public class Arm{
         public static final int ARM_MOTOR_ID = 13;
-        public static final int CLAW_CORAL_SENSOR_ID = 55;
+        public static final int CLAW_CORAL_SENSOR_ID = 54;
     }
 
     public class Elevator {

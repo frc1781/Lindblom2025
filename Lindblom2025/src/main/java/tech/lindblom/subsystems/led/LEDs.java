@@ -1,24 +1,29 @@
 package tech.lindblom.subsystems.led;
 
+import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
+import tech.lindblom.utils.EnumCollection.OperatingMode;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 public class LEDs extends StateSubsystem {
-    private final int LED_LENGTH = 75;
+    private final int LED_LENGTH = 75 + 75;
+    private RobotController robotController;
 
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
 
-    public LEDs() {
-        super("LEDs", LEDState.WHITE);
+    public LEDs(RobotController _robotController) {
+        super("LEDs", LEDState.OPERATING_COLOR);
+        this.robotController = _robotController;
     }
 
 
     @Override
     public void init() {
         if (mLedController == null) {
-            mLedController = new AddressableLED(9);
+            mLedController = new AddressableLED(1);
             mLedBuffer = new AddressableLEDBuffer(LED_LENGTH + 1);
 
             mLedController.setLength(mLedBuffer.getLength());
@@ -29,26 +34,25 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public void periodic() {
+  
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }
 
-        switch ((LEDState) getCurrentState()) {
-            case RED:
-                solid(255,0,0);
-                break;
-            case WHITE:
-                solid(255, 255, 255);
-                break;
-            case GREEN:
-                solid(0,255,0);
-                break;
-            case BLUE:
-                solid(0, 0, 255);
-                break;
-            case EXPECTED_FAIL:
-                break;
+        if (currentOperatingMode == OperatingMode.TELEOP) {
+            solid(128, 0, 0);                                         
+        } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
+            solid(255, 215, 0);       
         }
+
+        if (robotController.driveController.hasFoundReefPole()) {
+            solid(0, 255, 0);
+        }
+
+        if (robotController.isManualControlMode() && robotController.driveController.reefPoleDetected()) {
+            solid(0, 255, 0);
+        }
+
         mLedController.setData(mLedBuffer);
     }
 
@@ -64,6 +68,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
+        OPERATING_COLOR, WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
     }
 }

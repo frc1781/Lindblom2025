@@ -31,13 +31,13 @@ public class DriverInput {
                 new Control(0, "X", Action.SPIT),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
-                new Control(1, "RB", Action.CENTER_REEF_RIGHT),
-                new Control(1, "LB", Action.CENTER_REEF_LEFT),
+                new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
+                new Control(1, "LB", Action.CENTER_REEF_LEFT), //Ignore if pole already found and still holding down button
+                new Control(1, "BACK", Action.CLIMBER_LATCH_RELEASE),
                 new Control(1, "A", Action.L4),
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
                 new Control(1, "Y", Action.L1),
-
         };
     }
 
@@ -49,6 +49,7 @@ public class DriverInput {
 
         driverInputHolder.resetNavX = getButton("START", 0);
         driverInputHolder.toggleManualControl = getButton("B", 0);
+        driverInputHolder.armConfirm = getButton("BACK", 0);
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
@@ -182,50 +183,15 @@ public class DriverInput {
                 return controllers[controllerIndex].getLeftBumperButton();
             case "RB":
                 return controllers[controllerIndex].getRightBumperButton();
- /*           case "button1":
-                return (lastButton == 1 || buttonBoard.getRawButton(1)) && getButton("X", 0);
-            case "button2":
-                return (lastButton == 2 || buttonBoard.getRawButton(2)) && getButton("X", 0);
-            case "button3":
-                return (lastButton == 3 || buttonBoard.getRawButton(3)) && getButton("X", 0);
-            case "button4":
-                return (lastButton == 4 || buttonBoard.getRawButton(4)) && getButton("X", 0);
-            case "button5":
-                return (lastButton == 5 || buttonBoard.getRawButton(5)) && getButton("X", 0);
-            case "button6":
-                return (lastButton == 6 || buttonBoard.getRawButton(6)) && getButton("X", 0);
-            case "button7":
-                return (lastButton == 7 || buttonBoard.getRawButton(7)) && getButton("X", 0);
-            case "button8":
-                return (lastButton == 8 || buttonBoard.getRawButton(8)) && getButton("X", 0);
-            case "button9":
-                return buttonBoard.getRawButton(9);
-            case "button10":
-                return buttonBoard.getRawButton(10);
-            case "button11":
-                return buttonBoard.getRawButton(11);*/
             case "DPAD_UP":
                 return controllers[controllerIndex].getPOV() == 0;
             case "DPAD_DOWN":
                 return controllers[controllerIndex].getPOV() == 180;
+            case "BACK":
+                    return controllers[controllerIndex].getBackButton();
         }
         return false;
     }
-
-/*    public static int getButton() {
-        int button = -1;
-        for (int i = 1;  i <= 8; i++) {
-          if (buttonBoard.getRawButtonPressed(i)) {
-            button = i;
-          }
-        }
-
-        if (button != -1) {
-            lastButton = button;
-        }
-
-        return button;
-      }*/
 
     class InputHolder {
         public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
@@ -236,6 +202,7 @@ public class DriverInput {
 
         public ReefCenteringSide centeringSide = null;
         public boolean toggleManualControl = false;
+        public boolean armConfirm = false;
 
         boolean resetNavX;
     }

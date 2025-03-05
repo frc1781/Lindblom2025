@@ -3,37 +3,42 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.8072522312015677,
-        "y": 2.882140027083359
+        "x": 3.7864726027397264,
+        "y": 2.755329623287671
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.2313741991191516,
-        "y": 2.469520975479859
+        "x": 3.2105945706573102,
+        "y": 2.342710571684171
       },
       "isLocked": false,
       "linkedName": "CD"
     },
     {
       "anchor": {
-        "x": 1.0538747530478936,
-        "y": 1.0708040336509805
+        "x": 1.2321061643835618,
+        "y": 1.1175299657534241
       },
       "prevControl": {
-        "x": 2.4660695055201067,
-        "y": 2.0375871181512726
+        "x": 2.644300916855774,
+        "y": 2.0843130502537166
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Collect South"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.7034068136272547,
+      "rotationDegrees": 131.52759199389968
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.3,
+    "maxVelocity": 1.5,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -42,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 54.24219328723327
+    "rotation": 143.61564818416406
   },
   "reversed": false,
   "folder": null,

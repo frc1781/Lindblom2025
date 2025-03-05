@@ -3,37 +3,42 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.0538747530478936,
-        "y": 1.0708040336509805
+        "x": 1.2321061643835618,
+        "y": 1.1175299657534241
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0821504335898857,
-        "y": 1.6460735620901505
+        "x": 2.404109589041096,
+        "y": 1.0724529109589036
       },
       "isLocked": false,
       "linkedName": "Collect South"
     },
     {
       "anchor": {
-        "x": 3.8072522312015677,
-        "y": 2.882140027083359
+        "x": 3.7864726027397264,
+        "y": 2.755329623287671
       },
       "prevControl": {
-        "x": 3.0889948290826843,
-        "y": 2.2159898486759912
+        "x": 3.0201626712328764,
+        "y": 1.5382491438356172
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "CD"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 51.27484327440455
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.3,
+    "maxVelocity": 1.5,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -48,7 +53,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 54.24219328723327
+    "rotation": 142.69605172201653
   },
   "useDefaultConstraints": true
 }

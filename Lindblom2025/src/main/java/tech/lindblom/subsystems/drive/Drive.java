@@ -13,17 +13,12 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.SPI;
 
-import java.lang.ModuleLayer.Controller;
-import java.util.ResourceBundle.Control;
-
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
-import tech.lindblom.swerve.KrakenL2SwerveModule;
 import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
-import com.playingwithfusion.TimeOfFlight;
 
 public class Drive extends Subsystem {
     private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
@@ -49,7 +44,6 @@ public class Drive extends Subsystem {
             Constants.Drive.BACK_RIGHT_MODULE_POSITION);
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
-
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
     public Drive() {
@@ -57,12 +51,11 @@ public class Drive extends Subsystem {
         navX.resetDisplacement();
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
-        
     }
 
     @Override
     public void init() {
-        switch (currentMode) {
+        switch (currentOperatingMode) {
             case AUTONOMOUS:
                 break;
         }
@@ -76,7 +69,7 @@ public class Drive extends Subsystem {
     }
 
     public void drive(ChassisSpeeds speeds) {
-        if (currentMode == EnumCollection.OperatingMode.DISABLED) {
+        if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) {
             System.out.println("MOVING IN DISABLED");
             return;
         }
@@ -91,26 +84,9 @@ public class Drive extends Subsystem {
         backLeftModule.runDesiredModuleState(moduleStates[2]);
         backRightModule.runDesiredModuleState(moduleStates[3]);
     }
-    
-    public void driveSide(boolean left, ChassisSpeeds speeds) {
-        SwerveModuleState zeroSpeedModuleState = new SwerveModuleState(0, Rotation2d.kZero);
-        SwerveModuleState speedModuleState = new SwerveModuleState(speeds.vxMetersPerSecond, Rotation2d.kZero);
-
-        if (left == true) {
-            frontLeftModule.runDesiredModuleState(zeroSpeedModuleState);
-            frontRightModule.runDesiredModuleState(speedModuleState);
-            backLeftModule.runDesiredModuleState(zeroSpeedModuleState);
-            backRightModule.runDesiredModuleState(speedModuleState);
-        }
-        if (left == false) {
-            frontLeftModule.runDesiredModuleState(speedModuleState);
-            frontRightModule.runDesiredModuleState(zeroSpeedModuleState);
-            backLeftModule.runDesiredModuleState(speedModuleState);
-            backRightModule.runDesiredModuleState(zeroSpeedModuleState);
-        }
-    }
 
     public void setInitialPose(Pose2d pose) {
+        //navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
@@ -133,15 +109,11 @@ public class Drive extends Subsystem {
     public Rotation2d getRotation() {
         return new Rotation2d(-navX.getRotation2d().getRadians());
     }
-    
-    public void resetNavX() {
-        navX.reset();
-    }
 
     public void zeroRotation() {
         navX.setAngleAdjustment(0);
         navX.zeroYaw();
-        
+        navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
                 new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }

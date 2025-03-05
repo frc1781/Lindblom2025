@@ -37,7 +37,7 @@ public class Climber extends BaseClimber {
 
     @Override
     public void periodic() {
-        if (currentMode == EnumCollection.OperatingMode.DISABLED) return;
+        if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) return;
 
         Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();
@@ -47,19 +47,19 @@ public class Climber extends BaseClimber {
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                latchServo.setSpeed(0);
+                latchServo.setPosition(1);
                 leverMotor.set(0);
                 break;
             case DOWN:
-                latchServo.setSpeed(0);
-                leverMotor.set(0.5);
+                latchServo.setPosition(0);
+                leverMotor.set(1);
                 break;
             case UP:
-                latchServo.setSpeed(0);
-                leverMotor.set(-0.5);
+                latchServo.setPosition(0);
+                leverMotor.set(-1);
                 break;
             case RELEASE_LATCH:
-                latchServo.setPosition(0.5);
+                latchServo.setPosition(.3);
                 break;
         }
     }
