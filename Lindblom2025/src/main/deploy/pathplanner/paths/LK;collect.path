@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.8148325635241225,
-        "y": 5.164622996689436
+        "x": 3.6795170454545456,
+        "y": 5.40606534090909
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3663796116305913,
-        "y": 5.531381674586888
+        "x": 2.2310640935610144,
+        "y": 5.772824018806542
       },
       "isLocked": false,
       "linkedName": "LK"
@@ -28,17 +28,12 @@
       "linkedName": "Collect North"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.653306613226453,
-      "rotationDegrees": 37.580975919894044
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.0,
+    "maxVelocity": 1.5,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -47,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 35.753887254436805
+    "rotation": -51.767377736727674
   },
   "reversed": false,
   "folder": null,
