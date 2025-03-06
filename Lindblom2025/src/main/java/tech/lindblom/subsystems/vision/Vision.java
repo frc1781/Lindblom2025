@@ -41,7 +41,7 @@ public class Vision extends Subsystem {
     private PhotonPoseEstimator leftSideCameraPoseEstimator;
     private PhotonPipelineResult leftSideCameraPipelineResult;
 
-    private final int[] reefApriltagIDs = {17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11};
+    private final List<Integer> reefApriltagIds = List.of(17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11);
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -50,7 +50,6 @@ public class Vision extends Subsystem {
         this.robotController = _robotController;
         try {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-
             frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                     Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
@@ -94,16 +93,21 @@ public class Vision extends Subsystem {
 
     public int getClosestReefApriltag(Camera camera) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
-        if (result == null) return -1;
-        if (result.getBestTarget() != null)  {
-            for (int i = 0; i < reefApriltagIDs.length; i++) {
-                if (result.getBestTarget().getFiducialId() == reefApriltagIDs[i]) {
-                    return reefApriltagIDs[i];
-                }
+        if (result == null || !result.hasTargets()) return -1;
+        List<PhotonTrackedTarget> targets = result.targets;
+        PhotonTrackedTarget closestTarget = null;
+        for (PhotonTrackedTarget target : targets) {
+            if (closestTarget == null && reefApriltagIds.contains(target.getFiducialId())) {
+                closestTarget = target;
+                continue;
+            }
+
+            if ((target.area < closestTarget.area) && reefApriltagIds.contains(target.getFiducialId())) {
+                closestTarget = target;
             }
         }
 
-        return -1;
+        return closestTarget == null ? -1 : closestTarget.getFiducialId();
     }
 
     public double getCameraYaw(Camera camera, int tagID) {

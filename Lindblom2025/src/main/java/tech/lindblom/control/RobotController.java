@@ -646,7 +646,8 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToMove() {
-        return elevatorSystem.matchesState();
+        return elevatorSystem.defaultState == elevatorSystem.getCurrentState() && (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 600)
+                || (elevatorSystem.defaultState != elevatorSystem.getCurrentState() && elevatorSystem.matchesState());
     }
 
     public double getCenteringDistance() {

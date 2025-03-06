@@ -37,7 +37,7 @@ public class Constants {
 
         //Drive motor offsets
         public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.38916;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.66748;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.324463;
         public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.709473;
         public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.476074;
 
