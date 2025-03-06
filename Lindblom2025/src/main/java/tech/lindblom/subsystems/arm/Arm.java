@@ -53,7 +53,7 @@ public class Arm extends StateSubsystem {
 
         positionMap = new HashMap<>();
         positionMap.put(ArmState.POLE, 5.0);
-        positionMap.put(ArmState.IDLE, 10.0);
+        positionMap.put(ArmState.IDLE, 25.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 90.0);
@@ -136,7 +136,7 @@ public class Arm extends StateSubsystem {
     }
 
     private boolean preventDescore() {
-        return (getCurrentState() == defaultState && (previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1) && timeInState.get() < 2);
+        return (getCurrentState() == defaultState && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1) && timeInState.get() < 2);
     }
 
     public enum ArmState implements SubsystemState {

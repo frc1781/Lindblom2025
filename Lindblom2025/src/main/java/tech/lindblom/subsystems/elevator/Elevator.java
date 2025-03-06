@@ -110,10 +110,10 @@ public class Elevator extends StateSubsystem {
                     motorRight.set(0.02);
                     break;
                 case MANUAL_DOWN:
-                    motorRight.set(-0.1);
+                    motorRight.set(-0.5);
                     break;
                 case MANUAL_UP:
-                    motorRight.set(0.1);
+                    motorRight.set(0.5);
                     break;
             }
         } else if (positions.containsKey(getCurrentState())) {
