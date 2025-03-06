@@ -385,18 +385,17 @@ public class RobotController {
         if (currentAutoStep == null) return true;
 
         switch (currentAutoStep.getStepType()) {
-            case ACTION:
+            case ACTION, PATH_AND_ACTION:
                 return hasActionFinished();
             case PATH:
                 return driveController.matchesState();
-            case PATH_AND_ACTION:
-                return driveController.matchesState() && hasActionFinished();
         }
 
         return true;
     }
 
     private boolean hasActionFinished() {
+        if (currentAction == null) return false;
         SubsystemSetting[] subsystemSettings = getSubsystemSettingsFromAction(currentAction);
         if (subsystemSettings == null) return false;
         if (isSequentialAction(currentAction)) {

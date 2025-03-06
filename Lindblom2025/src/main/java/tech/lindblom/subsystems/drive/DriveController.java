@@ -19,6 +19,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
 
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
@@ -334,6 +335,10 @@ public class DriveController extends StateSubsystem {
 
     public boolean hasReachedTargetPose() {
         if (targetPose == null) return false;
+
+        if (Robot.isSimulation()) {
+            return trajectoryTime.get() > followingTrajectory.getTotalTimeSeconds();
+        }
 
         Pose2d currentPose = driveSubsystem.getRobotPose();
         boolean reachedTargetTranslation = currentPose.getTranslation().getDistance(targetPose.getTranslation()) < 0.1;
