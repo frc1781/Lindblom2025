@@ -73,6 +73,7 @@ public class DriveController extends StateSubsystem {
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
+        trajectoryTime = new Timer();
     }
 
     @Override
@@ -253,6 +254,16 @@ public class DriveController extends StateSubsystem {
             detectedPole = false;
             reachedDesiredDistance = false;
         }
+
+        if (previousState == DriverStates.PATH) {
+            trajectoryTime.stop();
+            trajectoryTime.reset();
+        }
+
+        if (newState == DriverStates.PATH) {
+            trajectoryTime.reset();
+            trajectoryTime.start();
+        }
     }
 
     public Rotation2d getRobotHeading() {
@@ -312,9 +323,7 @@ public class DriveController extends StateSubsystem {
         XController.reset();
         YController.reset();
         rotController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
-        trajectoryTime = new Timer();
         trajectoryTime.reset();
-        trajectoryTime.start();
     }
 
     public void followPath() {
