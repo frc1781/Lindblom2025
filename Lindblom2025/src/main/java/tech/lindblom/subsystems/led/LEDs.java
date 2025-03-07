@@ -52,6 +52,10 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public void periodic() {
+        if ((mLedBuffer == null || mLedController == null)) {
+            return;
+        }
+        
         switch((LEDState) getCurrentState()) {
             case RAINBOW:
                 rainbow();
@@ -69,28 +73,13 @@ public class LEDs extends StateSubsystem {
                 break;
             case SYNC:
                 flashing(0, 255, 0);
+                if (timeInState.get() > 1) {
+                    setState(LEDState.WHITE);
+                }
                 break;
             case OVER:
                 flashing(255, 255, 0);
                 break;
-        }
-  
-        if ((mLedBuffer == null || mLedController == null)) {
-            return;
-        }
-
-        if (currentOperatingMode == OperatingMode.TELEOP) {
-            solid(128, 0, 0);                                         
-        } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
-            solid(255, 215, 0);       
-        }
-
-        if (robotController.driveController.hasFoundReefPole()) {
-            solid(0, 255, 0);
-        }
-
-        if (robotController.isManualControlMode() && robotController.driveController.reefPoleDetected()) {
-            solid(0, 255, 0);
         }
 
         mLedController.setData(mLedBuffer);

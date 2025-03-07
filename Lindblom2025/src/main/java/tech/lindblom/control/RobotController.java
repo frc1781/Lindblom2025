@@ -55,7 +55,7 @@ public class RobotController {
     public Arm armSystem;
     public BaseClimber climberSystem;
     public Conveyor conveyorSystem;
-    public Mouth mouthSystem;
+    //public Mouth mouthSystem;
 
     DriverInput driverInput;
 
@@ -94,7 +94,7 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
-        mouthSystem = new Mouth();
+        //mouthSystem = new Mouth();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
@@ -105,7 +105,7 @@ public class RobotController {
             climberSystem = new ClimberSim();
         }
         stateSubsystems = new ArrayList<>();
-        stateSubsystems.add(mouthSystem);
+        //stateSubsystems.add(mouthSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
         stateSubsystems.add(climberSystem);
@@ -114,7 +114,7 @@ public class RobotController {
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
-        subsystems.add(mouthSystem);
+        //subsystems.add(mouthSystem);
         subsystems.add(ledsSystem);
         createActions();
     }
@@ -130,7 +130,7 @@ public class RobotController {
                 break;
             case TELEOP:
                 driveController.setState(DriveController.DriverStates.DRIVER);
-                ledsSystem.setState(LEDState.RED);
+                ledsSystem.setState(LEDState.SYNC);
                 break;
             case TEST:
                 break;
@@ -353,7 +353,7 @@ public class RobotController {
     }
 
     public boolean shouldBeCentering() {
-        return getCenteringSide() != null && getCenteringDistance() < .75;
+        return getCenteringSide() != null && getCenteringDistance() < 1;
     }
 
     // Auto
@@ -638,11 +638,11 @@ public class RobotController {
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
 
-        defineAction(Action.EAT,
-                new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
+        // defineAction(Action.EAT,
+        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
 
-        defineAction(Action.SPIT,
-                new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
+        // defineAction(Action.SPIT,
+        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
     }
 
     public boolean isSafeForArmToMove() {

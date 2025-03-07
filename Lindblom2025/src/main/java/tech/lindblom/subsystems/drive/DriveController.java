@@ -23,6 +23,7 @@ import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.led.LEDs.LEDState;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
@@ -219,7 +220,7 @@ public class DriveController extends StateSubsystem {
                 inputSpeeds.vxMetersPerSecond = 0;
             }
 
-            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 30 && Math.abs(rightTOFdistance - leftTOFdistance) < 200) {
+            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 30 && Math.abs(rightTOFdistance - leftTOFdistance) < 250) {
                 inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
             } else {
                 inputSpeeds.omegaRadiansPerSecond = 0;
@@ -227,6 +228,10 @@ public class DriveController extends StateSubsystem {
 
             if (inputSpeeds.omegaRadiansPerSecond == 0 && inputSpeeds.vxMetersPerSecond == 0) {
                 reachedDesiredDistance = true;
+            }
+
+            if (Math.abs(rightTOFdistance - leftTOFdistance) > 250) {
+                robotController.ledsSystem.setState(LEDState.OVER);
             }
         }
 
@@ -263,6 +268,10 @@ public class DriveController extends StateSubsystem {
         if (newState == DriverStates.PATH) {
             trajectoryTime.reset();
             trajectoryTime.start();
+        }
+
+        if ((previousState == DriverStates.CENTERING_LEFT || previousState == DriverStates.CENTERING_RIGHT) && robotController.ledsSystem.getCurrentState() == LEDState.OVER ) {
+            robotController.ledsSystem.setState(LEDState.WHITE);
         }
     }
 

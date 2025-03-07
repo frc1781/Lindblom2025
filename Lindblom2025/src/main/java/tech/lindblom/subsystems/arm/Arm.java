@@ -56,7 +56,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.IDLE, 25.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 90.0);
+        positionMap.put(ArmState.L3, 70.0);
         positionMap.put(ArmState.L4, 80.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 175.0);
