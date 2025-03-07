@@ -25,14 +25,14 @@ public class Arm extends StateSubsystem {
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
-    private TimeOfFlight coralTimeOfFlight;
+    //private TimeOfFlight coralTimeOfFlight;
 
     private ArmState previousState;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
-            coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
+            //coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
@@ -96,7 +96,7 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
-        Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
+        //Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
