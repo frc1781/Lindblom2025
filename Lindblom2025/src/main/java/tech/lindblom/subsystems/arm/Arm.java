@@ -52,7 +52,7 @@ public class Arm extends StateSubsystem {
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        positionMap.put(ArmState.POLE, 5.0);
+        positionMap.put(ArmState.POLE, 17.0);
         positionMap.put(ArmState.IDLE, 25.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);

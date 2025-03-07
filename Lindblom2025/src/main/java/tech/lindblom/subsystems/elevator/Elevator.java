@@ -33,7 +33,7 @@ public class Elevator extends StateSubsystem {
     private double maxSecondStageDistance = 680;
 
     private double minFirstStageDistance = 0;
-    private double maxFirstStageDistance = 810;
+    private double maxFirstStageDistance = 810; 
 
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
@@ -68,7 +68,7 @@ public class Elevator extends StateSubsystem {
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
 
-        positions.put(ElevatorState.POLE, new Double[]{250.0, minSecondStageDistance});
+        positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});

@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 
 public class LEDs extends StateSubsystem {
-    private final int LED_LENGTH = 75 + 75;
+    private final int LED_LENGTH = 150; // 75 + 75 = 150
     private RobotController robotController;
 
     private AddressableLED mLedController = null;
@@ -55,7 +55,7 @@ public class LEDs extends StateSubsystem {
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }
-        
+
         switch((LEDState) getCurrentState()) {
             case RAINBOW:
                 rainbow();

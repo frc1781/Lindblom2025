@@ -12,6 +12,10 @@ public class AutoStep {
     private PathPlannerPath path = null;
     private Reaction reaction;
 
+    private int redTargetApritag = -1;
+    private int blueTargetApriltag = -1;
+
+
     public AutoStep(int maxTime, PathPlannerPath path) {
         this.maxTime = maxTime;
         this.path = path;
@@ -78,6 +82,15 @@ public class AutoStep {
         this.stepType = StepType.PATH_AND_ACTION;
     }
 
+    public AutoStep(RobotController.Action action, PathPlannerPath path, int redTargetApriltag, int blueTargetArpiltag) {
+        this.action = action;
+        this.path = path;
+
+        this.stepType = StepType.PATH_AND_ACTION;
+        this.blueTargetApriltag = blueTargetArpiltag;
+        this.redTargetApritag = redTargetApriltag;
+    }
+    
     public boolean hasReaction() {
         return reaction != null;
     }
