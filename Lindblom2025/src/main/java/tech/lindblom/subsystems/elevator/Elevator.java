@@ -67,6 +67,7 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+
         positions.put(ElevatorState.POLE, new Double[]{250.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});

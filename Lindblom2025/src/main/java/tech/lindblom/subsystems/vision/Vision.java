@@ -100,6 +100,8 @@ public class Vision extends Subsystem {
             if (closestTarget == null && reefApriltagIds.contains(target.getFiducialId())) {
                 closestTarget = target;
                 continue;
+            } else if (closestTarget == null) {
+                continue;
             }
 
             if ((target.area < closestTarget.area) && reefApriltagIds.contains(target.getFiducialId())) {
