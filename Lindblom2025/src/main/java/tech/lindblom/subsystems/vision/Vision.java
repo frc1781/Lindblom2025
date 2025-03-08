@@ -53,16 +53,16 @@ public class Vision extends Subsystem {
         try {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
             frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_RIGHT_CAMERA_POSITION);
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
 /*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.BACK_CAMERA_POSITION);*/
             leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
             frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
@@ -81,12 +81,7 @@ public class Vision extends Subsystem {
     }
 
     @Override
-    public void periodic() {
-        frontRightCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
-        frontLeftCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
-        leftSideCameraPoseEstimator.addHeadingData(edu.wpi.first.wpilibj.RobotController.getFPGATime(), robotController.getRobotHeading());
-        //backCameraPoseEstimator.addHeadingData();
-
+    public void periodic() {    
         frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
         leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);

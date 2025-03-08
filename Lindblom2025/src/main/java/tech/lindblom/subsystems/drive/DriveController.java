@@ -231,7 +231,10 @@ public class DriveController extends StateSubsystem {
         }
 
 
-        if (robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
+        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
+            && robotController.isElevatorInPoleState()
+                && areValidCameraReading(cameraOffset) 
+                && robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
             inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         } else {
             if (apriltagId == -1) {
