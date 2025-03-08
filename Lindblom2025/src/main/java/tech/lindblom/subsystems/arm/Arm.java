@@ -111,12 +111,6 @@ public class Arm extends StateSubsystem {
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
-/*
-            if (getCurrentState() == ArmState.IDLE && coralTimeOfFlight.getRange() < 20.0 && currentOperatingMode == OperatingMode.TELEOP) {
-                setState(ArmState.COLLECT);
-            }
-*/
-
             getToPosition(positionMap.get(getCurrentState()));
         }
     }

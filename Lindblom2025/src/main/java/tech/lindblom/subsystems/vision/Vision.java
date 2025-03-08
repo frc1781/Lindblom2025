@@ -20,6 +20,8 @@ import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
 
+import static tech.lindblom.utils.EnumCollection.OperatingMode.AUTONOMOUS;
+
 import java.util.*;
 
 public class Vision extends Subsystem {
@@ -97,14 +99,14 @@ public class Vision extends Subsystem {
         List<PhotonTrackedTarget> targets = result.targets;
         PhotonTrackedTarget closestTarget = null;
 
-        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag()) {
+        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag() && currentOperatingMode == AUTONOMOUS) {
             int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
             for (PhotonTrackedTarget target : targets) {
                 if (target.getFiducialId() == targetTag) {
                     return targetTag;
                 }
             }
-            
+
             return -1;
         }
 

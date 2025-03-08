@@ -652,8 +652,9 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToMove() {
-        return (elevatorSystem.defaultState == elevatorSystem.getCurrentState() && (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150))
-                || (elevatorSystem.defaultState != elevatorSystem.getCurrentState() && elevatorSystem.matchesState());
+        return (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150);
+        // return (elevatorSystem.defaultState == elevatorSystem.getCurrentState() && (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150))
+        //         || (elevatorSystem.defaultState != elevatorSystem.getCurrentState() && elevatorSystem.matchesState());
     }
 
     public double getCenteringDistance() {
