@@ -90,6 +90,14 @@ public class AutoStep {
         this.blueTargetApriltag = blueTargetArpiltag;
         this.redTargetApritag = redTargetApriltag;
     }
+
+    public boolean hasTargetApriltag() {
+        return (redTargetApritag != -1 && blueTargetApriltag != -1);
+    }
+
+    public int getTargetApriltag() {
+        return RobotController.isRed() ? redTargetApritag : blueTargetApriltag;
+    }
     
     public boolean hasReaction() {
         return reaction != null;

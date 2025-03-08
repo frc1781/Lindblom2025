@@ -116,6 +116,18 @@ public class DriveController extends StateSubsystem {
         }
         Logger.recordOutput(this.name + "/hasSetInitialPose", hasSetInitialPose);
 
+        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+        double cameraOffset = 0.0;
+        double cameraDistance = 0.0;
+        if (apriltagId != -1) {
+            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
+            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+        }
+
+        Logger.recordOutput(this.name + "/aprilTag", apriltagId);
+        Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
+        Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
+
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
@@ -219,9 +231,7 @@ public class DriveController extends StateSubsystem {
         }
 
 
-        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
-            && areValidCameraReading(cameraOffset) 
-            && robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
+        if (robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
             inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         } else {
             if (apriltagId == -1) {
@@ -231,11 +241,21 @@ public class DriveController extends StateSubsystem {
             }
         }
 
+        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
+            && areValidCameraReading(cameraOffset) 
+            && robotController.getCenteringSide() == ReefCenteringSide.CENTER) {
+                if (apriltagId == -1) {
+                    inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (targetOffset - cameraOffset));
+                } else {
+                    inputSpeeds.vyMetersPerSecond = 0;
+                }
+            }
+
         double leftTOFdistance = leftTOF.getRange();
         double rightTOFdistance = rightTOF.getRange();
         if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
-            if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE) >= 50) {
-                inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE));
+            if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - targetParallelDistance) >= 50) {
+                inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - targetParallelDistance));
             } else {
                 inputSpeeds.vxMetersPerSecond = 0;
             }
@@ -387,7 +407,7 @@ public class DriveController extends StateSubsystem {
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
         Logger.recordOutput(this.name + "/VisionEstimatedPose", estimatedPose);
-        driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
+        //driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {

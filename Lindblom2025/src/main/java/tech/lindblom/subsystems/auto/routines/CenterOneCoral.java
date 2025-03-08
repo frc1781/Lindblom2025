@@ -12,7 +12,7 @@ public class CenterOneCoral implements AutoRoutine {
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[] {
-                        new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("start;HG")),
+                        new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("start;HG"), 10, 21),
                 })
         };
     }

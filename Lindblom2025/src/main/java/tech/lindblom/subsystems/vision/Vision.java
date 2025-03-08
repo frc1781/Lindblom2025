@@ -92,12 +92,22 @@ public class Vision extends Subsystem {
     }
 
     public int getClosestReefApriltag(Camera camera) {
-        //if (robotController.autoSystem.getCurrentAutoStep())
-
         PhotonPipelineResult result = getCameraLatestResults(camera);
         if (result == null || !result.hasTargets()) return -1;
         List<PhotonTrackedTarget> targets = result.targets;
         PhotonTrackedTarget closestTarget = null;
+
+        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag()) {
+            int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
+            for (PhotonTrackedTarget target : targets) {
+                if (target.getFiducialId() == targetTag) {
+                    return targetTag;
+                }
+            }
+            
+            return -1;
+        }
+
         for (PhotonTrackedTarget target : targets) {
             if (closestTarget == null && reefApriltagIds.contains(target.getFiducialId())) {
                 closestTarget = target;

@@ -482,9 +482,9 @@ public class RobotController {
     public void createActions(){
         defineAction(Action.CENTER_REEF_CENTER,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5));
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 5));
         defineAction(Action.LEDs_BLUE,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
         defineAction(Action.LEDs_RED,
@@ -702,7 +702,7 @@ public class RobotController {
 
     public SubsystemSetting[] getSubsystemSettingsFromAction(Action action) {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS
-                && autoSystem.getCurrentAutoStep().getPath() != null
+                && autoSystem.getCurrentStep().getPath() != null
                 && actionMap.get(action)[0].reliesOnOthers
                 ) {
              return EEUtil.insertElementAtIndex(actionMap.get(action), new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5), 1);
