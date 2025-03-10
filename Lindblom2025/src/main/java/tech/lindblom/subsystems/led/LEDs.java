@@ -1,30 +1,25 @@
 package tech.lindblom.subsystems.led;
 
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
-import tech.lindblom.utils.EnumCollection.OperatingMode;
-
-import java.util.TreeMap;
-
-import com.fasterxml.jackson.databind.ser.BeanSerializer;
-
+import tech.lindblom.utils.EEUtil;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 
 public class LEDs extends StateSubsystem {
-    private final int LED_LENGTH = 150; // 75 + 75 = 150
-    private RobotController robotController;
+    private final RobotController robotController;
+    private final int LED_LENGTH = 150;
 
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
+
     private int mRainbowFirstPixelHue = 1;
     private Timer flashingTimer;
     private boolean flashAlt;
 
     public LEDs(RobotController _robotController) {
-        super("LEDs", LEDState.RAINBOW);
+        super("LEDs", LEDState.SYNC);
         this.robotController = _robotController;
     }
 
@@ -40,14 +35,6 @@ public class LEDs extends StateSubsystem {
             mLedController.setData(mLedBuffer);
             mLedController.start();
         }
-
-        switch (currentOperatingMode) {
-            case DISABLED:  
-                setState(LEDState.RAINBOW);
-                break;
-            default:
-                break;
-        }
     }
 
     @Override
@@ -59,6 +46,7 @@ public class LEDs extends StateSubsystem {
         switch((LEDState) getCurrentState()) {
             case RAINBOW:
                 rainbow();
+                break;
             case WHITE:
                 solid(255, 255, 255);
                 break;
@@ -87,7 +75,7 @@ public class LEDs extends StateSubsystem {
 
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, g,r,b);
+            mLedBuffer.setRGB(i, r, g, b);
         }
     }
 
@@ -107,14 +95,12 @@ public class LEDs extends StateSubsystem {
     }
 
     private void rainbow() {
-        for (var i = 0; i < mLedBuffer.getLength(); i++) {
-
-            final var hue = (mRainbowFirstPixelHue + (i * 180 / mLedBuffer.getLength())) % 180;
+        for (var i = 0; i < LED_LENGTH; i++) {
+            var hue = (mRainbowFirstPixelHue + (i * 180 / LED_LENGTH)) % 180;
             mLedBuffer.setHSV(i, hue, 255, 128);
         }
 
         mRainbowFirstPixelHue += 3;
-
         mRainbowFirstPixelHue %= 180;
     }
 
