@@ -254,17 +254,17 @@ public class DriveController extends StateSubsystem {
                 }
             }
 
-        double leftTOFdistance = leftTOF.getRange();
-        double rightTOFdistance = rightTOF.getRange();
+        double leftTOFDistance = leftTOF.getRange();
+        double rightTOFDistance = rightTOF.getRange();
         if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
-            if (Math.abs((leftTOFdistance + rightTOFdistance) / 2.0 - targetParallelDistance) >= 50) {
-                inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFdistance + rightTOFdistance) / 2.0 - targetParallelDistance));
+            if (Math.abs((leftTOFDistance + rightTOFDistance) / 2.0 - targetParallelDistance) >= 50) {
+                inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFDistance + rightTOFDistance) / 2.0 - targetParallelDistance));
             } else {
                 inputSpeeds.vxMetersPerSecond = 0;
             }
 
-            if (Math.abs(rightTOFdistance - leftTOFdistance) >= 30 && Math.abs(rightTOFdistance - leftTOFdistance) < 250) {
-                inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFdistance - leftTOFdistance));
+            if (Math.abs(rightTOFDistance - leftTOFDistance) >= 30 && Math.abs(rightTOFDistance - leftTOFDistance) < 250) {
+                inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (rightTOFDistance - leftTOFDistance));
             } else {
                 inputSpeeds.omegaRadiansPerSecond = 0;
             }
@@ -273,12 +273,12 @@ public class DriveController extends StateSubsystem {
                 reachedDesiredDistance = true;
             }
 
-            if (Math.abs(rightTOFdistance - leftTOFdistance) > 250) {
+            if (Math.abs(rightTOFDistance - leftTOFDistance) > 250) {
                 robotController.ledsSystem.setState(LEDState.OVER);
             }
         }
 
-        Logger.recordOutput(this.name + "/parallelDistance", rightTOFdistance - leftTOFdistance);
+        Logger.recordOutput(this.name + "/parallelDistance", rightTOFDistance - leftTOFDistance);
         Logger.recordOutput(this.name + "/inCenteredPosition", reachedDesiredDistance);
         Logger.recordOutput(this.name + "/driveUsingVelocities", inputSpeeds);
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
