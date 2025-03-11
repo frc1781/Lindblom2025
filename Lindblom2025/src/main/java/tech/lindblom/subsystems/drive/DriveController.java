@@ -178,7 +178,7 @@ public class DriveController extends StateSubsystem {
                         xVelocity,
                         yVelocity,
                         rotSpeed),
-                driveSubsystem.getRotation())
+                driveSubsystem.getRobotRotation())
                 : new ChassisSpeeds(xVelocity, yVelocity, rotSpeed);
 
         driveSubsystem.drive(speeds);
