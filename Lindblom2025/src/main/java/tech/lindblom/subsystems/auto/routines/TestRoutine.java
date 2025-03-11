@@ -11,14 +11,14 @@ import tech.lindblom.subsystems.auto.groups.DependGroup;
 public class TestRoutine implements AutoRoutine {
     @Override
     public String getName() {
-        return "Movement Test";
+        return "Orientation Test";
     }
 
     @Override
     public AutoStepGroup[] getAutoStepGroups() {
         return new AutoStepGroup[] {
                 new DependGroup(new AutoStep[]{
-                        new AutoStep(Action.CENTER_REEF_LEFT_L4),
+                        new AutoStep(Auto.getPathFromName("testPath")),
                 })
         };
     }

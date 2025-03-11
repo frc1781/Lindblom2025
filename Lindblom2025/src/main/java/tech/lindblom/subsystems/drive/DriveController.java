@@ -162,8 +162,8 @@ public class DriveController extends StateSubsystem {
         return new ChassisSpeeds(0.0, 0.0, 0.0);
     }
 
-    public void resetNavX() {
-        driveSubsystem.zeroRotation();
+    public void orientFieldToRobot() {
+        driveSubsystem.orientFieldToRobot();
     }
 
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
