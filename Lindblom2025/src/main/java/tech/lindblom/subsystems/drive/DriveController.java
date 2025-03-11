@@ -17,6 +17,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 
 import frc.robot.Robot;
@@ -39,11 +40,11 @@ public class DriveController extends StateSubsystem {
     private final RobotController robotController;
     private PathPlannerPath followingPath;
     private PathPlannerTrajectory followingTrajectory;
-    private Timer trajectoryTime;
+    private final Timer trajectoryTime;
     private Pose2d targetPose;
     private HolonomicDriveController trajectoryController;
-    private TimeOfFlight leftTOF;
-    private TimeOfFlight rightTOF;
+    private final TimeOfFlight leftTOF;
+    private final TimeOfFlight rightTOF;
     private final TimeOfFlight armTOF;
 
     private final PIDController XController = new PIDController(3, 0, 0);
@@ -57,7 +58,7 @@ public class DriveController extends StateSubsystem {
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     private RobotConfig robotConfig;
-    private boolean isFieldOriented = true;
+    private final boolean isFieldOriented = true;
     private boolean reachedDesiredDistance = false;
     private boolean detectedPole = false;
     private boolean hasSetInitialPose = false;
@@ -410,7 +411,7 @@ public class DriveController extends StateSubsystem {
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
         Logger.recordOutput(this.name + "/VisionEstimatedPose", estimatedPose);
-        //driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
+        driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {
@@ -428,6 +429,14 @@ public class DriveController extends StateSubsystem {
         }
         
         hasSetInitialPose = true;
+    }
+
+    public Pose2d getRobotPose() {
+        if (RobotBase.isSimulation()) {
+            return new Pose2d(2, 2, new Rotation2d());
+        }
+
+        return driveSubsystem.getRobotPose();
     }
 
     @Override

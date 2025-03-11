@@ -48,7 +48,6 @@ public class Drive extends Subsystem {
 
     public Drive() {
         super("Drive");
-        navX.resetDisplacement();
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
     }
@@ -86,7 +85,6 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        //navX.reset();
         swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
     }
 
@@ -111,11 +109,10 @@ public class Drive extends Subsystem {
     }
 
     public void zeroRotation() {
-        navX.setAngleAdjustment(0);
-        navX.zeroYaw();
-        navX.reset();
-        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
-                new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
+        swerveDrivePoseEstimator.resetPosition(
+            getRotation(), 
+            getModulePositions(),
+            new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
 
     private SwerveModulePosition[] getModulePositions() {

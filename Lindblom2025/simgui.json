@@ -2,8 +2,7 @@
   "HALProvider": {
     "Addressable LEDs": {
       "0": {
-        "columns": 30,
-        "serpentine": true
+        "columns": 30
       },
       "window": {
         "visible": true
@@ -37,8 +36,34 @@
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
       "/AdvantageKit/RealOutputs/Elevator/SimulationMech": "Mechanism2d",
       "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Autonomous/Field": "Field2d",
       "/Shuffleboard/Autonomous/SendableChooser[0]": "String Chooser",
-      "/SmartDashboard/Alerts": "Alerts"
+      "/SmartDashboard/Alerts": "Alerts",
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
+    },
+    "windows": {
+      "/Shuffleboard/Autonomous/Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables Info": {
