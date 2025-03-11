@@ -371,6 +371,9 @@ public class RobotController {
             case PATH_AND_ACTION:
                 setAction(autoStep.getAction());
                 driveController.setAutoPath(autoStep.getPath());
+                if (!isSequentialAction(autoStep.getAction())) {
+                    driveController.setState(DriveController.DriverStates.PATH);
+                }
                 break;
         }
     }
@@ -385,10 +388,12 @@ public class RobotController {
         if (currentAutoStep == null) return true;
 
         switch (currentAutoStep.getStepType()) {
-            case ACTION, PATH_AND_ACTION:
+            case ACTION:
                 return hasActionFinished();
             case PATH:
                 return driveController.matchesState();
+            case PATH_AND_ACTION:
+                return driveController.matchesState() && hasActionFinished();
         }
 
         return true;

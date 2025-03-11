@@ -65,9 +65,9 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
-        if (getCurrentState() == ArmState.COLLECT) {
+/*        if (getCurrentState() == ArmState.COLLECT) {
             return hasCoral();
-        }
+        }*/
         if (getCurrentState() == ArmState.POLE && robotController.getCenteringSide() != null) {
             return robotController.driveController.matchesState();
         }
@@ -129,10 +129,12 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
+/*
     public boolean hasCoral() {
         boolean hasCoral = coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
         return hasCoral;
     }
+*/
 
     private boolean preventDescore() {
         return (getCurrentState() == defaultState && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)
