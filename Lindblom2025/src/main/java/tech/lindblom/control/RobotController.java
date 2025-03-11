@@ -420,7 +420,7 @@ public class RobotController {
     }
 
     public boolean elevatorInConveyPosition() {
-        return elevatorSystem.getCurrentState() == Elevator.ElevatorState.SAFE && elevatorSystem.matchesState();
+        return (elevatorSystem.getCurrentState() == Elevator.ElevatorState.SAFE && elevatorSystem.matchesState()) || elevatorSystem.getFirstStagePosition() < 10;
     }
 
     public boolean isManualControlMode() {
