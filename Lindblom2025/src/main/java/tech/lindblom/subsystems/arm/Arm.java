@@ -65,12 +65,14 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
-
+        if (getCurrentState() == ArmState.COLLECT) {
+            return hasCoral();
+        }
         if (getCurrentState() == ArmState.POLE && robotController.getCenteringSide() != null) {
             return robotController.driveController.matchesState();
         }
 
-        return matchesDesiredPosition();
+       return matchesDesiredPosition();
     }
 
     public boolean matchesDesiredPosition() {
@@ -82,6 +84,7 @@ public class Arm extends StateSubsystem {
         return false;
     }
 
+
     @Override
     public void init() {
        
@@ -90,7 +93,7 @@ public class Arm extends StateSubsystem {
     public double getPosition() {
         return armMotor.getAbsoluteEncoder().getPosition();
     }
-    
+
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
@@ -108,7 +111,7 @@ public class Arm extends StateSubsystem {
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
-            getToPosition(positionMap.get(getCurrentState()));
+                getToPosition(positionMap.get(getCurrentState()));
         }
     }
 
@@ -124,6 +127,11 @@ public class Arm extends StateSubsystem {
         }
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+    }
+
+    public boolean hasCoral() {
+        boolean hasCoral = coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
+        return hasCoral;
     }
 
     private boolean preventDescore() {

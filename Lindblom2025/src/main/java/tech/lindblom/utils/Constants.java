@@ -135,6 +135,8 @@ public class Constants {
     public class Arm{
         public static final int ARM_MOTOR_ID = 13;
         public static final int CLAW_CORAL_SENSOR_ID = 54;
+
+        public static double CORAL_TOF_DISTANCE = 38;
     }
 
     public class Elevator {
