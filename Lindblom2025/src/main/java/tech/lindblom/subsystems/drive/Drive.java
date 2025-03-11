@@ -45,11 +45,13 @@ public class Drive extends Subsystem {
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
+    private boolean resetOrientationByDriver;
 
     public Drive() {
         super("Drive");
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
+        resetOrientationByDriver = false;
     }
 
     @Override
@@ -85,7 +87,7 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
+        swerveDrivePoseEstimator.resetPosition(getGioRotation(), getModulePositions(), pose);
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
@@ -93,7 +95,7 @@ public class Drive extends Subsystem {
     }
 
     private void updatePoseUsingOdometry() {
-        swerveDrivePoseEstimator.update(getRotation(), getModulePositions());
+        swerveDrivePoseEstimator.update(getGioRotation(), getModulePositions());
     }
 
     public Pose2d getRobotPose() {
@@ -104,13 +106,18 @@ public class Drive extends Subsystem {
         return swerveDrivePoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    public Rotation2d getRotation() {
+    private Rotation2d getGioRotation() {
         return new Rotation2d(-navX.getRotation2d().getRadians());
     }
 
-    public void zeroRotation() {
+    public void orientFieldToRobot() {
+        if (resetOrientationByDriver) {  //only do once
+            return;
+        }
+        resetOrientationByDriver = true;
+        System.out.println("NOTE: Reoriented concept of zero direction on the field to direction the robot is facing because requested by driver");
         swerveDrivePoseEstimator.resetPosition(
-            getRotation(), 
+            getGioRotation(), 
             getModulePositions(),
             new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }

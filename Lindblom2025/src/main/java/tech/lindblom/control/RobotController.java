@@ -247,8 +247,8 @@ public class RobotController {
 
         toggleSwitch = inputHolder.toggleManualControl;
 
-        if (inputHolder.resetNavX) {
-            driveController.resetNavX();
+        if (inputHolder.orientFieldToRobot) {
+            driveController.orientFieldToRobot();
         }
 
         if (inputHolder.sequentialAction != null) {

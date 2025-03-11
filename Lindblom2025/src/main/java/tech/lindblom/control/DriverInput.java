@@ -47,7 +47,7 @@ public class DriverInput {
         driverInputHolder.driverLeftJoystickPosition = getControllerJoyAxis(ControllerSide.LEFT, 0);
         driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
-        driverInputHolder.resetNavX = getButton("START", 0);
+        driverInputHolder.orientFieldToRobot = getButton("START", 0);
         driverInputHolder.toggleManualControl = getButton("B", 0);
         driverInputHolder.armConfirm = getButton("BACK", 0);
 
@@ -206,7 +206,7 @@ public class DriverInput {
         public boolean toggleManualControl = false;
         public boolean armConfirm = false;
 
-        boolean resetNavX;
+        boolean orientFieldToRobot;
     }
 
     public enum ReefCenteringSide {
