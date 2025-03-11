@@ -19,7 +19,7 @@ public class LEDs extends StateSubsystem {
     private boolean flashAlt;
 
     public LEDs(RobotController _robotController) {
-        super("LEDs", LEDState.SYNC);
+        super("LEDs", LEDState.RAINBOW);
         this.robotController = _robotController;
     }
 
