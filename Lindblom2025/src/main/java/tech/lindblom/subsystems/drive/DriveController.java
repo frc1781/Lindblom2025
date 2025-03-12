@@ -246,7 +246,7 @@ public class DriveController extends StateSubsystem {
                 && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (apriltagId == -1) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.5, 0.5, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.5 : 0.5);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             } else {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }

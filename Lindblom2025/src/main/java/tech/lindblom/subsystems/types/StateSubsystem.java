@@ -41,7 +41,7 @@ public abstract class StateSubsystem extends Subsystem {
         return currentState;
     }
     public void restoreToDefaultState() {
-        setState(defaultState);
+        setState(getDefaultState());
     }
 
     public SubsystemState getDefaultState() {

@@ -141,7 +141,7 @@ public class Arm extends StateSubsystem {
 
 
     public boolean hasCoral() {
-        return coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
+        return coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE;
     }
 
 
