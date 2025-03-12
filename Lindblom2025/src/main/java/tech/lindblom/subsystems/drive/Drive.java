@@ -91,7 +91,7 @@ public class Drive extends Subsystem {
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
-        swerveDrivePoseEstimator.addVisionMeasurement(estimatedPose, time, stdValue);
+        swerveDrivePoseEstimator.addVisionMeasurement(new Pose2d(estimatedPose.getTranslation(), getGioRotation()), time, stdValue);
     }
 
     private void updatePoseUsingOdometry() {

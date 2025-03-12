@@ -411,7 +411,7 @@ public class DriveController extends StateSubsystem {
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
         Logger.recordOutput(this.name + "/VisionEstimatedPose", estimatedPose);
-        driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
+        driveSubsystem.updatePoseUsingVisionEstimate(estimatedPose, time, stdValue);
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {
