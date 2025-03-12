@@ -258,7 +258,7 @@ public class Vision extends Subsystem {
         if (robotPose.strategy == LOWEST_AMBIGUITY) {
             Rotation2d estimatedRotation = robotPose.estimatedPose.getRotation().toRotation2d();
             Rotation2d currentRotation = robotController.getRobotHeading();
-            double rotationPercentError = ((Math.abs(currentRotation.minus(estimatedRotation).getDegrees())) / (currentRotation.getDegrees() + 0.1));
+            double rotationPercentError = Math.abs(((Math.abs(currentRotation.minus(estimatedRotation).getDegrees())) / (currentRotation.getDegrees() + 0.1)));
             Logger.recordOutput(this.name + "/singleTagPercentageError", rotationPercentError);
             if (rotationPercentError < 5.0) {
                 this.robotController.updateLocalization(robotPose, result);
