@@ -25,12 +25,14 @@ public class Arm extends StateSubsystem {
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
+    private TimeOfFlight coralTimeOfFlight;
 
     private ArmState previousState;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.COLLECT);
 
+        coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
@@ -65,12 +67,11 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
+
+        Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
 /*        if (getCurrentState() == ArmState.COLLECT) {
             return hasCoral();
         }*/
-        if (getCurrentState() == ArmState.POLE && robotController.getCenteringSide() != null) {
-            return robotController.driveController.matchesState();
-        }
 
        return matchesDesiredPosition();
     }
@@ -129,12 +130,11 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
-/*
+
     public boolean hasCoral() {
-        boolean hasCoral = coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
-        return hasCoral;
+        return coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE && coralTimeOfFlight.isRangeValid();
     }
-*/
+
 
     private boolean preventDescore() {
         return (getCurrentState() == defaultState && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)

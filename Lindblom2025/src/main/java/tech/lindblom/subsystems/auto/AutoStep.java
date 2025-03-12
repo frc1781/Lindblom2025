@@ -91,6 +91,14 @@ public class AutoStep {
         this.redTargetApritag = redTargetApriltag;
     }
 
+    public AutoStep(RobotController.Action action, int redTargetApriltag, int blueTargetArpiltag) {
+        this.action = action;
+        this.stepType = StepType.ACTION;
+
+        this.blueTargetApriltag = blueTargetArpiltag;
+        this.redTargetApritag = redTargetApriltag;
+    }
+
     public boolean hasTargetApriltag() {
         return (redTargetApritag != -1 && blueTargetApriltag != -1);
     }

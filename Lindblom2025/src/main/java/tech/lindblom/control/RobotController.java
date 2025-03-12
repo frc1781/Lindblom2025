@@ -450,6 +450,7 @@ public class RobotController {
     }
 
     public enum Action {
+        READY_FOP_POLE,
         WAIT,
         LEDs_RED,
         LEDs_BLUE,
@@ -485,6 +486,9 @@ public class RobotController {
     }
 
     public void createActions(){
+        defineAction(Action.READY_FOP_POLE,
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
         defineAction(Action.CENTER_REEF_CENTER,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
@@ -545,24 +549,24 @@ public class RobotController {
 
         defineAction(Action.L4,
             new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
         );
 
         defineAction(Action.L3,
             new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
         );
 
         defineAction(Action.L2,
             new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
         );
@@ -688,7 +692,7 @@ public class RobotController {
     }
 
     public boolean isElevatorInPoleState() {
-        return elevatorSystem.getCurrentState() == Elevator.ElevatorState.POLE && elevatorSystem.matchesState();
+        return elevatorSystem.getCurrentState() == Elevator.ElevatorState.POLE && elevatorSystem.matchesPosition();
     }
 
     public Rotation2d getRobotHeading() {
