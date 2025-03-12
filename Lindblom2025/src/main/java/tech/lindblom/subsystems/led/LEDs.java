@@ -1,8 +1,14 @@
 package tech.lindblom.subsystems.led;
 
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.drive.DriveController;
+import tech.lindblom.subsystems.drive.DriveController.DriverStates;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EnumCollection.OperatingMode;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
@@ -44,7 +50,7 @@ public class LEDs extends StateSubsystem {
         }
 
         switch((LEDState) getCurrentState()) {
-            case RAINBOW:
+            case OPERATING_COLOR, RAINBOW:
                 rainbow();
                 break;
             case WHITE:
@@ -59,6 +65,9 @@ public class LEDs extends StateSubsystem {
             case BLUE:
                 solid(0, 0, 255);
                 break;
+            case PURPLE:
+                solid(255, 0, 255);
+                break;
             case SYNC:
                 flashing(0, 255, 0);
                 if (timeInState.get() > 1) {
@@ -71,6 +80,14 @@ public class LEDs extends StateSubsystem {
         }
 
         mLedController.setData(mLedBuffer);
+    }
+
+    @Override
+    public void setState(SubsystemState newState) {
+        if (newState == LEDState.OPERATING_COLOR) { //IGNORE STATE BECAUSE IT IS SET IN ACTION
+            return;
+        }
+        super.setState(newState);
     }
 
     private void solid(int r, int g, int b) {
@@ -111,6 +128,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, OVER, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OPERATING_COLOR, EXPECTED_FAIL
     }
 }
