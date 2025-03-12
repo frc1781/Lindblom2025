@@ -67,13 +67,7 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
-
-        Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
-/*        if (getCurrentState() == ArmState.COLLECT) {
-            return hasCoral();
-        }*/
-
-       return matchesDesiredPosition();
+        return matchesDesiredPosition();
     }
 
     public boolean matchesDesiredPosition() {
@@ -98,6 +92,8 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
+        Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
+
         if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
@@ -121,8 +117,21 @@ public class Arm extends StateSubsystem {
         this.previousState = (ArmState) previousState;
     }
 
+    @Override
+    public ArmState getDefaultState() {
+        if (robotController.isManualControlMode()) {
+            return ArmState.IDLE;
+        }
+
+        if (hasCoral()) {
+            return ArmState.POLE;
+        } else {
+            return ArmState.COLLECT;
+        }
+    }
+
     private void getToPosition(double position){
-        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) {
+        if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
             armMotor.set(0);
             return;
         }
@@ -137,7 +146,7 @@ public class Arm extends StateSubsystem {
 
 
     private boolean preventDescore() {
-        return (getCurrentState() == defaultState && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)
+        return (getCurrentState() == getDefaultState() && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)
                 && timeInState.get() < 2
         );
     }
