@@ -15,7 +15,7 @@ public class Climber extends BaseClimber {
     private final RelativeEncoder armEncoder;
 
     public Climber() {
-        latchServo = new PWM(Constants.Climber.SERVO_PWM_PORT);
+        // latchServo = new PWM(Constants.Climber.SERVO_PWM_PORT);
         armEncoder = leverMotor.getEncoder();
         armFeedforward = new ArmFeedforward(Constants.Climber.KS, Constants.Climber.KG, Constants.Climber.KV);
     }
