@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 
 public abstract class StateSubsystem extends Subsystem {
     private SubsystemState currentState;
-    public final SubsystemState defaultState;
+    private final SubsystemState defaultState;
     protected Timer timeInState;
     
     protected StateSubsystem(String _name, SubsystemState _defaultState) {
@@ -42,6 +42,10 @@ public abstract class StateSubsystem extends Subsystem {
     }
     public void restoreToDefaultState() {
         setState(defaultState);
+    }
+
+    public SubsystemState getDefaultState() {
+        return defaultState;
     }
 
     public interface SubsystemState {}
