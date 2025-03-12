@@ -231,30 +231,16 @@ public class DriveController extends StateSubsystem {
                 return inputSpeeds;
         }
 
-
-        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
-            && robotController.isElevatorInPoleState()
+        if (robotController.isElevatorInPoleState()
                 && robotController.isArmInPoleState()
-                && areValidCameraReading(cameraOffset) 
-                && robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
-            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-        } else {
+                && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
+        {
             if (apriltagId == -1) {
                 inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.2, 0.2, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.2 : 0.2);
             } else {
-                inputSpeeds.vyMetersPerSecond = 0;
+                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
         }
-
-//        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE
-//            && areValidCameraReading(cameraOffset)
-//            && robotController.getCenteringSide() == ReefCenteringSide.CENTER) {
-//                if (apriltagId == -1) {
-//                    inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (targetOffset - cameraOffset));
-//                } else {
-//                    inputSpeeds.vyMetersPerSecond = 0;
-//                }
-//            }
 
         double leftTOFDistance = leftTOF.getRange();
         double rightTOFDistance = rightTOF.getRange();
