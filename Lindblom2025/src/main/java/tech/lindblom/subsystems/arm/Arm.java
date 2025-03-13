@@ -5,24 +5,17 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import java.util.HashMap;
-
 import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
-
-
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
-import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 public class Arm extends StateSubsystem {
-
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
@@ -33,17 +26,17 @@ public class Arm extends StateSubsystem {
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
-            coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
+        coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
+        //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig
             .idleMode(SparkMaxConfig.IdleMode.kBrake)
-        armMotorConfig
             .softLimit
                 .forwardSoftLimit(180)
-                .reverseSoftLimit(0)
+                .reverseSoftLimit(0);
         armMotorConfig.smartCurrentLimit(30)
             .absoluteEncoder.positionConversionFactor(360)
                 .zeroOffset(.4457963);
