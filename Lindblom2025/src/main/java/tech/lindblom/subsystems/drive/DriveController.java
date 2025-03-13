@@ -129,8 +129,6 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
         Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
 
-        if (readyForCentering()) robotController.ledsSystem.setState(LEDState.PURPLE);
-
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
@@ -196,9 +194,9 @@ public class DriveController extends StateSubsystem {
     public boolean readyForCentering() {
          return leftTOF.isRangeValid() && rightTOF.isRangeValid() && 
             leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
-            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
-            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
-        );
+                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
+                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
+            );
     }
 
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {

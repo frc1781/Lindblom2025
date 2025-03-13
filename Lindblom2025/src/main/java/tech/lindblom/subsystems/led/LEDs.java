@@ -82,14 +82,6 @@ public class LEDs extends StateSubsystem {
         mLedController.setData(mLedBuffer);
     }
 
-    @Override
-    public void setState(SubsystemState newState) {
-        if (newState == LEDState.OPERATING_COLOR) { //IGNORE STATE BECAUSE IT IS SET IN ACTION
-            return;
-        }
-        super.setState(newState);
-    }
-
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
             mLedBuffer.setRGB(i, r, g, b);
@@ -128,6 +120,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OPERATING_COLOR, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }
