@@ -3,6 +3,7 @@ package tech.lindblom.swerve;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -26,6 +27,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
     private final CANcoder mTurnAbsoluteEncoder;
     private boolean isInverted;
+
+    private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
+            new VelocityTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
 
     private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
             moduleConfiguration().drivingKS,
@@ -120,6 +124,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
     public void runDesiredModuleState(SwerveModuleState desiredState) {
         desiredState.optimize(getAbsoluteAngle());
+        desiredState.cosineScale(getAbsoluteAngle());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
@@ -130,7 +135,11 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
         double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
-        mDriveMotor.set(FF);
+
+        double radPerSecond = desiredState.speedMetersPerSecond / Constants.Drive.WHEEL_RADIUS;
+        mDriveMotor.setControl(velocityTorqueCurrentRequest
+                .withVelocity(radPerSecond).withFeedForward(FF)
+        );
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
@@ -162,7 +171,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingD = 0;
         ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
         ret_val.drivingKS = 0.0154;
-        ret_val.drivingKV = .263;
+        ret_val.drivingKV = .623;
         ret_val.drivingKA = 0.16;
 
         ret_val.turningP = 5;

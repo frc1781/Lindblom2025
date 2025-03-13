@@ -13,8 +13,13 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import tech.lindblom.swerve.utils.ModuleLimits;
 
 public class Constants {
+
+    public class General {
+        public static final double LOOP_PERIOD_SECONDS = 0.02;
+    }
 
     public class Drive {
         // Left
@@ -45,7 +50,7 @@ public class Constants {
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(26);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.5);
 
-        public static final double WHEEL_RADIUS = 0.0508;
+        public static final double WHEEL_RADIUS = Units.inchesToMeters(2);
 
         public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
                 (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
@@ -62,6 +67,19 @@ public class Constants {
                 DRIVETRAIN_TRACKWIDTH / 2);
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
+
+        public static final Translation2d[] MODULE_TRANSLATIONS = {
+                FRONT_LEFT_MODULE_POSITION,
+                FRONT_RIGHT_MODULE_POSITION,
+                BACK_LEFT_MODULE_POSITION,
+                BACK_RIGHT_MODULE_POSITION
+        };
+
+        public static double MAX_LINEAR_SPEED = 4.0;
+        public static double MAX_ANGULAR_SPEED = MAX_LINEAR_SPEED / WHEEL_RADIUS;
+
+        public static final ModuleLimits MODULE_LIMITS =
+                new ModuleLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED, Units.degreesToRadians(1080.0));
 
         public static double TARGET_CORAL_DISTANCE = 0.4;
         public static double ARM_TOF_DISTANCE = 700;

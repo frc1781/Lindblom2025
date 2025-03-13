@@ -17,6 +17,8 @@ import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
 import tech.lindblom.swerve.SwerveModule;
+import tech.lindblom.swerve.utils.SwerveSetpoint;
+import tech.lindblom.swerve.utils.SwerveSetpointGenerator;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
@@ -46,12 +48,25 @@ public class Drive extends Subsystem {
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
     private boolean resetOrientationByDriver;
+    SwerveSetpointGenerator swerveSetpointGenerator;
+    private SwerveSetpoint currentSetpoint =
+            new SwerveSetpoint(
+                    new ChassisSpeeds(),
+                    new SwerveModuleState[] {
+                            new SwerveModuleState(),
+                            new SwerveModuleState(),
+                            new SwerveModuleState(),
+                            new SwerveModuleState()
+                    });
 
     public Drive() {
         super("Drive");
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
         resetOrientationByDriver = false;
+
+        swerveSetpointGenerator =
+                new SwerveSetpointGenerator(swerveDriveKinematics, Constants.Drive.MODULE_TRANSLATIONS);
     }
 
     @Override
@@ -70,15 +85,25 @@ public class Drive extends Subsystem {
     }
 
     public void drive(ChassisSpeeds speeds) {
+        // A lot of changes here were made thanks to the code by 6328's open source code, big thanks to them :)
         if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) {
             System.out.println("MOVING IN DISABLED");
             return;
         }
 
-        SwerveModuleState[] moduleStates = swerveDriveKinematics.toSwerveModuleStates(speeds);
+        ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, Constants.General.LOOP_PERIOD_SECONDS);
+        SwerveModuleState[] setPointStatesUnoptimized = swerveDriveKinematics.toSwerveModuleStates(discreteSpeeds);
+        currentSetpoint =
+                swerveSetpointGenerator.generateSetpoint(
+                        Constants.Drive.MODULE_LIMITS,
+                        currentSetpoint,
+                        discreteSpeeds,
+                        Constants.General.LOOP_PERIOD_SECONDS);
+        SwerveModuleState[] moduleStates = currentSetpoint.moduleStates();
         SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
 
         Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
+        Logger.recordOutput(name + "/setPointsUnoptimized", setPointStatesUnoptimized);
 
         frontLeftModule.runDesiredModuleState(moduleStates[0]);
         frontRightModule.runDesiredModuleState(moduleStates[1]);
