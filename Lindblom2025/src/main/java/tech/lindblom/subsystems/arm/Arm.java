@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import java.util.HashMap;
@@ -37,17 +38,26 @@ public class Arm extends StateSubsystem {
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
-        armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
-        armMotorConfig.smartCurrentLimit(30);
-        armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(.4457963);
-        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
-        armMotorConfig.closedLoop.positionWrappingEnabled(true);
-        armMotorConfig.softLimit.forwardSoftLimit(180);
-        armMotorConfig.softLimit.reverseSoftLimit(0);
-        armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+        armMotorConfig
+            .idleMode(SparkMaxConfig.IdleMode.kBrake)
+        armMotorConfig
+            .softLimit
+                .forwardSoftLimit(180)
+                .reverseSoftLimit(0)
+        armMotorConfig.smartCurrentLimit(30)
+            .absoluteEncoder.positionConversionFactor(360)
+                .zeroOffset(.4457963);
+        armMotorConfig
+            .closedLoop
+                .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
+                .pid(0.01, 0,0.001)
+                .velocityFF((double) 1 /565) // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+                .outputRange(-0.5, 0.5)  //modify depending on what is going on
+                .positionWrappingEnabled(true)
+                .maxMotion
+                    .maxVelocity(4200)
+                    .maxAcceleration(6000)
+                    .allowedClosedLoopError(0.5);
 
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -126,7 +136,7 @@ public class Arm extends StateSubsystem {
         this.previousState = (ArmState) previousState;
     }
 
-    private void getToPosition(double position){
+    private void getToPosition(double position) {
         if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) {
             armMotor.set(0);
             return;
