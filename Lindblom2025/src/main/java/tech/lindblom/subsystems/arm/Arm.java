@@ -32,25 +32,36 @@ public class Arm extends StateSubsystem {
         armMotor.setControlFramePeriodMs(20);
         //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
-        armMotorConfig
-            .idleMode(SparkMaxConfig.IdleMode.kBrake)
-            .softLimit
-                .forwardSoftLimit(180)
-                .reverseSoftLimit(0);
-        armMotorConfig.smartCurrentLimit(30)
-            .absoluteEncoder.positionConversionFactor(360)
-                .zeroOffset(.4457963);
-        armMotorConfig
-            .closedLoop
-                .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
-                .pid(0.01, 0,0.001)
-                .velocityFF((double) 1 /565) // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-                .outputRange(-0.5, 0.5)  //modify depending on what is going on
-                .positionWrappingEnabled(true)
-                .maxMotion
-                    .maxVelocity(4200)
-                    .maxAcceleration(6000)
-                    .allowedClosedLoopError(0.5);
+        armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
+        armMotorConfig.smartCurrentLimit(30);
+        armMotorConfig.absoluteEncoder.positionConversionFactor(360);
+        armMotorConfig.absoluteEncoder.zeroOffset(.4457963);
+        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
+        armMotorConfig.closedLoop.positionWrappingEnabled(true);
+        armMotorConfig.softLimit.forwardSoftLimit(180);
+        armMotorConfig.softLimit.reverseSoftLimit(0);
+        armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
+        // armMotorConfig
+        //     .idleMode(SparkMaxConfig.IdleMode.kBrake)
+        //     .softLimit
+        //         .forwardSoftLimit(180)
+        //         .reverseSoftLimit(0);
+        // armMotorConfig.smartCurrentLimit(30)
+        //     .absoluteEncoder.positionConversionFactor(360)
+        //         .zeroOffset(.4457963);
+        // armMotorConfig
+        //     .closedLoop
+        //         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
+        //         .pid(0.01, 0,0.001)
+        //         .velocityFF((double) 1 /565) // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
+        //         .outputRange(-0.5, 0.5)  //modify depending on what is going on
+        //         .positionWrappingEnabled(true)
+        //         .maxMotion
+        //             .maxVelocity(4200)
+        //             .maxAcceleration(6000)
+        //             .allowedClosedLoopError(0.5);
 
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
