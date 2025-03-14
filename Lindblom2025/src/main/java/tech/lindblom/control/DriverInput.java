@@ -37,7 +37,7 @@ public class DriverInput {
                 new Control(1, "A", Action.L4),
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
-                new Control(1, "Y", Action.L1),
+                new Control(1, "Y", Action.CENTER_REEF_CENTER),
         };
     }
 
@@ -47,7 +47,7 @@ public class DriverInput {
         driverInputHolder.driverLeftJoystickPosition = getControllerJoyAxis(ControllerSide.LEFT, 0);
         driverInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
-        driverInputHolder.resetNavX = getButton("START", 0);
+        driverInputHolder.orientFieldToRobot = getButton("START", 0);
         driverInputHolder.toggleManualControl = getButton("B", 0);
         driverInputHolder.armConfirm = getButton("BACK", 0);
 
@@ -61,6 +61,8 @@ public class DriverInput {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
                 } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_CENTER) {
+                    driverInputHolder.centeringSide = ReefCenteringSide.CENTER;
                 }
 
                 RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
@@ -204,7 +206,7 @@ public class DriverInput {
         public boolean toggleManualControl = false;
         public boolean armConfirm = false;
 
-        boolean resetNavX;
+        boolean orientFieldToRobot;
     }
 
     public enum ReefCenteringSide {

@@ -45,12 +45,13 @@ public class Drive extends Subsystem {
 
     private final AHRS navX = new AHRS(SPI.Port.kMXP);
     private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
+    private boolean resetOrientationByDriver;
 
     public Drive() {
         super("Drive");
-        navX.resetDisplacement();
         swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(swerveDriveKinematics, new Rotation2d(), getModulePositions(),
                 new Pose2d());
+        resetOrientationByDriver = false;
     }
 
     @Override
@@ -86,16 +87,15 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        //navX.reset();
-        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
+        swerveDrivePoseEstimator.resetPosition(getGioRotation(), getModulePositions(), pose);
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
-        swerveDrivePoseEstimator.addVisionMeasurement(estimatedPose, time, stdValue);
+        swerveDrivePoseEstimator.addVisionMeasurement(new Pose2d(estimatedPose.getTranslation(), getRobotRotation()), time, stdValue);
     }
 
     private void updatePoseUsingOdometry() {
-        swerveDrivePoseEstimator.update(getRotation(), getModulePositions());
+        swerveDrivePoseEstimator.update(getGioRotation(), getModulePositions());
     }
 
     public Pose2d getRobotPose() {
@@ -106,16 +106,20 @@ public class Drive extends Subsystem {
         return swerveDrivePoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    public Rotation2d getRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+    private Rotation2d getGioRotation() {
+        return new Rotation2d(navX.getRotation2d().getRadians());
     }
 
-    public void zeroRotation() {
-        navX.setAngleAdjustment(0);
-        navX.zeroYaw();
-        navX.reset();
-        swerveDrivePoseEstimator.resetPosition(getRotation(), getModulePositions(),
-                new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
+    public void orientFieldToRobot() {
+        if (resetOrientationByDriver) {  //only do once
+            return;
+        }
+        resetOrientationByDriver = true;
+        System.out.println("NOTE: Reoriented concept of zero direction on the field to direction the robot is facing because requested by driver");
+        swerveDrivePoseEstimator.resetPosition(
+            getGioRotation(), 
+            getModulePositions(),
+            new Pose2d(getRobotPose().getTranslation(), new Rotation2d()));
     }
 
     private SwerveModulePosition[] getModulePositions() {

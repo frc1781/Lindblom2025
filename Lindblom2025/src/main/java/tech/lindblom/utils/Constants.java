@@ -37,7 +37,7 @@ public class Constants {
 
         //Drive motor offsets
         public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.38916;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.66748;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.324463;
         public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.709473;
         public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.476074;
 
@@ -75,12 +75,14 @@ public class Constants {
         public static double DISTANCE_TOLERANCE = 0.05;
         public static double OFFSET_TOLERANCE = 0.02;
 
-        public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
+        public static double TARGET_TOF_PARALLEL_DISTANCE = 190;
+        public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 310;
         public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
         public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
+        public static double TARGET_CORAL_OFFSET_CENTER = 0;
     }
 
     public class Auto {
@@ -133,6 +135,8 @@ public class Constants {
     public class Arm{
         public static final int ARM_MOTOR_ID = 13;
         public static final int CLAW_CORAL_SENSOR_ID = 54;
+
+        public static double CORAL_TOF_DISTANCE = 50;
     }
 
     public class Elevator {

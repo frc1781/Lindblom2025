@@ -24,7 +24,7 @@ public class Arm extends StateSubsystem {
     private ArmState previousState;
 
     public Arm(RobotController controller) {
-        super("Arm", ArmState.IDLE);
+        super("Arm", ArmState.COLLECT);
 
         coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         robotController = controller;
@@ -55,11 +55,11 @@ public class Arm extends StateSubsystem {
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        positionMap.put(ArmState.POLE, 5.0);
-        positionMap.put(ArmState.IDLE, 10.0);
+        positionMap.put(ArmState.POLE, 17.0);
+        positionMap.put(ArmState.IDLE, 25.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 90.0);
+        positionMap.put(ArmState.L3, 70.0);
         positionMap.put(ArmState.L4, 80.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 175.0);
@@ -70,11 +70,6 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
-
-        if (getCurrentState() == ArmState.POLE && robotController.getCenteringSide() != null) {
-            return robotController.driveController.matchesState();
-        }
-
         return matchesDesiredPosition();
     }
 
@@ -87,6 +82,7 @@ public class Arm extends StateSubsystem {
         return false;
     }
 
+
     @Override
     public void init() {
        
@@ -95,11 +91,12 @@ public class Arm extends StateSubsystem {
     public double getPosition() {
         return armMotor.getAbsoluteEncoder().getPosition();
     }
-    
+
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
+
         if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
@@ -114,13 +111,7 @@ public class Arm extends StateSubsystem {
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
-/*
-            if (getCurrentState() == ArmState.IDLE && coralTimeOfFlight.getRange() < 20.0 && currentOperatingMode == OperatingMode.TELEOP) {
-                setState(ArmState.COLLECT);
-            }
-*/
-
-            getToPosition(positionMap.get(getCurrentState()));
+                getToPosition(positionMap.get(getCurrentState()));
         }
     }
 
@@ -129,18 +120,40 @@ public class Arm extends StateSubsystem {
         this.previousState = (ArmState) previousState;
     }
 
-    private void getToPosition(double position) {
-        armMotor.set(0);  //TEMPORARY WHILE TESTING!!!!!!!
-        if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) {
-            armMotor.set(0);
-            return;
+    @Override
+    public ArmState getDefaultState() {
+        if (robotController.isManualControlMode()) {
+            return ArmState.IDLE;
         }
-        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
-        Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+
+        if (hasCoral()) {
+            return ArmState.POLE;
+        } else {
+            return ArmState.COLLECT;
+        }
     }
 
+    private void getToPosition(double position){
+        armMotor.set(0);  //TEMPORARY WHILE TESTING
+ 
+        // if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
+        //     armMotor.set(0);
+        //     return;
+        // }
+        // armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
+        // Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+    }
+
+
+    public boolean hasCoral() {
+        return coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE;
+    }
+
+
     private boolean preventDescore() {
-        return (getCurrentState() == defaultState && (previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1) && timeInState.get() < 2);
+        return (getCurrentState() == getDefaultState() && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)
+                && timeInState.get() < 2
+        );
     }
 
     public enum ArmState implements SubsystemState {

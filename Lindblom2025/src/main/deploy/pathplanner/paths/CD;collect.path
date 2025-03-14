@@ -28,17 +28,12 @@
       "linkedName": "Collect South"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.7034068136272547,
-      "rotationDegrees": 131.52759199389968
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.5,
+    "maxVelocity": 1.0,
     "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -47,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 143.61564818416406
+    "rotation": 53.42922291427789
   },
   "reversed": false,
   "folder": null,
