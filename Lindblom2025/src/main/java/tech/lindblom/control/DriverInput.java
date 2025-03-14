@@ -27,8 +27,8 @@ public class DriverInput {
                 new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
                 new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", Action.EAT),
-                new Control(0, "X", Action.SPIT),
+                new Control(0, "A", Action.SPIN_IN),
+                new Control(0, "X", Action.SPIN_OUT),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button

@@ -185,8 +185,7 @@ public class Constants {
         public static final int CORAL_CONVEYOR_ID = 15;
     }
 
-    public class Mouth {
-        public static final int SPIN_MOUTH_MOTOR = 17;
-        public static final int POSITION_MOUTH_MOTOR = 16;
+    public class Thumb {
+        public static final int SPIN_THUMB_MOTOR = 17;
     }
 }

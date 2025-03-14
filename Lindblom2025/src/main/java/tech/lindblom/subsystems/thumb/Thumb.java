@@ -20,7 +20,7 @@ public class Thumb extends StateSubsystem {
         super("Thumb", ThumbState.IDLE);
 
         //Spin Motor
-        spinMotor = new SparkFlex(Constants.Mouth.SPIN_MOUTH_MOTOR, MotorType.kBrushless);
+        spinMotor = new SparkFlex(Constants.Thumb.SPIN_THUMB_MOTOR, MotorType.kBrushless);
         SparkFlexConfig spinMotorConfig = new SparkFlexConfig();
         spinMotorConfig.idleMode(IdleMode.kCoast);
         spinMotorConfig.smartCurrentLimit(30);
