@@ -159,17 +159,14 @@ public class Elevator extends StateSubsystem {
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
         } else {
-            dutyCycle = 0.02;
+            dutyCycle = 0.025;
         }
 
         if (!robotController.armSystem.isSafeForElevatorToMove()) {
-            dutyCycle = 0.02;
+            dutyCycle = 0.025;
         }
 
-        dutyCycle = 0.02;  //temporary while testing!
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
-
-
         motorRight.set(dutyCycle);
     }
 

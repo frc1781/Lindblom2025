@@ -35,7 +35,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.04);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.0);
         armMotorConfig.closedLoop.pid(0.01, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
