@@ -6,6 +6,9 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.wpilibj.Timer;
+
 import java.util.HashMap;
 import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
@@ -20,14 +23,16 @@ public class Arm extends StateSubsystem {
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
     private TimeOfFlight coralTimeOfFlight;
-
+    private Timer timeCoralTOFInvalid;
     private ArmState previousState;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.COLLECT);
 
         coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
+        coralTimeOfFlight.setRangingMode(TimeOfFlight.RangingMode.Short, 50);
         robotController = controller;
+        timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
         //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
@@ -38,7 +43,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.absoluteEncoder.zeroOffset(0.0);
         armMotorConfig.closedLoop.pid(0.01, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
+        armMotorConfig.closedLoop.outputRange(-0.1, 0.1);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -66,14 +71,22 @@ public class Arm extends StateSubsystem {
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        positionMap.put(ArmState.POLE, 17.0);
-        positionMap.put(ArmState.IDLE, 25.0);
-        positionMap.put(ArmState.L1, 45.0);
-        positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 70.0);
-        positionMap.put(ArmState.L4, 80.0);
-        positionMap.put(ArmState.WAIT, 25.0);
-        positionMap.put(ArmState.COLLECT, 175.0);
+        // positionMap.put(ArmState.POLE, 17.0);
+        // positionMap.put(ArmState.IDLE, 25.0);
+        // positionMap.put(ArmState.L1, 45.0);
+        // positionMap.put(ArmState.L2, 0.0);
+        // positionMap.put(ArmState.L3, 70.0);
+        // positionMap.put(ArmState.L4, 80.0);
+        // positionMap.put(ArmState.WAIT, 25.0);
+        // positionMap.put(ArmState.COLLECT, 175.0);
+        positionMap.put(ArmState.POLE, 40.0);
+        positionMap.put(ArmState.IDLE, 40.0);
+        positionMap.put(ArmState.L1, 40.0);
+        positionMap.put(ArmState.L2, 40.0);
+        positionMap.put(ArmState.L3, 40.0);
+        positionMap.put(ArmState.L4, 40.0);
+        positionMap.put(ArmState.WAIT, 40.0);
+        positionMap.put(ArmState.COLLECT, 40.0);
     }
 
     @Override
@@ -107,6 +120,8 @@ public class Arm extends StateSubsystem {
     public void periodic() {
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
+        Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
+        Logger.recordOutput(this.name + "/hasCoral", hasCoral());
         Logger.recordOutput(this.name + "/isSafeForElevatorToMove", isSafeForElevatorToMove());
 
         if(currentOperatingMode == OperatingMode.DISABLED) return;
@@ -146,23 +161,36 @@ public class Arm extends StateSubsystem {
     }
 
     public boolean isSafeForElevatorToMove() {
-        return getPosition() > 24.0 && getPosition() < 300;  //should never be this high except with gimble lock wrapping 
+        return getPosition() > 40.0 && getPosition() < 300;  //should never be this high except with gimble lock wrapping 
     }
 
     private void getToPosition(double position){
-        armMotor.set(0);  //TEMPORARY WHILE TESTING
- 
-        // if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
-        //     armMotor.set(0);
-        //     return;
-        // }
-        // armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
-        // Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+        if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
+            armMotor.set(0);
+            return;
+        }
+        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
+        Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
 
 
     public boolean hasCoral() {
-        return coralTimeOfFlight.getRange() < Constants.Arm.CORAL_TOF_DISTANCE;
+        //TOF reported inValid for very short times even when valid, filtering out so only reporting invalid if
+        //has been reporting invalid for more than 0.1 seconds.
+        if (coralTimeOfFlight.isRangeValid()) {
+            timeCoralTOFInvalid.reset();
+        }
+        else {
+            if (!timeCoralTOFInvalid.isRunning()) {
+                timeCoralTOFInvalid.start();
+            }
+        }
+
+        if (timeCoralTOFInvalid.get() > 0.1) {
+            return false;
+        }
+
+        return coralTimeOfFlight.getRange() > 10 && coralTimeOfFlight.getRange() < 100;
     }
 
 

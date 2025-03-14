@@ -50,7 +50,9 @@ public class Elevator extends StateSubsystem {
         super("Elevator", ElevatorState.SAFE);
         this.robotController = robotController;
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
+        firstStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
+        secondStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -110,6 +112,8 @@ public class Elevator extends StateSubsystem {
     public void periodic() {
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
+        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
         if (currentOperatingMode == OperatingMode.DISABLED) return;
@@ -146,24 +150,24 @@ public class Elevator extends StateSubsystem {
         Double[] desiredPosition = positions.get(getCurrentState());
         double Tolerance = 80;
 
-        if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
+        if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
-        } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
+        } else if (firstStageTOF.isRangeValid() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
         } else {
-            dutyCycle = 0.025;
+            dutyCycle = 0.02;
         }
 
         if (!robotController.armSystem.isSafeForElevatorToMove()) {
-            dutyCycle = 0.025;
+            dutyCycle = 0.02;
         }
 
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
