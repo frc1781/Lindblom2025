@@ -6,9 +6,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.wpilibj.Timer;
-
 import java.util.HashMap;
 import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
@@ -106,7 +104,6 @@ public class Arm extends StateSubsystem {
         return false;
     }
 
-
     @Override
     public void init() {
        
@@ -172,7 +169,6 @@ public class Arm extends StateSubsystem {
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
         Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
     }
-
 
     public boolean hasCoral() {
         //TOF reported inValid for very short times even when valid, filtering out so only reporting invalid if
