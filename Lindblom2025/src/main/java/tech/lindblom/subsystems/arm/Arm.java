@@ -146,7 +146,7 @@ public class Arm extends StateSubsystem {
     }
 
     public boolean isSafeForElevatorToMove() {
-        return getPosition() > 24.0;
+        return getPosition() > 24.0 && getPosition() < 300;  //should never be this high except with gimble lock wrapping 
     }
 
     private void getToPosition(double position){
