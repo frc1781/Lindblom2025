@@ -206,10 +206,13 @@ public class RobotController {
                     ledsSystem.setState(LEDState.GREEN);
                 }
                 else if (driveController.readyForCentering()) {
-                    ledsSystem.setState(LEDState.PURPLE);
+                    ledsSystem.setState(LEDState.RED);
                 }
                 else if (conveyorSystem.cradleHasCoral()) {
-                    ledsSystem.setState(LEDState.BLUE);
+                    ledsSystem.setState(LEDState.GREEN);
+                }
+                else if (armSystem.hasCoral()) {
+                    ledsSystem.setState(LEDState.BLUE);   
                 }
                 else {
                     ledsSystem.setState(LEDState.OFF);

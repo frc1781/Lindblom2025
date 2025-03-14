@@ -54,7 +54,7 @@ public class LEDs extends StateSubsystem {
                 rainbow();
                 break;
             case WHITE:
-                solid(255, 255, 255);
+                solid(0, 255, 255);
                 break;
             case RED:
                 solid(255, 0, 0);
@@ -74,6 +74,9 @@ public class LEDs extends StateSubsystem {
                     setState(LEDState.WHITE);
                 }
                 break;
+            case OFF: 
+                solid(0, 0, 0);
+                break;
             case OVER:
                 flashing(255, 255, 0);
                 break;
@@ -84,7 +87,7 @@ public class LEDs extends StateSubsystem {
 
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, r, g, b);
+            mLedBuffer.setRGB(i, g, r, b);
         }
     }
 
