@@ -162,7 +162,13 @@ public class Elevator extends StateSubsystem {
             dutyCycle = 0.02;
         }
 
+        if (!robotController.armSystem.isSafeForElevatorToMove()) {
+            dutyCycle = 0.02;
+        }
+
+        dutyCycle = 0.02;  //temporary while testing!
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
+
 
         motorRight.set(dutyCycle);
     }
