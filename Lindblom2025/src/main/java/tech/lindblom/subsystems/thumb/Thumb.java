@@ -36,6 +36,7 @@ public class Thumb extends StateSubsystem {
                 break;
             case SPIN_OUT:
                 spinMotor.set(0.5);
+                break;
             case IDLE:
                 spinMotor.set(0);
                 break;
