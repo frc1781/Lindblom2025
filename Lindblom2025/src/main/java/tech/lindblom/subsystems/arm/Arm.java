@@ -130,6 +130,7 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position) {
+        armMotor.set(0);  //TEMPORARY WHILE TESTING!!!!!!!
         if ((getCurrentState() == defaultState && !robotController.isSafeForArmToMove()) || preventDescore()) {
             armMotor.set(0);
             return;
