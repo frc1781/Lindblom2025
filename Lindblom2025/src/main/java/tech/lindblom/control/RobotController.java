@@ -32,6 +32,7 @@ import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.climber.ClimberSim;
 import tech.lindblom.subsystems.conveyor.Conveyor;
+import tech.lindblom.subsystems.thumb.Thumb;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -53,7 +54,7 @@ public class RobotController {
     public Arm armSystem;
     public BaseClimber climberSystem;
     public Conveyor conveyorSystem;
-    //public Mouth mouthSystem;
+    public Thumb thumbSystem;
 
     DriverInput driverInput;
 
@@ -92,7 +93,7 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
-        //mouthSystem = new Mouth();
+        thumbSystem = new Thumb();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
@@ -103,7 +104,7 @@ public class RobotController {
             climberSystem = new ClimberSim();
         }
         stateSubsystems = new ArrayList<>();
-        //stateSubsystems.add(mouthSystem);
+        stateSubsystems.add(thumbSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
         stateSubsystems.add(climberSystem);
@@ -112,7 +113,7 @@ public class RobotController {
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
-        //subsystems.add(mouthSystem);
+        subsystems.add(thumbSystem);
         subsystems.add(ledsSystem);
         createActions();
     }
@@ -479,17 +480,17 @@ public class RobotController {
         CENTER_REEF_LEFT_L4,
         CENTER_REEF_RIGHT_L4,
         COLLECT,
-        EAT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
         MANUAL_ARM_DOWN,
         MANUAL_ARM_UP,
         CLIMBER_DOWN,
         CLIMBER_UP,
+        SPIN_IN,
+        SPIN_OUT,
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
-        SPIT,
         CONVEY_AND_COLLECT,
         READY_FOR_COLLECT,
         CENTER_REEF_CENTER
@@ -627,11 +628,11 @@ public class RobotController {
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
 
-        // defineAction(Action.EAT,
-        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
+         defineAction(Action.SPIN_IN,
+                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 5));
 
-        // defineAction(Action.SPIT,
-        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
+         defineAction(Action.SPIN_OUT,
+                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
     }
 
     public boolean isSafeForArmToMove() {
