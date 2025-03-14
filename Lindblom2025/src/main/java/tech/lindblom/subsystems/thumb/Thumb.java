@@ -31,7 +31,7 @@ public class Thumb extends StateSubsystem {
     public void periodic() {
         switch ((ThumbState) getCurrentState()) {
             case SPIN_IN:
-                spinMotor.set(-0.5);
+                spinMotor.set(-0.75);
                 break;
             case SPIN_OUT:
                 spinMotor.set(0.5);

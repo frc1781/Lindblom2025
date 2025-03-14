@@ -153,7 +153,7 @@ public class RobotController {
 
     public void run(EnumCollection.OperatingMode mode) {
         Logger.recordOutput("RobotController/isSafeForArmToLeaveIdle", isSafeForArmToLeaveIdle());
-        Logger.recordOutput("RobotController/isSafeForElevatorStage2toMoveDown", isSafeForElevatorStage2toMoveDown());
+        Logger.recordOutput("RobotController/isSafeForElevatorStage2toMove", isSafeForElevatorStage2toMove());
         switch (mode) {
             case DISABLED:
                 break;
@@ -640,7 +640,7 @@ public class RobotController {
         return (elevatorSystem.getSecondStagePosition() < 150);
     }
 
-    public boolean isSafeForElevatorStage2toMoveDown() {
+    public boolean isSafeForElevatorStage2toMove() {
         return armSystem.getPosition() > 40.0 && armSystem.getPosition() < 300;  //should never be this high except with gimble lock wrapping 
     }
 

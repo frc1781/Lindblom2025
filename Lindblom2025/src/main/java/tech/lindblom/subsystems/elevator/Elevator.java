@@ -163,7 +163,15 @@ public class Elevator extends StateSubsystem {
             dutyCycle = 0.02;
         }
 
-        if (!robotController.isSafeForElevatorStage2toMoveDown() && secondStagePosition > 150) {
+        //--------------------------------------------------------------
+        //The second stage of the elevator (the inner stage) actually moves up first.
+        //Well, the arm moves up until it hits the top of the 2nd stage then that stage starts going up.
+        //If the arm is at the top of the second stage the first stage can move.  If it is not at the top of the
+        //second stage then the second stage should not move unless it is out of the way of hitting the top.
+        //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
+        //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
+        //to leave it's spot on the second stage until it is back in a safe position.
+        if (!robotController.isSafeForElevatorStage2toMove() && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 

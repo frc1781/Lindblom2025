@@ -78,7 +78,7 @@ public class Arm extends StateSubsystem {
         // positionMap.put(ArmState.WAIT, 25.0);
         // positionMap.put(ArmState.COLLECT, 175.0);
         positionMap.put(ArmState.POLE, 40.0);
-        positionMap.put(ArmState.IDLE, 40.0);
+        positionMap.put(ArmState.IDLE, 88.0);
         positionMap.put(ArmState.L1, 40.0);
         positionMap.put(ArmState.L2, 40.0);
         positionMap.put(ArmState.L3, 40.0);
@@ -121,7 +121,10 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
    
 
-        if(currentOperatingMode == OperatingMode.DISABLED) return;
+        if(currentOperatingMode == OperatingMode.DISABLED) {
+            return;
+        }
+ 
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
                 case IDLE:
@@ -150,11 +153,15 @@ public class Arm extends StateSubsystem {
             return ArmState.IDLE;
         }
 
-        if (hasCoral()) {
-            return ArmState.POLE;
-        } else {
-            return ArmState.COLLECT;
-        }
+        //JUST TEMPORARY FOR TESTING.
+        return ArmState.IDLE;
+
+        //TEMPORARY
+        // if (hasCoral()) {
+        //     return ArmState.POLE;
+        // } else {
+        //     return ArmState.COLLECT;
+        // }
     }
 
     private void getToPosition(double position){
