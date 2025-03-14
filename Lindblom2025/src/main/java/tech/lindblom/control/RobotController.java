@@ -209,7 +209,7 @@ public class RobotController {
                     ledsSystem.setState(LEDState.RED);
                 }
                 else if (conveyorSystem.cradleHasCoral()) {
-                    ledsSystem.setState(LEDState.GREEN);
+                    ledsSystem.setState(LEDState.YELLOW);
                 }
                 else if (armSystem.hasCoral()) {
                     ledsSystem.setState(LEDState.BLUE);   

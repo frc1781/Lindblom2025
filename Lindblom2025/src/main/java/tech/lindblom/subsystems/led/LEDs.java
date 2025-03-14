@@ -65,6 +65,9 @@ public class LEDs extends StateSubsystem {
             case BLUE:
                 solid(0, 0, 255);
                 break;
+            case YELLOW:
+                solid(255, 255, 0);
+                break;
             case PURPLE:
                 solid(255, 0, 255);
                 break;
@@ -123,6 +126,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }
