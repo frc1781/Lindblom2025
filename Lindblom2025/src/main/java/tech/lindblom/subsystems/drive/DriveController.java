@@ -129,6 +129,8 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
         Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
 
+        if (readyForCentering()) robotController.ledsSystem.setState(LEDState.PURPLE);
+
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
@@ -191,6 +193,14 @@ public class DriveController extends StateSubsystem {
         cameraOffset != 0.0; //0.0 indicates it is not estimating distance
     }
 
+    public boolean readyForCentering() {
+         return leftTOF.isRangeValid() && rightTOF.isRangeValid() && 
+            leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
+            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
+            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
+        );
+    }
+
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
         if (robotController.getCenteringSide() == null) 
             return inputSpeeds;
@@ -231,29 +241,16 @@ public class DriveController extends StateSubsystem {
                 return inputSpeeds;
         }
 
-
-        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
-            && robotController.isElevatorInPoleState()
-                && areValidCameraReading(cameraOffset) 
-                && robotController.getCenteringSide() != ReefCenteringSide.CENTER) {
-            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-        } else {
+        if (robotController.isElevatorInPoleState()
+                && robotController.isArmInPoleState()
+                && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
+        {
             if (apriltagId == -1) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.1 : 0.1);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             } else {
-                inputSpeeds.vyMetersPerSecond = 0;
+                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
         }
-
-        if (Math.abs(targetOffset - cameraOffset) > Constants.Drive.OFFSET_TOLERANCE 
-            && areValidCameraReading(cameraOffset) 
-            && robotController.getCenteringSide() == ReefCenteringSide.CENTER) {
-                if (apriltagId == -1) {
-                    inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * (targetOffset - cameraOffset));
-                } else {
-                    inputSpeeds.vyMetersPerSecond = 0;
-                }
-            }
 
         double leftTOFDistance = leftTOF.getRange();
         double rightTOFDistance = rightTOF.getRange();
@@ -290,6 +287,11 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
 
+        //ledS
+        if (apriltagId != -1 && !hasFoundReefPole()) {
+            robotController.ledsSystem.setState(LEDState.GREEN);
+        } 
+        
         if (reachedDesiredDistance && hasFoundReefPole()) {
             return zeroSpeed();
         }
@@ -411,7 +413,7 @@ public class DriveController extends StateSubsystem {
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
         Logger.recordOutput(this.name + "/VisionEstimatedPose", estimatedPose);
-        driveSubsystem.updatePoseUsingVisionEstimate(new Pose2d(estimatedPose.getTranslation(), driveSubsystem.getRobotRotation()), time, stdValue);
+        driveSubsystem.updatePoseUsingVisionEstimate(estimatedPose, time, stdValue);
     }
 
     public void setInitialRobotPose(EnumCollection.OperatingMode mode) {

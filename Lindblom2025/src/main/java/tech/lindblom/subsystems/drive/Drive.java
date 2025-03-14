@@ -91,7 +91,7 @@ public class Drive extends Subsystem {
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {
-        swerveDrivePoseEstimator.addVisionMeasurement(estimatedPose, time, stdValue);
+        swerveDrivePoseEstimator.addVisionMeasurement(new Pose2d(estimatedPose.getTranslation(), getRobotRotation()), time, stdValue);
     }
 
     private void updatePoseUsingOdometry() {
@@ -107,7 +107,7 @@ public class Drive extends Subsystem {
     }
 
     private Rotation2d getGioRotation() {
-        return new Rotation2d(-navX.getRotation2d().getRadians());
+        return new Rotation2d(navX.getRotation2d().getRadians());
     }
 
     public void orientFieldToRobot() {

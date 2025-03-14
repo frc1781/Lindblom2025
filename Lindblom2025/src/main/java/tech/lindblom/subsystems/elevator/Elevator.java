@@ -13,6 +13,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
@@ -83,7 +84,15 @@ public class Elevator extends StateSubsystem {
         if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
             return false;
         }
-        
+
+        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null) {
+            return robotController.driveController.matchesState();
+        }
+
+        return matchesPosition();
+    }
+
+    public boolean matchesPosition() {
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());

@@ -1,5 +1,23 @@
 package tech.lindblom.subsystems.vision;
 
+import static org.photonvision.PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY;
+import static org.photonvision.PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
+import static tech.lindblom.utils.EnumCollection.OperatingMode.AUTONOMOUS;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
@@ -10,25 +28,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.Robot;
-
-import org.littletonrobotics.junction.Logger;
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonUtils;
-import org.photonvision.simulation.PhotonCameraSim;
-import org.photonvision.simulation.SimCameraProperties;
-import org.photonvision.simulation.VisionSystemSim;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
-
-import static tech.lindblom.utils.EnumCollection.OperatingMode.AUTONOMOUS;
-
-import java.util.*;
 
 public class Vision extends Subsystem {
     private final RobotController robotController;
@@ -52,12 +54,14 @@ public class Vision extends Subsystem {
     VisionSystemSim visionSystemSim;
 
     private final List<Integer> reefApriltagIds = List.of(17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11);
+    private List<Pose3d> seenAprilTags;
 
     private AprilTagFieldLayout fieldLayout;
 
     public Vision(RobotController _robotController) {
         super("Vision");
         this.robotController = _robotController;
+        seenAprilTags = new ArrayList<>();
         try {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
@@ -66,7 +70,7 @@ public class Vision extends Subsystem {
                 visionSystemSim.addAprilTags(fieldLayout);
 
                 SimCameraProperties cameraProp = new SimCameraProperties();
-                cameraProp.setCalibration(1280, 720, Rotation2d.fromDegrees(100));
+                cameraProp.setCalibration(1280, 720, Rotation2d.fromDegrees(70));
                 cameraProp.setCalibError(0.25, 0.08);
                 cameraProp.setFPS(120);
                 cameraProp.setAvgLatencyMs(35);
@@ -101,10 +105,10 @@ public class Vision extends Subsystem {
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
-            frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
-            frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
+            frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
             //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
-            leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+            leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
             System.out.println(e);
@@ -125,6 +129,8 @@ public class Vision extends Subsystem {
         frontRightCameraPipelineResult = updatePhotonPoseEstimator(frontRightCameraPoseEstimator, frontRightCamera);
         frontLeftCameraPipelineResult = updatePhotonPoseEstimator(frontLeftCameraPoseEstimator, frontLeftCamera);
         leftSideCameraPipelineResult = updatePhotonPoseEstimator(leftSideCameraPoseEstimator, leftSideCamera);
+        Logger.recordOutput(this.name + "/seenApriltags", seenAprilTags.toArray(Pose3d[]::new));
+        seenAprilTags = new ArrayList<>();
     }
 
     public int getClosestReefApriltag(Camera camera) {
@@ -229,23 +235,37 @@ public class Vision extends Subsystem {
     }
 
     public PhotonPipelineResult updatePhotonPoseEstimator(PhotonPoseEstimator poseEstimator, PhotonCamera camera) {
-        List<Pose3d> seenAprilTags = new ArrayList();
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
         if (!unreadResults.isEmpty() && camera.isConnected()) {
             for (PhotonPipelineResult result : unreadResults) {
                 for (PhotonTrackedTarget target : result.targets) {
-                    seenAprilTags.add(fieldLayout.getTagPose(target.getFiducialId()).get());
+                    Optional<Pose3d> apriltagPose = fieldLayout.getTagPose(target.getFiducialId());
+                    apriltagPose.ifPresent(seenAprilTags::add);
                 }
                 Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
-                estimatedRobotPose.ifPresent(robotPose -> this.robotController.updateLocalization(robotPose, result));
+
+                if (estimatedRobotPose.isPresent()) {
+                    updateRobotPose(result, estimatedRobotPose.get());
+                }
             }
-
-            Logger.recordOutput(this.name + "/seenApriltags", seenAprilTags.toArray(Pose3d[]::new));
-
             return unreadResults.get(0);
         }
 
         return null;
+    }
+
+    public void updateRobotPose(PhotonPipelineResult result, EstimatedRobotPose robotPose) {
+        if (robotPose.strategy == LOWEST_AMBIGUITY) {
+            Rotation2d estimatedRotation = robotPose.estimatedPose.getRotation().toRotation2d();
+            Rotation2d currentRotation = robotController.getRobotHeading();
+            double rotationPercentError = Math.abs(((Math.abs(currentRotation.minus(estimatedRotation).getDegrees())) / (currentRotation.getDegrees() + 0.1)));
+            Logger.recordOutput(this.name + "/singleTagPercentageError", rotationPercentError);
+            if (rotationPercentError < 5.0) {
+                this.robotController.updateLocalization(robotPose, result);
+            }
+        } else if (robotPose.strategy == MULTI_TAG_PNP_ON_COPROCESSOR) {
+            this.robotController.updateLocalization(robotPose, result);
+        }
     }
 
     // COMPLETELY TAKEN FROM 7525. THANK YOU SO MUCH.
