@@ -211,6 +211,10 @@ public class RobotController {
                 else if (conveyorSystem.cradleHasCoral()) {
                     ledsSystem.setState(LEDState.BLUE);
                 }
+                else {
+                    ledsSystem.setState(LEDState.OFF);
+                }
+                
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
