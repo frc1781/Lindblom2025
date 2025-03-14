@@ -202,6 +202,19 @@ public class RobotController {
                 }
 
                 processDriverInputs();
+                if (driveController.reefPoleDetected()) {
+                    ledsSystem.setState(LEDState.GREEN);
+                }
+                else if (driveController.readyForCentering()) {
+                    ledsSystem.setState(LEDState.PURPLE);
+                }
+                else if (conveyorSystem.cradleHasCoral()) {
+                    ledsSystem.setState(LEDState.BLUE);
+                }
+                else {
+                    ledsSystem.setState(LEDState.OFF);
+                }
+                
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
