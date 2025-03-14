@@ -80,7 +80,6 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
     }
 
-
     @Override
     public boolean matchesState() {
         if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
@@ -102,11 +101,9 @@ public class Elevator extends StateSubsystem {
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
-
     @Override
     public void init() {
     }
-
 
     @Override
     public void periodic() {
@@ -166,7 +163,7 @@ public class Elevator extends StateSubsystem {
             dutyCycle = 0.02;
         }
 
-        if (!robotController.armSystem.isSafeForElevatorToMove()) {
+        if (!robotController.isSafeForElevatorStage2toMoveDown() && secondStagePosition > 150) {
             dutyCycle = 0.02;
         }
 

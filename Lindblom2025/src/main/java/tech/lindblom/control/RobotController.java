@@ -152,6 +152,8 @@ public class RobotController {
     }
 
     public void run(EnumCollection.OperatingMode mode) {
+        Logger.recordOutput("RobotController/isSafeForArmToLeaveIdle", isSafeForArmToLeaveIdle());
+        Logger.recordOutput("RobotController/isSafeForElevatorStage2toMoveDown", isSafeForElevatorStage2toMoveDown());
         switch (mode) {
             case DISABLED:
                 break;
@@ -342,12 +344,11 @@ public class RobotController {
                 estimatedPose,
                 visionEstimate.timestampSeconds,
                 visionSystem.getEstimationStdDevs(
-                        estimatedPose,
-                        pipelineResult
+                    estimatedPose,
+                    pipelineResult
                 )
         );
     }
-
 
     public DriverInput.ReefCenteringSide getCenteringSide() {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
@@ -635,10 +636,12 @@ public class RobotController {
                  new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
     }
 
-    public boolean isSafeForArmToMove() {
-        return (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150);
-        // return (elevatorSystem.defaultState == elevatorSystem.getCurrentState() && (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150))
-        //         || (elevatorSystem.defaultState != elevatorSystem.getCurrentState() && elevatorSystem.matchesState());
+    public boolean isSafeForArmToLeaveIdle() {
+        return (elevatorSystem.getSecondStagePosition() < 150);
+    }
+
+    public boolean isSafeForElevatorStage2toMoveDown() {
+        return armSystem.getPosition() > 40.0 && armSystem.getPosition() < 300;  //should never be this high except with gimble lock wrapping 
     }
 
     public double getCenteringDistance() {

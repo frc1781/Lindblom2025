@@ -25,7 +25,7 @@ public class Arm extends StateSubsystem {
     private ArmState previousState;
 
     public Arm(RobotController controller) {
-        super("Arm", ArmState.COLLECT);
+        super("Arm", ArmState.IDLE);
 
         coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
         coralTimeOfFlight.setRangingMode(TimeOfFlight.RangingMode.Short, 50);
@@ -119,7 +119,7 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
-        Logger.recordOutput(this.name + "/isSafeForElevatorToMove", isSafeForElevatorToMove());
+   
 
         if(currentOperatingMode == OperatingMode.DISABLED) return;
         if (robotController.isManualControlMode()) {
@@ -157,17 +157,17 @@ public class Arm extends StateSubsystem {
         }
     }
 
-    public boolean isSafeForElevatorToMove() {
-        return getPosition() > 40.0 && getPosition() < 300;  //should never be this high except with gimble lock wrapping 
-    }
-
     private void getToPosition(double position){
-        if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
+        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle()) {
             armMotor.set(0);
             return;
         }
+        // if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
+        //     armMotor.set(0);
+        //     return;
+        // }
         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
-        Logger.recordOutput(this.name + "/Motor Duty Cycle", armMotor.get());
+        Logger.recordOutput(this.name + "/dutyCycle", armMotor.get());
     }
 
     public boolean hasCoral() {
