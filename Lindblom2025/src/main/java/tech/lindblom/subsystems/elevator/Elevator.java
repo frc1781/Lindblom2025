@@ -126,6 +126,8 @@ public class Elevator extends StateSubsystem {
                 case MANUAL_UP:
                     motorRight.set(0.5);
                     break;
+                default:
+                    break;
             }
         } else if (positions.containsKey(getCurrentState())) {
             goToPosition();
