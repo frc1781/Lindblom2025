@@ -336,9 +336,13 @@ public class RobotController {
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
         Logger.recordOutput("Driver/isRed", isRed());
 
-        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
-        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
-        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited;
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        xSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, xSpeed);
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        ySpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, ySpeed);
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+        rotSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited, rotSpeed);
+        
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
