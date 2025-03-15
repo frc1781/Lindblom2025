@@ -286,7 +286,7 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
 
-        //ledS
+        //LEDs
         if (apriltagId != -1 && !hasFoundReefPole()) {
             robotController.ledsSystem.setState(LEDState.GREEN);
         } 
