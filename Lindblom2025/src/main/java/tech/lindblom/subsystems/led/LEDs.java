@@ -31,6 +31,7 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         flashingTimer = new Timer();
         flashingTimer.reset();
         if (mLedController == null) {

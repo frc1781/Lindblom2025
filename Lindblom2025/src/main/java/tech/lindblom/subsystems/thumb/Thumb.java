@@ -49,6 +49,7 @@ public class Thumb extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         spinMotor.set(0);
     }
 

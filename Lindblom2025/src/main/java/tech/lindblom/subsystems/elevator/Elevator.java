@@ -9,6 +9,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.wpilibj.RobotBase;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
@@ -73,6 +74,7 @@ public class Elevator extends StateSubsystem {
 
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.SAFER, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
@@ -94,6 +96,10 @@ public class Elevator extends StateSubsystem {
     }
 
     public boolean matchesPosition() {
+        if (RobotBase.isSimulation()) {
+            return timeInState.get() > 3;
+        }
+
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
@@ -103,6 +109,7 @@ public class Elevator extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
     }
 
     @Override
@@ -189,6 +196,7 @@ public class Elevator extends StateSubsystem {
 
     public enum ElevatorState implements SubsystemState {
         SAFE,
+        SAFER,
         L1,
         L2,
         L3,

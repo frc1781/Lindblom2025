@@ -6,6 +6,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.HashMap;
 import com.playingwithfusion.TimeOfFlight;
@@ -23,6 +24,8 @@ public class Arm extends StateSubsystem {
     private TimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
+
+    private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
@@ -78,13 +81,15 @@ public class Arm extends StateSubsystem {
         // positionMap.put(ArmState.WAIT, 25.0);
         // positionMap.put(ArmState.COLLECT, 175.0);
         positionMap.put(ArmState.POLE, 40.0);
-        positionMap.put(ArmState.IDLE, 88.0);
+        positionMap.put(ArmState.IDLE, 88.0); // algae
         positionMap.put(ArmState.L1, 40.0);
         positionMap.put(ArmState.L2, 40.0);
         positionMap.put(ArmState.L3, 40.0);
         positionMap.put(ArmState.L4, 40.0);
         positionMap.put(ArmState.WAIT, 40.0);
         positionMap.put(ArmState.COLLECT, 40.0);
+        positionMap.put(ArmState.START_HIGH, 5.0);
+        positionMap.put(ArmState.START_MID, 60.0);
     }
 
     @Override
@@ -97,6 +102,10 @@ public class Arm extends StateSubsystem {
 
     public boolean matchesDesiredPosition() {
         if (positionMap.containsKey(getCurrentState())) {
+            if (RobotBase.isSimulation()) {
+                return timeInState.get() > 3;
+            }
+
             double tolerance = 6;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
             return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
@@ -106,7 +115,10 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
-       
+        super.init();
+       /*if (currentOperatingMode != OperatingMode.DISABLED && currentOperatingMode != OperatingMode.TEST) {
+            performedSafeStates = false;
+       }*/
     }
 
     public double getPosition() {
@@ -119,7 +131,6 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
-   
 
         if(currentOperatingMode == OperatingMode.DISABLED) {
             return;
@@ -149,19 +160,42 @@ public class Arm extends StateSubsystem {
 
     @Override
     public ArmState getDefaultState() {
-        if (robotController.isManualControlMode()) {
+        if (robotController.isManualControlMode() || currentOperatingMode == OperatingMode.DISABLED || currentOperatingMode == null) {
             return ArmState.IDLE;
         }
 
-        //JUST TEMPORARY FOR TESTING.
-        return ArmState.IDLE;
+        if (!performedSafeStates) {
+            // the perfect state machine, pls no touch - ally
+            if (matchesDesiredPosition() && getCurrentState() == ArmState.START_HIGH) {
+                performedSafeStates = true;
+            }
 
-        //TEMPORARY
-        // if (hasCoral()) {
-        //     return ArmState.POLE;
-        // } else {
-        //     return ArmState.COLLECT;
-        // }
+            if (getCurrentState() == ArmState.START_HIGH) {
+                return ArmState.START_HIGH;
+            }
+
+            if (matchesDesiredPosition() && getCurrentState() == ArmState.START_MID) {
+                return ArmState.START_HIGH;
+            }
+
+            if (getCurrentState() == ArmState.IDLE || getCurrentState() == ArmState.START_MID) {
+                return ArmState.START_MID;
+            }
+        } else {
+            if (currentOperatingMode != OperatingMode.AUTONOMOUS) {
+                if (hasCoral()) {
+                    return ArmState.POLE;
+                } else {
+                    return ArmState.COLLECT;
+                }
+            }
+        }
+
+        return ArmState.IDLE;
+    }
+
+    private boolean finishedStartingActions() {
+        return performedSafeStates;
     }
 
     private void getToPosition(double position){
@@ -204,6 +238,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH
     }
 }

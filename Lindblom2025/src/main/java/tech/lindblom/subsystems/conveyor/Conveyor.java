@@ -53,6 +53,7 @@ public class Conveyor extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         coralConveyor.set(0);
     }
 

@@ -1,9 +1,6 @@
 package tech.lindblom.control;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -43,6 +40,8 @@ import tech.lindblom.subsystems.vision.Vision;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
+
+import static tech.lindblom.control.RobotController.Action.START_ARM;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -205,6 +204,7 @@ public class RobotController {
                 }
 
                 processDriverInputs();
+
                 if (driveController.reefPoleDetected()) {
                     ledsSystem.setState(LEDState.GREEN);
                 }
@@ -309,9 +309,9 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.getDefaultState() && !setSubsystems.contains(subsystem)) {
-                if (subsystem.name == "DriveController" && subsystem.getCurrentState() != DriveController.DriverStates.DRIVER) {
+                if (Objects.equals(subsystem.name, "DriveController") && subsystem.getCurrentState() != DriveController.DriverStates.DRIVER) {
                     subsystem.setState(DriveController.DriverStates.DRIVER);
-                } else if (subsystem.name == "DriveController" && subsystem.getCurrentState() == DriveController.DriverStates.DRIVER) {
+                } else if (Objects.equals(subsystem.name, "DriveController") && subsystem.getCurrentState() == DriveController.DriverStates.DRIVER) {
                     return;
                 }
                 subsystem.restoreToDefaultState();
@@ -494,10 +494,16 @@ public class RobotController {
         CLIMBER_LATCH_RELEASE,
         CONVEY_AND_COLLECT,
         READY_FOR_COLLECT,
-        CENTER_REEF_CENTER
+        CENTER_REEF_CENTER,
+        START_ARM
     }
 
-    public void createActions(){
+    public void createActions() {
+        defineAction(START_ARM,
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFER, 100),
+                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 100));
         defineAction(Action.READY_FOP_POLE,
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
@@ -592,7 +598,6 @@ public class RobotController {
 
         defineAction(Action.CENTER_REEF_LEFT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
@@ -601,7 +606,6 @@ public class RobotController {
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
@@ -637,7 +641,7 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToLeaveIdle() {
-        return (elevatorSystem.getSecondStagePosition() < 150);
+        return (elevatorSystem.getSecondStagePosition() < 50);
     }
 
     public boolean isSafeForElevatorStage2toMove() {
