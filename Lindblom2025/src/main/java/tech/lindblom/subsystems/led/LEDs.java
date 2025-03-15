@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 
 public class LEDs extends StateSubsystem {
-    private final RobotController robotController;
     private final int LED_LENGTH = 150;
 
     private AddressableLED mLedController = null;
@@ -24,9 +23,8 @@ public class LEDs extends StateSubsystem {
     private Timer flashingTimer;
     private boolean flashAlt;
 
-    public LEDs(RobotController _robotController) {
+    public LEDs() {
         super("LEDs", LEDState.RAINBOW);
-        this.robotController = _robotController;
     }
 
     @Override

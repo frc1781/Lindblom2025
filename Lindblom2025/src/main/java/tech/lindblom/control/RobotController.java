@@ -91,7 +91,7 @@ public class RobotController {
                 new CenterOneCoral()
         );
         visionSystem = new Vision(this);
-        ledsSystem = new LEDs(this);
+        ledsSystem = new LEDs();
         //mouthSystem = new Mouth();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
