@@ -69,7 +69,7 @@ public class LEDs extends StateSubsystem {
                 rainbow();
                 break;
             case WHITE:
-                solid(255, 255, 255);
+                solid(0, 255, 255);
                 break;
             case RED:
                 solid(255, 0, 0);
@@ -80,6 +80,9 @@ public class LEDs extends StateSubsystem {
             case BLUE:
                 solid(0, 0, 255);
                 break;
+            case YELLOW:
+                solid(255, 255, 0);
+                break;
             case PURPLE:
                 solid(255, 0, 255);
                 break;
@@ -88,6 +91,9 @@ public class LEDs extends StateSubsystem {
                 if (timeInState.get() > 1) {
                     setState(LEDState.WHITE);
                 }
+                break;
+            case OFF: 
+                solid(0, 0, 0);
                 break;
             case OVER:
                 flashing(255, 255, 0);
@@ -102,7 +108,7 @@ public class LEDs extends StateSubsystem {
 
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, r, g, b);
+            mLedBuffer.setRGB(i, g, r, b);
         }
     }
 
@@ -138,6 +144,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }

@@ -50,7 +50,9 @@ public class Elevator extends StateSubsystem {
         super("Elevator", ElevatorState.SAFE);
         this.robotController = robotController;
         firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
+        firstStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
         secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
+        secondStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -78,7 +80,6 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
     }
 
-
     @Override
     public boolean matchesState() {
         if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
@@ -100,16 +101,16 @@ public class Elevator extends StateSubsystem {
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
-
     @Override
     public void init() {
     }
-
 
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
+        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
         if (currentOperatingMode == OperatingMode.DISABLED) return;
@@ -146,13 +147,13 @@ public class Elevator extends StateSubsystem {
         Double[] desiredPosition = positions.get(getCurrentState());
         double Tolerance = 80;
 
-        if (Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
+        if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
-        } else if (Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
+        } else if (firstStageTOF.isRangeValid() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
@@ -162,8 +163,19 @@ public class Elevator extends StateSubsystem {
             dutyCycle = 0.02;
         }
 
-        Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
+        //--------------------------------------------------------------
+        //The second stage of the elevator (the inner stage) actually moves up first.
+        //Well, the arm moves up until it hits the top of the 2nd stage then that stage starts going up.
+        //If the arm is at the top of the second stage the first stage can move.  If it is not at the top of the
+        //second stage then the second stage should not move unless it is out of the way of hitting the top.
+        //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
+        //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
+        //to leave it's spot on the second stage until it is back in a safe position.
+        if (!robotController.isSafeForElevatorStage2toMove() && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+            dutyCycle = 0.02;
+        }
 
+        Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
         motorRight.set(dutyCycle);
     }
 

@@ -244,7 +244,7 @@ public class DriveController extends StateSubsystem {
                 && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (apriltagId == -1) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.5, 0.5, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.5 : 0.5);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             } else {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
@@ -341,7 +341,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean reefPoleDetected() {  //added just for LEDs
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 30;
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 60;
     }
 
     public boolean hasFoundReefPole() {
