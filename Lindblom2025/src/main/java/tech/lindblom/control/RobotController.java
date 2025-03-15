@@ -41,6 +41,7 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
+import static tech.lindblom.control.RobotController.Action.GROUND_COLLECT_ALGAE;
 import static tech.lindblom.control.RobotController.Action.START_ARM;
 
 // The robot controller, controls robot.
@@ -498,10 +499,16 @@ public class RobotController {
         CONVEY_AND_COLLECT,
         READY_FOR_COLLECT,
         CENTER_REEF_CENTER,
-        START_ARM
+        START_ARM,
+        GROUND_COLLECT_ALGAE
     }
 
     public void createActions() {
+        defineAction(GROUND_COLLECT_ALGAE,
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
         defineAction(START_ARM,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
@@ -644,7 +651,7 @@ public class RobotController {
     }
 
     public boolean isSafeForArmToLeaveIdle() {
-        return (elevatorSystem.getSecondStagePosition() < 50);
+        return (elevatorSystem.getSecondStagePosition() < 150);
     }
 
     public boolean isSafeForElevatorStage2toMove() {

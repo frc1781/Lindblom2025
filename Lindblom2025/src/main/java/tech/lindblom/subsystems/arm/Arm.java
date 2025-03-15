@@ -41,10 +41,10 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.0);
-        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.008707076);
+        armMotorConfig.closedLoop.pid(0.005, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.1, 0.1);
+        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -72,24 +72,25 @@ public class Arm extends StateSubsystem {
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        // positionMap.put(ArmState.POLE, 17.0);
-        // positionMap.put(ArmState.IDLE, 25.0);
-        // positionMap.put(ArmState.L1, 45.0);
-        // positionMap.put(ArmState.L2, 0.0);
-        // positionMap.put(ArmState.L3, 70.0);
-        // positionMap.put(ArmState.L4, 80.0);
-        // positionMap.put(ArmState.WAIT, 25.0);
-        // positionMap.put(ArmState.COLLECT, 175.0);
-        positionMap.put(ArmState.POLE, 40.0);
+        positionMap.put(ArmState.POLE, 26.0);
+        positionMap.put(ArmState.IDLE, 2.0);
+        positionMap.put(ArmState.L1, 45.0);
+        positionMap.put(ArmState.L2, 0.0);
+        positionMap.put(ArmState.L3, 70.0);
+        positionMap.put(ArmState.L4, 45.0);
+        positionMap.put(ArmState.WAIT, 25.0);
+        positionMap.put(ArmState.COLLECT, 185.0);
+        /*positionMap.put(ArmState.POLE, 40.0);
         positionMap.put(ArmState.IDLE, 88.0); // algae
         positionMap.put(ArmState.L1, 40.0);
         positionMap.put(ArmState.L2, 40.0);
         positionMap.put(ArmState.L3, 40.0);
         positionMap.put(ArmState.L4, 40.0);
         positionMap.put(ArmState.WAIT, 40.0);
-        positionMap.put(ArmState.COLLECT, 40.0);
+        positionMap.put(ArmState.COLLECT, 40.0);*/
         positionMap.put(ArmState.START_HIGH, 5.0);
-        positionMap.put(ArmState.START_MID, 60.0);
+        positionMap.put(ArmState.START_MID, 40.0);
+        positionMap.put(ArmState.GROUND_ALGAE, 159.0);
     }
 
     @Override
@@ -116,9 +117,9 @@ public class Arm extends StateSubsystem {
     @Override
     public void init() {
         super.init();
-       /*if (currentOperatingMode != OperatingMode.DISABLED && currentOperatingMode != OperatingMode.TEST) {
+       if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
             performedSafeStates = false;
-       }*/
+       }
     }
 
     public double getPosition() {
@@ -142,10 +143,10 @@ public class Arm extends StateSubsystem {
                     armMotor.set(0);
                     break;
                 case MANUAL_DOWN:
-                    armMotor.set(-0.1);
+                    armMotor.set(-0.3);
                     break;
                 case MANUAL_UP:
-                    armMotor.set(0.1);
+                    armMotor.set(0.3);
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
@@ -184,7 +185,7 @@ public class Arm extends StateSubsystem {
         } else {
             if (currentOperatingMode != OperatingMode.AUTONOMOUS) {
                 if (hasCoral()) {
-                    return ArmState.POLE;
+                    return ArmState.IDLE;
                 } else {
                     return ArmState.COLLECT;
                 }
@@ -199,7 +200,7 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position){
-        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle()) {
+        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID) {
             armMotor.set(0);
             return;
         }
@@ -227,7 +228,7 @@ public class Arm extends StateSubsystem {
             return false;
         }
 
-        return coralTimeOfFlight.getRange() > 10 && coralTimeOfFlight.getRange() < 100;
+        return coralTimeOfFlight.getRange() < 50;
     }
 
 
@@ -238,6 +239,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE
     }
 }
