@@ -86,6 +86,8 @@ public class LEDs extends StateSubsystem {
             case PURPLE:
                 solid(255, 0, 255);
                 break;
+            case FLASH_YELLOW:
+                flashing(255, 255, 0);
             case SYNC:
                 flashing(0, 255, 0);
                 if (timeInState.get() > 1) {
@@ -144,6 +146,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, FLASH_YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }
