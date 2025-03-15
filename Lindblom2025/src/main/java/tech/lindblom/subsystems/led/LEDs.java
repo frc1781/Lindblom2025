@@ -5,6 +5,7 @@ import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.drive.DriveController.DriverStates;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EnumCollection;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import org.littletonrobotics.junction.Logger;
@@ -12,6 +13,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Robot;
 
 public class LEDs extends StateSubsystem {
     private final RobotController robotController;
@@ -25,7 +27,7 @@ public class LEDs extends StateSubsystem {
     private boolean flashAlt;
 
     public LEDs(RobotController _robotController) {
-        super("LEDs", LEDState.RAINBOW);
+        super("LEDs", LEDState.OPERATING_COLOR);
         this.robotController = _robotController;
     }
 
@@ -50,7 +52,20 @@ public class LEDs extends StateSubsystem {
         }
 
         switch((LEDState) getCurrentState()) {
-            case OPERATING_COLOR, RAINBOW:
+            case OPERATING_COLOR:
+                switch (currentOperatingMode) {
+                    case AUTONOMOUS:
+                        solid(250, 156, 28);
+                        break;
+                    case TELEOP:
+                        solid(0, 255, 255);
+                        break;
+                    case DISABLED:
+                        rainbow();
+                        break;
+                }
+                break;
+            case RAINBOW:
                 rainbow();
                 break;
             case WHITE:
@@ -76,6 +91,9 @@ public class LEDs extends StateSubsystem {
                 break;
             case OVER:
                 flashing(255, 255, 0);
+                break;
+            case EXPECTED_FAIL:
+                flashing(255, 0, 0);
                 break;
         }
 
