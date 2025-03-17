@@ -333,6 +333,10 @@ public class DriveController extends StateSubsystem {
         driveSubsystem.drive(centeringSpeeds);
     }
 
+    public boolean isSafeForElevatorStage2toMove() {  //Apparently very experimental and should not be relied on, who knows ??
+        return driveSubsystem.getGioSpeed() < 2;
+    }
+
     public boolean hasFinishedCentering() {
         if (robotController.getCenteringSide() == null)  {
             return false;
