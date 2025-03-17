@@ -41,6 +41,13 @@ public class DriverInput {
         };
     }
 
+    public TestInputHolder getTestInputs() {
+        TestInputHolder testInputHolder = new TestInputHolder();
+        testInputHolder.nextTest = getButton("B", 0);
+        testInputHolder.prevTest = getButton("X", 0);
+        return testInputHolder;
+    }
+
     public InputHolder getDriverInputs() {
         InputHolder driverInputHolder = new InputHolder();
 
@@ -197,6 +204,11 @@ public class DriverInput {
                     return controllers[controllerIndex].getBackButton();
         }
         return false;
+    }
+
+    class TestInputHolder {
+        public boolean nextTest = false;
+        public boolean prevTest = false;
     }
 
     class InputHolder {
