@@ -10,7 +10,7 @@ https://docs.google.com/document/d/1ekpCME-pWmVz3zLQKQKFJrISkKeiazz_DOguY4Bh4VE/
 Ava 8 Kraken swerve drive
 
 ##Radio
-FRC-1781-ava pw: 1781avabot
+FRC-1781-ava pw: 1781password
 
 ### Vision
 Using PhotonVision on OrangePIs.
