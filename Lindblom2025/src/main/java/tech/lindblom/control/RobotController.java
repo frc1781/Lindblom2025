@@ -484,21 +484,21 @@ public class RobotController {
         L4,
         CENTER_REEF_LEFT_L4,
         CENTER_REEF_RIGHT_L4,
-        COLLECT,
+        CRADLE_COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
         MANUAL_ARM_DOWN,
         MANUAL_ARM_UP,
         CLIMBER_DOWN,
         CLIMBER_UP,
-        SPIN_IN,
-        SPIN_OUT,
+        THUMB_SPIN_IN,
+        THUMB_SPIN_OUT,
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
         CONVEY_AND_COLLECT,
         READY_FOR_COLLECT,
-        CENTER_REEF_CENTER,
+        REMOVE_ALGAE,
         START_ARM,
         GROUND_COLLECT_ALGAE
     }
@@ -517,7 +517,7 @@ public class RobotController {
         defineAction(Action.READY_FOP_POLE,
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
-        defineAction(Action.CENTER_REEF_CENTER,
+        defineAction(Action.REMOVE_ALGAE,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
@@ -549,7 +549,7 @@ public class RobotController {
                     the time of flight that it then we should sense it all the way through the entire robot or 
                     we have that possibility I don't know how useful some of that is but well
                  */
-        defineAction(Action.COLLECT,
+        defineAction(Action.CRADLE_COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
@@ -643,10 +643,10 @@ public class RobotController {
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
 
-         defineAction(Action.SPIN_IN,
+         defineAction(Action.THUMB_SPIN_IN,
                  new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 5));
 
-         defineAction(Action.SPIN_OUT,
+         defineAction(Action.THUMB_SPIN_OUT,
                  new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
     }
 
