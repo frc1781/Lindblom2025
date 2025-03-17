@@ -136,6 +136,7 @@ public class RobotController {
                 ledsSystem.setState(LEDState.SYNC);
                 break;
             case TEST:
+                System.out.println("Begin testing, hit B to start first test");
                 break;
             case SIMULATION:
                 break;
@@ -769,13 +770,17 @@ public class RobotController {
     }
 
     private void processTestInputs(DriverInput.TestInputHolder testInputs) {
+        boolean stepStarted = false;
+
         if (testInputs.nextTest && !nextTestStepPushed) {
             nextTestStepPushed = true;
             testStep++;
+            stepStarted = true;
         }
         nextTestStepPushed = testInputs.nextTest;
         if (testInputs.prevTest && !prevTestStepPushed) {
             prevTestStepPushed = true;
+            stepStarted = true;
             testStep--;
         }
         prevTestStepPushed = testInputs.prevTest;  
@@ -783,13 +788,19 @@ public class RobotController {
         switch(testStep) {
             case 0:
                 //do nothing
+                if (stepStarted) {
+                    System.out.println("Starting testing, hit B for first test");
+                }
                 ledsSystem.setState(LEDState.OFF);
                 break;
             case 1:
+                if (stepStarted) {
+                    System.out.println("Test 1: testing leds, they should be red");
+                }
                 ledsSystem.setState(LEDState.RED);
               break;
             default:
-            ledsSystem.setState(LEDState.OFF); 
+                ledsSystem.setState(LEDState.OFF); 
             break;
         }
     }
