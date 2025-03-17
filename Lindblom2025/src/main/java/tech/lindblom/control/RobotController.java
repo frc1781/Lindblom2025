@@ -778,8 +778,19 @@ public class RobotController {
             prevTestStepPushed = true;
             testStep--;
         }
-        prevTestStepPushed = testInputs.prevTest;    
+        prevTestStepPushed = testInputs.prevTest;  
         
-        System.out.println("testStep: " + testStep);
+        switch(testStep) {
+            case 0:
+                //do nothing
+                ledsSystem.setState(LEDState.OFF);
+                break;
+            case 1:
+                ledsSystem.setState(LEDState.RED);
+              break;
+            default:
+            ledsSystem.setState(LEDState.OFF); 
+            break;
+        }
     }
 }
