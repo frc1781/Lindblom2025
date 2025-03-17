@@ -23,8 +23,8 @@ public class DriverInput {
         //DO NOT ASSIGN A CONTROL TO X
         this.controlList = new Control[] {
                 new Control(0, "Y", Action.COLLECT),
-                new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
-                new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "RB", Action.MANUAL_ARM_UP),
+                new Control(0, "LB", Action.MANUAL_ARM_DOWN),
                 new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
                 new Control(0, "A", Action.SPIN_IN),
