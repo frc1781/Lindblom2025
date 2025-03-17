@@ -55,11 +55,12 @@ public class RobotController {
     public BaseClimber climberSystem;
     public Conveyor conveyorSystem;
     public Thumb thumbSystem;
+    public int testStep;
 
     DriverInput driverInput;
 
     public Timer autoTimer = new Timer();
-
+ 
     private Action currentAction;
     private final ArrayList<StateSubsystem> stateSubsystems;
     private final ArrayList<Subsystem> subsystems;
@@ -121,7 +122,7 @@ public class RobotController {
     public void init(EnumCollection.OperatingMode mode) {
         currentOperatingMode = mode;
         interruptAction();
-
+        testStep = 0;
         switch (mode) {
             case DISABLED:
                 break;
@@ -228,6 +229,9 @@ public class RobotController {
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
+            
+
+
                 break;
             case SIMULATION:
                 break;
