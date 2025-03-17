@@ -57,7 +57,7 @@ public class RobotController {
     public Thumb thumbSystem;
 
     DriverInput driverInput;
-
+    
     public Timer autoTimer = new Timer();
 
     private Action currentAction;
@@ -77,6 +77,10 @@ public class RobotController {
 
     private boolean manualControlMode = false;
     private boolean toggleSwitch = false;
+
+    private int testStep = 0;
+    private boolean nextTestStepPushed = false;
+    private boolean prevTestStepPushed = false;
 
     public RobotController() {
         driveController = new DriveController(this);
@@ -228,6 +232,7 @@ public class RobotController {
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
+                processTestInputs(driverInput.getTestInputs());
                 break;
             case SIMULATION:
                 break;
@@ -761,5 +766,20 @@ public class RobotController {
         public String toString() {
             return new StringBuilder().append("Relies On Other: ").append(reliesOnOthers).append(" State: ").append(state).append(" Subsytems: ").append(subsystem).toString();
         }
+    }
+
+    private void processTestInputs(DriverInput.TestInputHolder testInputs) {
+        if (testInputs.nextTest && !nextTestStepPushed) {
+            nextTestStepPushed = true;
+            testStep++;
+        }
+        nextTestStepPushed = testInputs.nextTest;
+        if (testInputs.prevTest && !prevTestStepPushed) {
+            prevTestStepPushed = true;
+            testStep--;
+        }
+        prevTestStepPushed = testInputs.prevTest;    
+        
+        System.out.println("testStep: " + testStep);
     }
 }
