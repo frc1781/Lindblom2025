@@ -82,6 +82,7 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         centeringYawController.reset();
         distanceController.reset();
         parallelController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());

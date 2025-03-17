@@ -20,15 +20,15 @@ public class DriverInput {
 
     DriverInput(RobotController robotController) {
         this.robotController = robotController;
-        //DO NOT ASSIGN A CONTROL TO X
         this.controlList = new Control[] {
-                new Control(0, "Y", Action.COLLECT),
-                new Control(0, "RB", RobotController.Action.MANUAL_ARM_UP),
-                new Control(0, "LB", RobotController.Action.MANUAL_ARM_DOWN),
+                new Control(0, "RB", Action.CRADLE_COLLECT),
+                new Control(0, "DPAD_RIGHT", Action.MANUAL_ARM_UP),
+                new Control(0, "DPAD_LEFT", Action.MANUAL_ARM_DOWN),
                 new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", Action.SPIN_IN),
-                new Control(0, "X", Action.SPIN_OUT),
+                new Control(0, "A", Action.THUMB_SPIN_IN),
+                new Control(0, "X", Action.THUMB_SPIN_OUT),
+                new Control(1, "DPAD_RIGHT", Action.GROUND_COLLECT_ALGAE),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
@@ -37,7 +37,7 @@ public class DriverInput {
                 new Control(1, "A", Action.L4),
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
-                new Control(1, "Y", Action.CENTER_REEF_CENTER),
+                new Control(1, "Y", Action.REMOVE_ALGAE),
         };
     }
 
@@ -61,7 +61,7 @@ public class DriverInput {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
                 } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_CENTER) {
+                } else if (control.requestedAction == RobotController.Action.REMOVE_ALGAE) {
                     driverInputHolder.centeringSide = ReefCenteringSide.CENTER;
                 }
 
@@ -187,8 +187,12 @@ public class DriverInput {
                 return controllers[controllerIndex].getRightBumperButton();
             case "DPAD_UP":
                 return controllers[controllerIndex].getPOV() == 0;
+            case "DPAD_RIGHT":
+                return controllers[controllerIndex].getPOV() == 90;
             case "DPAD_DOWN":
                 return controllers[controllerIndex].getPOV() == 180;
+            case "DPAD_LEFT":
+                return controllers[controllerIndex].getPOV() == 270;
             case "BACK":
                     return controllers[controllerIndex].getBackButton();
         }

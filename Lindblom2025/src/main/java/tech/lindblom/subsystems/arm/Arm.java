@@ -6,6 +6,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.HashMap;
 import com.playingwithfusion.TimeOfFlight;
@@ -24,6 +25,8 @@ public class Arm extends StateSubsystem {
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
 
+    private boolean performedSafeStates = true;
+
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
@@ -38,10 +41,10 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.0);
-        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.008707076);
+        armMotorConfig.closedLoop.pid(0.005, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.1, 0.1);
+        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -69,22 +72,25 @@ public class Arm extends StateSubsystem {
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        // positionMap.put(ArmState.POLE, 17.0);
-        // positionMap.put(ArmState.IDLE, 25.0);
-        // positionMap.put(ArmState.L1, 45.0);
-        // positionMap.put(ArmState.L2, 0.0);
-        // positionMap.put(ArmState.L3, 70.0);
-        // positionMap.put(ArmState.L4, 80.0);
-        // positionMap.put(ArmState.WAIT, 25.0);
-        // positionMap.put(ArmState.COLLECT, 175.0);
-        positionMap.put(ArmState.POLE, 40.0);
-        positionMap.put(ArmState.IDLE, 88.0);
+        positionMap.put(ArmState.POLE, 26.0);
+        positionMap.put(ArmState.IDLE, 2.0);
+        positionMap.put(ArmState.L1, 45.0);
+        positionMap.put(ArmState.L2, 0.0);
+        positionMap.put(ArmState.L3, 70.0);
+        positionMap.put(ArmState.L4, 45.0);
+        positionMap.put(ArmState.WAIT, 25.0);
+        positionMap.put(ArmState.COLLECT, 185.0);
+        /*positionMap.put(ArmState.POLE, 40.0);
+        positionMap.put(ArmState.IDLE, 88.0); // algae
         positionMap.put(ArmState.L1, 40.0);
         positionMap.put(ArmState.L2, 40.0);
         positionMap.put(ArmState.L3, 40.0);
         positionMap.put(ArmState.L4, 40.0);
         positionMap.put(ArmState.WAIT, 40.0);
-        positionMap.put(ArmState.COLLECT, 40.0);
+        positionMap.put(ArmState.COLLECT, 40.0);*/
+        positionMap.put(ArmState.START_HIGH, 5.0);
+        positionMap.put(ArmState.START_MID, 40.0);
+        positionMap.put(ArmState.GROUND_ALGAE, 159.0);
     }
 
     @Override
@@ -97,6 +103,10 @@ public class Arm extends StateSubsystem {
 
     public boolean matchesDesiredPosition() {
         if (positionMap.containsKey(getCurrentState())) {
+            if (RobotBase.isSimulation()) {
+                return timeInState.get() > 3;
+            }
+
             double tolerance = 6;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
             return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
@@ -106,7 +116,10 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
-       
+        super.init();
+       if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
+            performedSafeStates = false;
+       }
     }
 
     public double getPosition() {
@@ -119,7 +132,6 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
-   
 
         if(currentOperatingMode == OperatingMode.DISABLED) {
             return;
@@ -131,10 +143,10 @@ public class Arm extends StateSubsystem {
                     armMotor.set(0);
                     break;
                 case MANUAL_DOWN:
-                    armMotor.set(-0.1);
+                    armMotor.set(-0.3);
                     break;
                 case MANUAL_UP:
-                    armMotor.set(0.1);
+                    armMotor.set(0.3);
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
@@ -149,23 +161,46 @@ public class Arm extends StateSubsystem {
 
     @Override
     public ArmState getDefaultState() {
-        if (robotController.isManualControlMode()) {
+        if (robotController.isManualControlMode() || currentOperatingMode == OperatingMode.DISABLED || currentOperatingMode == null) {
             return ArmState.IDLE;
         }
 
-        //JUST TEMPORARY FOR TESTING.
-        return ArmState.IDLE;
+        if (!performedSafeStates) {
+            // the perfect state machine, pls no touch - ally
+            if (matchesDesiredPosition() && getCurrentState() == ArmState.START_HIGH) {
+                performedSafeStates = true;
+            }
 
-        //TEMPORARY
-        // if (hasCoral()) {
-        //     return ArmState.POLE;
-        // } else {
-        //     return ArmState.COLLECT;
-        // }
+            if (getCurrentState() == ArmState.START_HIGH) {
+                return ArmState.START_HIGH;
+            }
+
+            if (matchesDesiredPosition() && getCurrentState() == ArmState.START_MID) {
+                return ArmState.START_HIGH;
+            }
+
+            if (getCurrentState() == ArmState.IDLE || getCurrentState() == ArmState.START_MID) {
+                return ArmState.START_MID;
+            }
+        } else {
+            if (currentOperatingMode != OperatingMode.AUTONOMOUS) {
+                if (hasCoral()) {
+                    return ArmState.IDLE;
+                } else {
+                    return ArmState.COLLECT;
+                }
+            }
+        }
+
+        return ArmState.IDLE;
+    }
+
+    private boolean finishedStartingActions() {
+        return performedSafeStates;
     }
 
     private void getToPosition(double position){
-        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle()) {
+        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID) {
             armMotor.set(0);
             return;
         }
@@ -193,7 +228,7 @@ public class Arm extends StateSubsystem {
             return false;
         }
 
-        return coralTimeOfFlight.getRange() > 10 && coralTimeOfFlight.getRange() < 100;
+        return coralTimeOfFlight.getRange() < 50;
     }
 
 
@@ -204,6 +239,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE
     }
 }
