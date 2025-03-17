@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
@@ -133,12 +134,12 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
-        double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
 
         double radPerSecond = desiredState.speedMetersPerSecond / Constants.Drive.WHEEL_RADIUS;
+        double FF = driveFF.calculate(radPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
         mDriveMotor.setControl(velocityTorqueCurrentRequest
-                .withVelocity(radPerSecond).withFeedForward(FF)
+                .withVelocity(Units.radiansToRotations(radPerSecond)).withFeedForward(FF)
         );
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
@@ -171,7 +172,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingD = 0;
         ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
         ret_val.drivingKS = 0.0154;
-        ret_val.drivingKV = .623;
+        ret_val.drivingKV = 2.63;
         ret_val.drivingKA = 0.16;
 
         ret_val.turningP = 5;
