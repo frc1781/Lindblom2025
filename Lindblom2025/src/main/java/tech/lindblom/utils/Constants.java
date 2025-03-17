@@ -153,8 +153,6 @@ public class Constants {
     public class Arm{
         public static final int ARM_MOTOR_ID = 13;
         public static final int CLAW_CORAL_SENSOR_ID = 54;
-
-        public static double CORAL_TOF_DISTANCE = 50;
     }
 
     public class Elevator {
@@ -203,8 +201,7 @@ public class Constants {
         public static final int CORAL_CONVEYOR_ID = 15;
     }
 
-    public class Mouth {
-        public static final int SPIN_MOUTH_MOTOR = 17;
-        public static final int POSITION_MOUTH_MOTOR = 16;
+    public class Thumb {
+        public static final int SPIN_THUMB_MOTOR = 17;
     }
 }

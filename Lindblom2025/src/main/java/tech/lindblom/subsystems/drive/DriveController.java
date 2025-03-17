@@ -82,6 +82,7 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         centeringYawController.reset();
         distanceController.reset();
         parallelController.reset(driveSubsystem.getRobotPose().getRotation().getRadians());
@@ -128,8 +129,6 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/aprilTag", apriltagId);
         Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
         Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-
-        if (readyForCentering()) robotController.ledsSystem.setState(LEDState.PURPLE);
 
         if (currentOperatingMode == DISABLED) return;
 
@@ -196,9 +195,9 @@ public class DriveController extends StateSubsystem {
     public boolean readyForCentering() {
          return leftTOF.isRangeValid() && rightTOF.isRangeValid() && 
             leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
-            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
-            robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
-        );
+                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
+                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
+            );
     }
 
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
@@ -287,7 +286,7 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
 
-        //ledS
+        //LEDs
         if (apriltagId != -1 && !hasFoundReefPole()) {
             robotController.ledsSystem.setState(LEDState.GREEN);
         } 
@@ -343,7 +342,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean reefPoleDetected() {  //added just for LEDs
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 30;
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 60;
     }
 
     public boolean hasFoundReefPole() {

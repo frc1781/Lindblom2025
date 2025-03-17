@@ -18,6 +18,7 @@ public class LeftFourCoral implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(
                         new AutoStep[] {
+                                new AutoStep(RobotController.Action.START_ARM),
                                 new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;IJ")),
                                 new AutoStep(RobotController.Action.CONVEY_AND_COLLECT, Auto.getPathFromName("IJ;collect")),
                                 new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;LK")),

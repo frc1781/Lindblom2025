@@ -5,6 +5,7 @@ import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.drive.DriveController.DriverStates;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EnumCollection;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import org.littletonrobotics.junction.Logger;
@@ -12,8 +13,10 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Robot;
 
 public class LEDs extends StateSubsystem {
+    private final RobotController robotController;
     private final int LED_LENGTH = 150;
 
     private AddressableLED mLedController = null;
@@ -23,12 +26,14 @@ public class LEDs extends StateSubsystem {
     private Timer flashingTimer;
     private boolean flashAlt;
 
-    public LEDs() {
-        super("LEDs", LEDState.RAINBOW);
+    public LEDs(RobotController _robotController) {
+        super("LEDs", LEDState.OPERATING_COLOR);
+        this.robotController = _robotController;
     }
 
     @Override
     public void init() {
+        super.init();
         flashingTimer = new Timer();
         flashingTimer.reset();
         if (mLedController == null) {
@@ -48,11 +53,24 @@ public class LEDs extends StateSubsystem {
         }
 
         switch((LEDState) getCurrentState()) {
-            case OPERATING_COLOR, RAINBOW:
+            case OPERATING_COLOR:
+                switch (currentOperatingMode) {
+                    case AUTONOMOUS:
+                        solid(250, 156, 28);
+                        break;
+                    case TELEOP:
+                        solid(0, 255, 255);
+                        break;
+                    case DISABLED:
+                        rainbow();
+                        break;
+                }
+                break;
+            case RAINBOW:
                 rainbow();
                 break;
             case WHITE:
-                solid(255, 255, 255);
+                solid(0, 255, 255);
                 break;
             case RED:
                 solid(255, 0, 0);
@@ -63,34 +81,37 @@ public class LEDs extends StateSubsystem {
             case BLUE:
                 solid(0, 0, 255);
                 break;
+            case YELLOW:
+                solid(255, 255, 0);
+                break;
             case PURPLE:
                 solid(255, 0, 255);
                 break;
+            case FLASH_YELLOW:
+                flashing(255, 255, 0);
             case SYNC:
                 flashing(0, 255, 0);
                 if (timeInState.get() > 1) {
                     setState(LEDState.WHITE);
                 }
                 break;
+            case OFF: 
+                solid(0, 0, 0);
+                break;
             case OVER:
                 flashing(255, 255, 0);
+                break;
+            case EXPECTED_FAIL:
+                flashing(255, 0, 0);
                 break;
         }
 
         mLedController.setData(mLedBuffer);
     }
 
-    @Override
-    public void setState(SubsystemState newState) {
-        if (newState == LEDState.OPERATING_COLOR) { //IGNORE STATE BECAUSE IT IS SET IN ACTION
-            return;
-        }
-        super.setState(newState);
-    }
-
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, r, g, b);
+            mLedBuffer.setRGB(i, g, r, b);
         }
     }
 
@@ -126,6 +147,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, PURPLE, OVER, OPERATING_COLOR, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, FLASH_YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }

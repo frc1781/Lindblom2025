@@ -18,14 +18,19 @@ public class RightThreeCoral implements AutoRoutine {
         return new AutoStepGroup[]{
                 new DependGroup(
                         new AutoStep[] {
-                                new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;EF")),
+                                new AutoStep(RobotController.Action.START_ARM),
+                                new AutoStep(RobotController.Action.READY_FOP_POLE, Auto.getPathFromName("start;EF")),
                                 new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 9, 22),
+
                                 new AutoStep(RobotController.Action.READY_FOR_COLLECT, Auto.getPathFromName("EF;collect")),
                                 new AutoStep(RobotController.Action.CONVEY_AND_COLLECT),
-                                new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;CD"), 8, 17),
-                                new AutoStep(RobotController.Action.READY_FOR_COLLECT, Auto.getPathFromName("CD;collect")),
+                                new AutoStep(RobotController.Action.READY_FOP_POLE, Auto.getPathFromName("collect;CD")),
+                                new AutoStep(RobotController.Action.CENTER_REEF_RIGHT_L4, 8, 17),
+
+                                new AutoStep(RobotController.Action.READY_FOR_COLLECT, Auto.getPathFromName("EF;collect")),
                                 new AutoStep(RobotController.Action.CONVEY_AND_COLLECT),
-                                new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("collect;CD"), 8, 17),
+                                new AutoStep(RobotController.Action.READY_FOP_POLE, Auto.getPathFromName("collect;CD")),
+                                new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 8, 17),
                         }
                 )
         };

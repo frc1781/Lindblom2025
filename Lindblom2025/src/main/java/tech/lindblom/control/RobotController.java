@@ -1,9 +1,6 @@
 package tech.lindblom.control;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -32,6 +29,7 @@ import tech.lindblom.subsystems.climber.BaseClimber;
 import tech.lindblom.subsystems.climber.Climber;
 import tech.lindblom.subsystems.climber.ClimberSim;
 import tech.lindblom.subsystems.conveyor.Conveyor;
+import tech.lindblom.subsystems.thumb.Thumb;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.elevator.Elevator;
 import tech.lindblom.subsystems.led.LEDs;
@@ -43,6 +41,9 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
+import static tech.lindblom.control.RobotController.Action.GROUND_COLLECT_ALGAE;
+import static tech.lindblom.control.RobotController.Action.START_ARM;
+
 // The robot controller, controls robot.
 public class RobotController {
     public DriveController driveController;
@@ -53,7 +54,7 @@ public class RobotController {
     public Arm armSystem;
     public BaseClimber climberSystem;
     public Conveyor conveyorSystem;
-    //public Mouth mouthSystem;
+    public Thumb thumbSystem;
 
     DriverInput driverInput;
 
@@ -91,8 +92,8 @@ public class RobotController {
                 new CenterOneCoral()
         );
         visionSystem = new Vision(this);
-        ledsSystem = new LEDs();
-        //mouthSystem = new Mouth();
+        ledsSystem = new LEDs(this);
+        thumbSystem = new Thumb();
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
@@ -103,7 +104,7 @@ public class RobotController {
             climberSystem = new ClimberSim();
         }
         stateSubsystems = new ArrayList<>();
-        //stateSubsystems.add(mouthSystem);
+        stateSubsystems.add(thumbSystem);
         stateSubsystems.add(elevatorSystem);
         stateSubsystems.add(armSystem);
         stateSubsystems.add(climberSystem);
@@ -112,7 +113,7 @@ public class RobotController {
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
         subsystems.add(autoSystem);
-        //subsystems.add(mouthSystem);
+        subsystems.add(thumbSystem);
         subsystems.add(ledsSystem);
         createActions();
     }
@@ -151,6 +152,8 @@ public class RobotController {
     }
 
     public void run(EnumCollection.OperatingMode mode) {
+        Logger.recordOutput("RobotController/isSafeForArmToLeaveIdle", isSafeForArmToLeaveIdle());
+        Logger.recordOutput("RobotController/isSafeForElevatorStage2toMove", isSafeForElevatorStage2toMove());
         switch (mode) {
             case DISABLED:
                 break;
@@ -202,6 +205,26 @@ public class RobotController {
                 }
 
                 processDriverInputs();
+
+                if (driveController.reefPoleDetected()) {
+                    ledsSystem.setState(LEDState.GREEN);
+                }
+                else if (driveController.readyForCentering()) {
+                    ledsSystem.setState(LEDState.RED);
+                }
+                else if (conveyorSystem.cradleHasCoral()) {
+                    ledsSystem.setState(LEDState.YELLOW);
+                }
+                else if (armSystem.hasCoral()) {
+                    ledsSystem.setState(LEDState.BLUE);
+                }
+                else if (conveyorSystem.conveyorHasCoral()) {
+                    ledsSystem.setState(LEDState.FLASH_YELLOW);
+                }
+                else {
+                    ledsSystem.setState(LEDState.OPERATING_COLOR);
+                }
+
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
@@ -290,9 +313,9 @@ public class RobotController {
 
         for (StateSubsystem subsystem : stateSubsystems) {
             if (subsystem.getCurrentState() != subsystem.getDefaultState() && !setSubsystems.contains(subsystem)) {
-                if (subsystem.name == "DriveController" && subsystem.getCurrentState() != DriveController.DriverStates.DRIVER) {
+                if (Objects.equals(subsystem.name, "DriveController") && subsystem.getCurrentState() != DriveController.DriverStates.DRIVER) {
                     subsystem.setState(DriveController.DriverStates.DRIVER);
-                } else if (subsystem.name == "DriveController" && subsystem.getCurrentState() == DriveController.DriverStates.DRIVER) {
+                } else if (Objects.equals(subsystem.name, "DriveController") && subsystem.getCurrentState() == DriveController.DriverStates.DRIVER) {
                     return;
                 }
                 subsystem.restoreToDefaultState();
@@ -325,12 +348,11 @@ public class RobotController {
                 estimatedPose,
                 visionEstimate.timestampSeconds,
                 visionSystem.getEstimationStdDevs(
-                        estimatedPose,
-                        pipelineResult
+                    estimatedPose,
+                    pipelineResult
                 )
         );
     }
-
 
     public DriverInput.ReefCenteringSide getCenteringSide() {
         if (currentOperatingMode == EnumCollection.OperatingMode.AUTONOMOUS) {
@@ -462,28 +484,40 @@ public class RobotController {
         L4,
         CENTER_REEF_LEFT_L4,
         CENTER_REEF_RIGHT_L4,
-        COLLECT,
-        EAT,
+        CRADLE_COLLECT,
         MANUAL_ELEVATOR_UP,
         MANUAL_ELEVATOR_DOWN,
         MANUAL_ARM_DOWN,
         MANUAL_ARM_UP,
         CLIMBER_DOWN,
         CLIMBER_UP,
+        THUMB_SPIN_IN,
+        THUMB_SPIN_OUT,
         FIND_POLE_LEFT,
         FIND_POLE_RIGHT,
         CLIMBER_LATCH_RELEASE,
-        SPIT,
         CONVEY_AND_COLLECT,
         READY_FOR_COLLECT,
-        CENTER_REEF_CENTER
+        REMOVE_ALGAE,
+        START_ARM,
+        GROUND_COLLECT_ALGAE
     }
 
-    public void createActions(){
+    public void createActions() {
+        defineAction(GROUND_COLLECT_ALGAE,
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
+        defineAction(START_ARM,
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFER, 100),
+                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 100));
         defineAction(Action.READY_FOP_POLE,
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
-        defineAction(Action.CENTER_REEF_CENTER,
+        defineAction(Action.REMOVE_ALGAE,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
@@ -515,7 +549,7 @@ public class RobotController {
                     the time of flight that it then we should sense it all the way through the entire robot or 
                     we have that possibility I don't know how useful some of that is but well
                  */
-        defineAction(Action.COLLECT,
+        defineAction(Action.CRADLE_COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
@@ -574,7 +608,6 @@ public class RobotController {
 
         defineAction(Action.CENTER_REEF_LEFT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
@@ -583,7 +616,6 @@ public class RobotController {
                 );
         defineAction(Action.CENTER_REEF_RIGHT_L4,
                 new SubsystemSetting(true),
-                new SubsystemSetting(driveController, DriveController.DriverStates.PATH, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
@@ -611,17 +643,19 @@ public class RobotController {
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
 
-        // defineAction(Action.EAT,
-        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.EAT, 5));
+         defineAction(Action.THUMB_SPIN_IN,
+                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 5));
 
-        // defineAction(Action.SPIT,
-        //         new SubsystemSetting(mouthSystem, Mouth.MouthState.SPIT, 5));
+         defineAction(Action.THUMB_SPIN_OUT,
+                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
     }
 
-    public boolean isSafeForArmToMove() {
-        return (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150);
-        // return (elevatorSystem.defaultState == elevatorSystem.getCurrentState() && (elevatorSystem.getFirstStagePosition() > 200 || elevatorSystem.getSecondStagePosition() < 150))
-        //         || (elevatorSystem.defaultState != elevatorSystem.getCurrentState() && elevatorSystem.matchesState());
+    public boolean isSafeForArmToLeaveIdle() {
+        return (elevatorSystem.getSecondStagePosition() < 150);
+    }
+
+    public boolean isSafeForElevatorStage2toMove() {
+        return armSystem.getPosition() > 40.0 && armSystem.getPosition() < 300;  //should never be this high except with gimble lock wrapping
     }
 
     public double getCenteringDistance() {

@@ -17,6 +17,12 @@ public abstract class StateSubsystem extends Subsystem {
         Logger.recordOutput(name + "/currentState", currentState.toString());
     }
 
+    public void init() {
+        if (currentOperatingMode != EnumCollection.OperatingMode.DISABLED) {
+            resetTimeInState();
+        }
+    }
+
     public abstract boolean matchesState();
 
     private void resetTimeInState() {
