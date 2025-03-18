@@ -43,8 +43,57 @@ public class DriverInput {
 
     public TestInputHolder getTestInputs() {
         TestInputHolder testInputHolder = new TestInputHolder();
+
+        testInputHolder.driverLeftJoystickPosition = getControllerJoyAxis(ControllerSide.LEFT, 0);
+        testInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
+
         testInputHolder.nextTest = getButton("B", 0);
         testInputHolder.prevTest = getButton("X", 0);
+
+        ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
+
+        for (int i = 0; i < controlList.length; i++) {
+            Control control = controlList[i];
+
+            if (control.getButtonValue()) {
+                if (control.requestedAction == RobotController.Action.CENTER_REEF_LEFT) {
+                    testInputHolder.centeringSide = ReefCenteringSide.LEFT;
+                } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
+                    testInputHolder.centeringSide = ReefCenteringSide.RIGHT;
+                } else if (control.requestedAction == RobotController.Action.REMOVE_ALGAE) {
+                    testInputHolder.centeringSide = ReefCenteringSide.CENTER;
+                }
+
+                RobotController.SubsystemSetting[] subsystemSettingsFromAction = robotController.getSubsystemSettingsFromAction(control.requestedAction);
+                if (subsystemSettingsFromAction == null) break;
+
+                if (subsystemSettingsFromAction[0].reliesOnOthers) {
+                    testInputHolder.sequentialAction = control.requestedAction;
+                    break;
+                }
+
+                for (RobotController.SubsystemSetting subsystemSettingFromAction : subsystemSettingsFromAction) {
+                    for (RobotController.SubsystemSetting subsystemSetting : subsystemSettings) {
+                        if (testInputHolder.sequentialAction != null) {
+                            for (RobotController.SubsystemSetting sequentialActionSetting : robotController.getSubsystemSettingsFromAction(testInputHolder.sequentialAction)) {
+                                if (sequentialActionSetting.subsystem == subsystemSetting.subsystem) break;
+                            }
+                        }
+
+                        if (subsystemSetting.subsystem == subsystemSettingFromAction.subsystem && subsystemSetting.weight < subsystemSettingFromAction.weight) {
+                            subsystemSettings.add(subsystemSetting);
+                            subsystemSettings.remove(subsystemSettingFromAction);
+                            break;
+                        }
+                    }
+
+                    subsystemSettings.add(subsystemSettingFromAction);
+                }
+            }
+        }
+
+        testInputHolder.requestedSubsystemSettings = subsystemSettings;
+
         return testInputHolder;
     }
 
@@ -209,6 +258,18 @@ public class DriverInput {
     class TestInputHolder {
         public boolean nextTest = false;
         public boolean prevTest = false;
+
+        public ArrayList<RobotController.SubsystemSetting> requestedSubsystemSettings;
+        public RobotController.Action sequentialAction;
+
+        Translation2d driverLeftJoystickPosition;
+        Translation2d driverRightJoystickPosition;
+
+        public ReefCenteringSide centeringSide = null;
+        public boolean toggleManualControl = false;
+        public boolean armConfirm = false;
+
+        boolean orientFieldToRobot;
     }
 
     class InputHolder {

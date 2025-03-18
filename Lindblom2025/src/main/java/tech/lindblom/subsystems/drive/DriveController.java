@@ -205,10 +205,6 @@ public class DriveController extends StateSubsystem {
           leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000;
     }
 
-    public boolean testArmTOF() {
-        return armTOF.isRangeValid() && armTOF.getRange() < 700;
-    }
-
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
         if (robotController.getCenteringSide() == null) 
             return inputSpeeds;
@@ -351,7 +347,11 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean reefPoleDetected() {  //added just for LEDs
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 60;
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.armSystem.getPosition() < 60;
+    }
+
+    public boolean testArmTOF() {
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE&& armTOF.isRangeValid();
     }
 
     public boolean hasFoundReefPole() {

@@ -43,6 +43,8 @@ import tech.lindblom.utils.EnumCollection;
 public class TestController {
     RobotController robotController;
     DriveController driveController;
+    Arm armSystem;
+    
     private int testStep = 0;
     private boolean nextTestStepPushed = false;
     private boolean prevTestStepPushed = false;
@@ -50,6 +52,7 @@ public class TestController {
      public TestController(RobotController robotController) {
         this.robotController = robotController;
         this.driveController = robotController.driveController;
+        this.armSystem = robotController.armSystem;
      }
 
      public void periodic(DriverInput.TestInputHolder testInputs){
@@ -94,7 +97,7 @@ public class TestController {
                 break;
             case 3:
                 if (stepStarted) {
-                    System.out.println("Test 3: Testing Arm Pole Time of Flight, put your hand in front of it");
+                    System.out.println("Test 3: Testing Arm Time of Flight, put your hand in front of it");
                 }
                 if (driveController.testArmTOF()) {
                     robotController.ledsSystem.setState(LEDState.GREEN);
@@ -103,10 +106,19 @@ public class TestController {
                 }
                 break;
             case 4:
-                
+                if (stepStarted) {
+                    System.out.println("Test 4: ");
+                }
                 break;
             case 5:
-                
+                if (stepStarted) {
+                    System.out.println("Test 5: Testing Coral Time of Flight, put your hand in front of it");
+                }
+                if (armSystem.testHasCoral()) {
+                    robotController.ledsSystem.setState(LEDState.GREEN);
+                } else {
+                    robotController.ledsSystem.setState(LEDState.RED);
+                }
                 break;
             case 6:
                 
