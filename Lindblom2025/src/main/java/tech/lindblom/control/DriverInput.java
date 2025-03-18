@@ -38,6 +38,8 @@ public class DriverInput {
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
                 new Control(1, "Y", Action.REMOVE_ALGAE),
+                new Control(1, "LEFT_JOYSTICK_BUTTON", Action.HIGH_HOLD_ALGAE),
+                new Control(1, "RIGHT_JOYSTICK_BUTTON", Action.REEF_COLLECT_ALGAE)
         };
     }
 
@@ -195,6 +197,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getPOV() == 270;
             case "BACK":
                     return controllers[controllerIndex].getBackButton();
+            case "LEFT_JOYSTICK_BUTTON":
+                return controllers[controllerIndex].getLeftStickButton();
+            case "RIGHT_JOYSTICK_BUTTON":
+                return controllers[controllerIndex].getRightStickButton();
         }
         return false;
     }

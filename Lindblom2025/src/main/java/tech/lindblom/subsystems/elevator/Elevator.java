@@ -81,6 +81,8 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
+        positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, 50.0});
+        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 200.0});
     }
 
     @Override
@@ -120,6 +122,7 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
+        Logger.recordOutput(this.name + "/MatchesPosition", matchesPosition());
 
         if (currentOperatingMode == OperatingMode.DISABLED) return;
 
@@ -206,6 +209,8 @@ public class Elevator extends StateSubsystem {
         MANUAL_UP,
         COLLECT_LOW,
         POLE,
-        GROUND_COLLECT
+        GROUND_COLLECT,
+        HIGH_ALGAE,
+        LOW_ALGAE,
     }
 }

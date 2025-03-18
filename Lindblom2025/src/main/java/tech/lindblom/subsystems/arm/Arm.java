@@ -1,5 +1,6 @@
 package tech.lindblom.subsystems.arm;
 
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -31,7 +32,7 @@ public class Arm extends StateSubsystem {
         super("Arm", ArmState.IDLE);
 
         coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
-        coralTimeOfFlight.setRangingMode(TimeOfFlight.RangingMode.Short, 50);
+        coralTimeOfFlight.setRangingMode(TimeOfFlight.RangingMode.Short, 24);
         robotController = controller;
         timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
@@ -41,38 +42,32 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.008707076);
-        armMotorConfig.closedLoop.pid(0.005, 0,0.001);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.3209622);
+
+        // Slot 0 configs
+        armMotorConfig.closedLoop.pid(0.008, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.5, 0.5);
+        armMotorConfig.closedLoop.outputRange(-.7, .7);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
+
+        // Slot 1 configs
+        armMotorConfig.closedLoop.pid(0.005, 0, 0.001, ClosedLoopSlot.kSlot1);
+        armMotorConfig.closedLoop.outputRange(-0.2, 0.2, ClosedLoopSlot.kSlot1);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
+
+        // Slot 2 configs | not used rn but here for funiess
+        armMotorConfig.closedLoop.pid(0.008, 0, 0.001, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-0.6, 0.6, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
+
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-        // armMotorConfig
-        //     .idleMode(SparkMaxConfig.IdleMode.kBrake)
-        //     .softLimit
-        //         .forwardSoftLimit(180)
-        //         .reverseSoftLimit(0);
-        // armMotorConfig.smartCurrentLimit(30)
-        //     .absoluteEncoder.positionConversionFactor(360)
-        //         .zeroOffset(.4457963);
-        // armMotorConfig
-        //     .closedLoop
-        //         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
-        //         .pid(0.01, 0,0.001)
-        //         .velocityFF((double) 1 /565) // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        //         .outputRange(-0.5, 0.5)  //modify depending on what is going on
-        //         .positionWrappingEnabled(true)
-        //         .maxMotion
-        //             .maxVelocity(4200)
-        //             .maxAcceleration(6000)
-        //             .allowedClosedLoopError(0.5);
 
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positionMap = new HashMap<>();
-        positionMap.put(ArmState.POLE, 26.0);
+        positionMap.put(ArmState.POLE, 25.0);
         positionMap.put(ArmState.IDLE, 2.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
@@ -80,17 +75,10 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L4, 45.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 185.0);
-        /*positionMap.put(ArmState.POLE, 40.0);
-        positionMap.put(ArmState.IDLE, 88.0); // algae
-        positionMap.put(ArmState.L1, 40.0);
-        positionMap.put(ArmState.L2, 40.0);
-        positionMap.put(ArmState.L3, 40.0);
-        positionMap.put(ArmState.L4, 40.0);
-        positionMap.put(ArmState.WAIT, 40.0);
-        positionMap.put(ArmState.COLLECT, 40.0);*/
         positionMap.put(ArmState.START_HIGH, 5.0);
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
+        positionMap.put(ArmState.REEF_ALGAE, 50.0);
     }
 
     @Override
@@ -128,6 +116,7 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
+        Logger.recordOutput(this.name + "/MatchesPosition", matchesDesiredPosition());
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
@@ -208,8 +197,18 @@ public class Arm extends StateSubsystem {
         //     armMotor.set(0);
         //     return;
         // }
-        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition);
-        Logger.recordOutput(this.name + "/dutyCycle", armMotor.get());
+
+        if (getCurrentState() == ArmState.COLLECT) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+        } else {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        }
+
+        /*else if (hasCoral() && getCurrentState() == ArmState.IDLE) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
+        } */
+
+        Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }
 
     public boolean hasCoral() {
@@ -239,6 +238,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE
     }
 }

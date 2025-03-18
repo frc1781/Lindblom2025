@@ -41,8 +41,7 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
-import static tech.lindblom.control.RobotController.Action.GROUND_COLLECT_ALGAE;
-import static tech.lindblom.control.RobotController.Action.START_ARM;
+import static tech.lindblom.control.RobotController.Action.*;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -500,15 +499,20 @@ public class RobotController {
         READY_FOR_COLLECT,
         REMOVE_ALGAE,
         START_ARM,
-        GROUND_COLLECT_ALGAE
+        GROUND_COLLECT_ALGAE,
+        REEF_COLLECT_ALGAE,
+        HIGH_HOLD_ALGAE,
     }
 
     public void createActions() {
         defineAction(GROUND_COLLECT_ALGAE,
-                new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
+        defineAction(HIGH_HOLD_ALGAE,
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 4),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4,4),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 4));
         defineAction(START_ARM,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
@@ -552,7 +556,7 @@ public class RobotController {
         defineAction(Action.CRADLE_COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.HIGH_ALGAE, 2)
                 );
 
         defineAction(Action.MANUAL_ELEVATOR_DOWN,
@@ -574,6 +578,11 @@ public class RobotController {
         defineAction(Action.CENTER_REEF_RIGHT,
             new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6)
         );
+
+        defineAction(Action.REEF_COLLECT_ALGAE,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.HIGH_ALGAE, 8),
+                new SubsystemSetting(armSystem, Arm.ArmState.REEF_ALGAE, 8),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 8));
 
         defineAction(Action.L4,
             new SubsystemSetting(true),
@@ -655,7 +664,7 @@ public class RobotController {
     }
 
     public boolean isSafeForElevatorStage2toMove() {
-        return armSystem.getPosition() > 40.0 && armSystem.getPosition() < 300;  //should never be this high except with gimble lock wrapping 
+        return armSystem.getPosition() > 40.0 && armSystem.getPosition() < 300;  //should never be this high except with gimble lock wrapping
     }
 
     public double getCenteringDistance() {
