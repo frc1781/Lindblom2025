@@ -78,7 +78,7 @@ public class TestController {
                 break;
             case 1:
                 if (stepStarted) {
-                    System.out.println("Test 1: testing leds, they should be green");
+                    System.out.println("Test 1: Testing leds, they should be green");
                 }
                 robotController.ledsSystem.setState(LEDState.GREEN);
                 break;
@@ -86,14 +86,21 @@ public class TestController {
                 if (stepStarted) {
                     System.out.println("Test 2: Testing front Time of Flights, put your hands in front of both");
                 }
-                if(driveController.testFrontTOFs()){
+                if (driveController.testFrontTOFs()) {
 					robotController.ledsSystem.setState(LEDState.GREEN);
-				}else{
+				} else {
 					robotController.ledsSystem.setState(LEDState.RED);
 				}
                 break;
             case 3:
-                
+                if (stepStarted) {
+                    System.out.println("Test 3: Testing Arm Pole Time of Flight, put your hand in front of it")
+                }
+                if (driveController.testArmTOF()) {
+                    robotController.ledsSystem.setState(LEDState.GREEN);
+                } else {
+                    robotController.ledsSystem.setState(LEDState.RED);
+                }
                 break;
             case 4:
                 
