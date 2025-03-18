@@ -76,9 +76,16 @@ public class TestController {
                 break;
             case 1:
                 if (stepStarted) {
-                    System.out.println("Test 1: testing leds, they should be red");
+                    System.out.println("Test 1: testing leds, they should be green");
                 }
-                robotController.ledsSystem.setState(LEDState.RED);
+                robotController.ledsSystem.setState(LEDState.GREEN);
+                break;
+            case 2:
+                if (stepStarted) {
+                    System.out.println("Test 2: Testing front Time of Flights, put your hands in front of both");
+                }
+                //if (TOF's are both reporting reasonable values less than 700)
+                robotController.ledsSystem.setState(LEDState.GREEN);
                 break;
             default:
                 robotController.ledsSystem.setState(LEDState.OFF); 
