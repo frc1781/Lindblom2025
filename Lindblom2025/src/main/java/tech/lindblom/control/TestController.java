@@ -42,12 +42,14 @@ import tech.lindblom.utils.EnumCollection;
 
 public class TestController {
     RobotController robotController;
+    DriveController driveController;
     private int testStep = 0;
     private boolean nextTestStepPushed = false;
     private boolean prevTestStepPushed = false;
 
      public TestController(RobotController robotController) {
         this.robotController = robotController;
+        this.driveController = robotController.driveController;
      }
 
      public void periodic(DriverInput.TestInputHolder testInputs){
@@ -84,8 +86,11 @@ public class TestController {
                 if (stepStarted) {
                     System.out.println("Test 2: Testing front Time of Flights, put your hands in front of both");
                 }
-                //if (TOF's are both reporting reasonable values less than 700)
-                robotController.ledsSystem.setState(LEDState.GREEN);
+                if(driveController.testFrontTOFs()){
+					robotController.ledsSystem.setState(LEDState.GREEN);
+				}else{
+					robotController.ledsSystem.setState(LEDState.RED);
+				}
                 break;
             case 3:
                 
@@ -129,6 +134,7 @@ public class TestController {
             case 15:
                 
                 break;
+
             default:
                 robotController.ledsSystem.setState(LEDState.OFF); 
             break;

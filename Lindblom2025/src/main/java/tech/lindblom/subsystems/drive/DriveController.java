@@ -199,6 +199,11 @@ public class DriveController extends StateSubsystem {
                 robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
             );
     }
+    
+    public boolean testFrontTOFs() {
+        return leftTOF.isRangeValid() && rightTOF.isRangeValid() && 
+          leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000;
+    }
 
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
         if (robotController.getCenteringSide() == null) 
