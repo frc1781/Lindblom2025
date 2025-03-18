@@ -425,7 +425,7 @@ public class DriveController extends StateSubsystem {
                 driveSubsystem.setInitialPose(new Pose2d());
             }
  
-        } else if (mode == TELEOP && !hasSetInitialPose) {
+        } else if ((mode == TELEOP || mode == TEST) && !hasSetInitialPose) {
            driveSubsystem.setInitialPose(new Pose2d(new Translation2d(), new Rotation2d(0)));
         }
         
