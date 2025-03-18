@@ -147,7 +147,9 @@ public class Elevator extends StateSubsystem {
     public double getSecondStagePosition() {
         return secondStageTOF.getRange();
     }
+  // public boolean testElevatorTOF(){
 
+   //}
     public void goToPosition() {
         double firstStagePosition = getFirstStagePosition();
         double secondStagePosition = getSecondStagePosition();
