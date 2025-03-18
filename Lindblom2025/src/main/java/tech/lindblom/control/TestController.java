@@ -41,53 +41,49 @@ import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
 public class TestController {
-    
-     public TestController(RobotController robotController){
-            private int testStep = 0;
-            private boolean nextTestStepPushed = false;
-            private boolean prevTestStepPushed = false;
-        
- 
+    RobotController robotController;
+    private int testStep = 0;
+    private boolean nextTestStepPushed = false;
+    private boolean prevTestStepPushed = false;
 
+     public TestController(RobotController robotController) {
+        this.robotController = robotController;
      }
 
-     public void periodic(){
-           
-                        boolean stepStarted = false;
-                
-                        if (testInputs.nextTest && !nextTestStepPushed) {
-                            nextTestStepPushed = true;
-                            testStep++;
-                            stepStarted = true;
-                        }
-                        nextTestStepPushed = testInputs.nextTest;
-                        if (testInputs.prevTest && !prevTestStepPushed) {
-                            prevTestStepPushed = true;
-                            stepStarted = true;
-                            testStep--;
-                        }
-                        prevTestStepPushed = testInputs.prevTest;  
-                        
-                        switch(testStep) {
-                            case 0:
-                                //do nothing
-                                if (stepStarted) {
-                                    System.out.println("Starting testing, hit B for first test");
-                                }
-                                ledsSystem.setState(LEDState.OFF);
-                                break;
-                            case 1:
-                                if (stepStarted) {
-                                    System.out.println("Test 1: testing leds, they should be red");
-                                }
-                                ledsSystem.setState(LEDState.RED);
-                              break;
-                            default:
-                                ledsSystem.setState(LEDState.OFF); 
-                            break;
-                        }
-                    
+     public void periodic(DriverInput.TestInputHolder testInputs){
+        boolean stepStarted = false;
 
+        if (testInputs.nextTest && !nextTestStepPushed) {
+            nextTestStepPushed = true;
+            testStep++;
+            stepStarted = true;
+        }
+        nextTestStepPushed = testInputs.nextTest;
+        if (testInputs.prevTest && !prevTestStepPushed) {
+            prevTestStepPushed = true;
+            stepStarted = true;
+            testStep--;
+        }
+        prevTestStepPushed = testInputs.prevTest;  
+        
+        switch(testStep) {
+            case 0:
+                //do nothing
+                if (stepStarted) {
+                    System.out.println("Starting testing, hit B for first test");
+                }
+                robotController.ledsSystem.setState(LEDState.OFF);
+                break;
+            case 1:
+                if (stepStarted) {
+                    System.out.println("Test 1: testing leds, they should be red");
+                }
+                robotController.ledsSystem.setState(LEDState.RED);
+                break;
+            default:
+                robotController.ledsSystem.setState(LEDState.OFF); 
+            break;
+        }
      }
 
 }
