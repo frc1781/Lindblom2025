@@ -84,20 +84,54 @@ public class TestController {
                 if (stepStarted) {
                     System.out.println("Test 2: Testing front Time of Flights, put your hands in front of both");
                 }
-                double leftTOFDistance = leftTOF.getRange();
-                double rightTOFDistance = rightTOF.getRange();
-                if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
-
-                        robotController.ledsSystem.setState(LEDState.GREEN);  
-                }
                 //if (TOF's are both reporting reasonable values less than 700)
+                robotController.ledsSystem.setState(LEDState.GREEN);
+                break;
+            case 3:
                 
                 break;
+            case 4:
                 
+                break;
+            case 5:
+                
+                break;
+            case 6:
+                
+                break;
+            case 7:
+                
+                break;
+            case 8:
+                
+                break;
+            case 9:
+                
+                break;
+            case 10:
+                
+                break;
+            case 11:
+                
+                break;
+            case 12:
+                
+                break;
+            case 13:
+                
+                break;
+            case 14:
+                if (stepStarted) {
+                    System.out.println("Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center");
+                }
+                
+                break;
+            case 15:
+                
+                break;
             default:
                 robotController.ledsSystem.setState(LEDState.OFF); 
             break;
-
         }
      }
 
