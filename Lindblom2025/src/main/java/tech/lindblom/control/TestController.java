@@ -94,7 +94,7 @@ public class TestController {
                 break;
             case 3:
                 if (stepStarted) {
-                    System.out.println("Test 3: Testing Arm Pole Time of Flight, put your hand in front of it")
+                    System.out.println("Test 3: Testing Arm Pole Time of Flight, put your hand in front of it");
                 }
                 if (driveController.testArmTOF()) {
                     robotController.ledsSystem.setState(LEDState.GREEN);
