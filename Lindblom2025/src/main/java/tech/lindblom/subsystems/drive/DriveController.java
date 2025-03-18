@@ -205,6 +205,10 @@ public class DriveController extends StateSubsystem {
           leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000;
     }
 
+    public boolean testArmTOF() {
+        return armTOF.isRangeValid() && armTOF.getRange() < 700;
+    }
+
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
         if (robotController.getCenteringSide() == null) 
             return inputSpeeds;
