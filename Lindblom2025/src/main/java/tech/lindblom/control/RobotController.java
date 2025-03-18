@@ -46,6 +46,7 @@ import static tech.lindblom.control.RobotController.Action.START_ARM;
 
 // The robot controller, controls robot.
 public class RobotController {
+    public TestController testController;
     public DriveController driveController;
     public Vision visionSystem;
     public Auto autoSystem;
@@ -84,6 +85,7 @@ public class RobotController {
 
     public RobotController() {
         driveController = new DriveController(this);
+        testController = new TestController(this);
         autoSystem = new Auto(this,
                 new TestRoutine(),
                 new Collect(),
@@ -136,7 +138,7 @@ public class RobotController {
                 ledsSystem.setState(LEDState.SYNC);
                 break;
             case TEST:
-                System.out.println("Begin testing, hit B to start first test");
+                testController.periodic();
                 break;
             case SIMULATION:
                 break;
