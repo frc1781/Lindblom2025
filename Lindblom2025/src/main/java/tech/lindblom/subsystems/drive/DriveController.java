@@ -118,12 +118,12 @@ public class DriveController extends StateSubsystem {
         }
         Logger.recordOutput(this.name + "/hasSetInitialPose", hasSetInitialPose);
 
-        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
         if (apriltagId != -1) {
-            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
         }
 
         Logger.recordOutput(this.name + "/aprilTag", apriltagId);
@@ -230,10 +230,10 @@ public class DriveController extends StateSubsystem {
             case CENTER:
                 targetParallelDistance = Constants.Drive.TARGET_TOF_CENTERING_PARALLEL_DISTANCE;
                 targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER;
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
                 if (apriltagId != -1) {
-                    cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_LEFT, apriltagId);
-                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Camera.FRONT_LEFT, apriltagId);
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Camera.FRONT_RIGHT, apriltagId);
                 }
                 break;
             default:
@@ -249,6 +249,10 @@ public class DriveController extends StateSubsystem {
             } else {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
+        }
+
+        if (robotController.getCenteringSide() == ReefCenteringSide.CENTER && apriltagId != -1) {
+            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         }
 
         double leftTOFDistance = leftTOF.getRange();

@@ -79,6 +79,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
+        positions.put(ElevatorState.BARGE_SCORE, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
         positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, 50.0});
@@ -99,6 +100,10 @@ public class Elevator extends StateSubsystem {
     }
 
     public boolean matchesPosition() {
+        if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
+            return false;
+        }
+
         if (RobotBase.isSimulation()) {
             return timeInState.get() > 3;
         }
@@ -106,7 +111,7 @@ public class Elevator extends StateSubsystem {
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
-        double tolerance = 80;
+        double tolerance = 50;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
@@ -215,5 +220,6 @@ public class Elevator extends StateSubsystem {
         GROUND_COLLECT,
         HIGH_ALGAE,
         LOW_ALGAE,
+        BARGE_SCORE
     }
 }

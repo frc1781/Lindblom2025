@@ -77,13 +77,13 @@ public class Constants {
         public static double OFFSET_TOLERANCE = 0.02;
 
         public static double TARGET_TOF_PARALLEL_DISTANCE = 290;
-        public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 310;
+        public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 250;
         public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
         public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
-        public static double TARGET_CORAL_OFFSET_CENTER = 0;
+        public static double TARGET_CORAL_OFFSET_CENTER = -20.5;
     }
 
     public class Auto {

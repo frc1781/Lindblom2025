@@ -9,15 +9,20 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
+import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 
+import java.lang.annotation.Native;
+
 public class Thumb extends StateSubsystem {
     private final SparkFlex spinMotor;
+    private final RobotController robotController;
 
-    public Thumb() {
+    public Thumb(RobotController robotController) {
         super("Thumb", ThumbState.IDLE);
 
+        this.robotController = robotController;
         //Spin Motor
         spinMotor = new SparkFlex(Constants.Thumb.SPIN_THUMB_MOTOR, MotorType.kBrushless);
         SparkFlexConfig spinMotorConfig = new SparkFlexConfig();
@@ -45,6 +50,16 @@ public class Thumb extends StateSubsystem {
     @Override
     public boolean matchesState() {
         return getCurrentState() == ThumbState.IDLE;
+    }
+
+    @Override
+    public ThumbState getDefaultState() {
+
+        if ((ThumbState.IDLE == getCurrentState() || ThumbState.SPIN_IN == getCurrentState())&& robotController.armSystem.successfullyCollectedAlgae()) {
+            return ThumbState.SPIN_IN;
+        }
+
+        return ThumbState.IDLE;
     }
 
     @Override

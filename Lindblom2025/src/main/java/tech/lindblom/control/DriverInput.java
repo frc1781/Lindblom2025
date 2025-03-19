@@ -28,7 +28,8 @@ public class DriverInput {
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
                 new Control(0, "A", Action.THUMB_SPIN_IN),
                 new Control(0, "X", Action.THUMB_SPIN_OUT),
-                new Control(1, "DPAD_RIGHT", Action.GROUND_COLLECT_ALGAE),
+                new Control(1, "DPAD_RIGHT", Action.HIGH_SCORE_ALGAE),
+                new Control(1, "DPAD_LEFT", Action.GROUND_COLLECT_ALGAE),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
@@ -63,7 +64,7 @@ public class DriverInput {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
                 } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-                } else if (control.requestedAction == RobotController.Action.REMOVE_ALGAE) {
+                } else if (control.requestedAction == Action.REEF_COLLECT_ALGAE) {
                     driverInputHolder.centeringSide = ReefCenteringSide.CENTER;
                 }
 
@@ -84,8 +85,8 @@ public class DriverInput {
                         }
 
                         if (subsystemSetting.subsystem == subsystemSettingFromAction.subsystem && subsystemSetting.weight < subsystemSettingFromAction.weight) {
-                            subsystemSettings.add(subsystemSetting);
-                            subsystemSettings.remove(subsystemSettingFromAction);
+                            subsystemSettings.add(subsystemSettingFromAction);
+                            subsystemSettings.remove(subsystemSetting);
                             break;
                         }
                     }

@@ -47,7 +47,7 @@ public class Arm extends StateSubsystem {
         // Slot 0 configs
         armMotorConfig.closedLoop.pid(0.008, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-.7, .7);
+        armMotorConfig.closedLoop.outputRange(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
         // Slot 1 configs
@@ -79,6 +79,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 50.0);
+        positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
     }
 
     @Override
@@ -146,6 +147,10 @@ public class Arm extends StateSubsystem {
     @Override
     public void stateTransition(SubsystemState previousState, SubsystemState newState) {
         this.previousState = (ArmState) previousState;
+    }
+
+    public boolean successfullyCollectedAlgae() {
+        return previousState == ArmState.REEF_ALGAE && hasCoral();
     }
 
     @Override
@@ -238,6 +243,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, SLIGHT_TOSS
     }
 }

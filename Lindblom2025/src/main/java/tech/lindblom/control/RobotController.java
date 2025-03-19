@@ -92,7 +92,7 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
-        thumbSystem = new Thumb();
+        thumbSystem = new Thumb(this);
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
@@ -511,6 +511,7 @@ public class RobotController {
         GROUND_COLLECT_ALGAE,
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
+        HIGH_SCORE_ALGAE,
     }
 
     public void createActions() {
@@ -519,9 +520,13 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
         defineAction(HIGH_HOLD_ALGAE,
-                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 4),
+                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 4),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4,4),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 4));
+        defineAction(HIGH_SCORE_ALGAE,
+                new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,5),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
         defineAction(START_ARM,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
@@ -531,7 +536,6 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
         defineAction(Action.REMOVE_ALGAE,
-                new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 5));
@@ -591,7 +595,8 @@ public class RobotController {
         defineAction(Action.REEF_COLLECT_ALGAE,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.HIGH_ALGAE, 8),
                 new SubsystemSetting(armSystem, Arm.ArmState.REEF_ALGAE, 8),
-                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 8));
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 8),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 8));
 
         defineAction(Action.L4,
             new SubsystemSetting(true),
