@@ -324,6 +324,7 @@ public class RobotController {
     
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? -1 : 1;
+        double inhibited = shouldInhibitDriveSpeed() ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -335,10 +336,18 @@ public class RobotController {
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
         Logger.recordOutput("Driver/isRed", isRed());
 
-        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
+        // xSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, xSpeed);
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
+        // ySpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, ySpeed);
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited;
+        // rotSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited, rotSpeed);
+        
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
+    }
+
+    public boolean shouldInhibitDriveSpeed() {
+        return elevatorSystem.getFirstStagePosition() > 150;
     }
 
     public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
