@@ -76,9 +76,17 @@ public class TestController {
         }
      }
 
+     public void init() {
+        stepStarted = false;
+        currentStepPassed = false;
+        currentMsg = "";
+        testStep = 0;
+        nextTestStepPushed = false;
+        prevTestStepPushed = false;
+     }
+
      public void periodic(DriverInput.TestInputHolder testInputs) {
         this.testInputs = testInputs;
-        System.out.println(this.testInputs.nextTest);
         ifStartingStep();
         switch(testStep) {
             case 0:

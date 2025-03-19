@@ -138,8 +138,7 @@ public class RobotController {
                 ledsSystem.setState(LEDState.SYNC);
                 break;
             case TEST:
-                System.out.println("asdf");
-                testController.periodic(driverInput.getTestInputs());
+                testController.init();
                 break;
             case SIMULATION:
                 break;
