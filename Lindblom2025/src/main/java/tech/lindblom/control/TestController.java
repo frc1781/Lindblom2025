@@ -101,20 +101,16 @@ public class TestController {
                 currentMsg = "Test 4: don't know??";
                 break;
             case 5:
-                currentMsg = "Test 5: Testing Coral Time of Flight, put your hand in front of it";
+                currentMsg = "Test 5: Testing Coral Time of Flight, put a coral into the arm";
                 currentStepPassed = robotController.armSystem.testHasCoral();
                 break;
             case 6:
-                if (stepStarted) {
-                    System.out.println("Test 6: Testing Conveyer Beambreaks, put a coral into the robot");
-                }
+                currentMsg = "Test 6: Testing Conveyer Beambreaks, put your hand in front of each";
+                currentStepPassed = false;
                 break;
             case 7:
-                if (stepStarted) {
-                    System.out.println("Test 7: Testing Cameras, put an apriltag in front of each camera and cover the other cameras not being tested");
-                }
-                
-
+                currentMsg = "Test 7: Testing Cameras, put an apriltag in front of each camera and cover the other cameras not being tested";
+                currentStepPassed = false;
                 break;
             case 8:
                 
@@ -132,10 +128,8 @@ public class TestController {
                 
                 break;
             case 13:
-                if (stepStarted) {
-                    System.out.println("Test 14: Testing the scoring, (COPILOT) Press A for L4, B for L3, X for L2");
-                }
-                
+                currentMsg = "Test 13: Testing the scoring, (COPILOT) Press A for L4, B for L3, X for L2";
+                currentStepPassed = false;
                 break;
             case 14:
                 currentMsg = "Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center";
