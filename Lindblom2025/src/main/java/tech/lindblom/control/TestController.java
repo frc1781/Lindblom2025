@@ -105,10 +105,16 @@ public class TestController {
                 currentStepPassed = robotController.armSystem.testHasCoral();
                 break;
             case 6:
-                
+                if (stepStarted) {
+                    System.out.println("Test 6: Testing Conveyer Beambreaks, put a coral into the robot");
+                }
                 break;
             case 7:
+                if (stepStarted) {
+                    System.out.println("Test 7: Testing Cameras, put an apriltag in front of each camera and cover the other cameras not being tested");
+                }
                 
+
                 break;
             case 8:
                 
@@ -126,6 +132,9 @@ public class TestController {
                 
                 break;
             case 13:
+                if (stepStarted) {
+                    System.out.println("Test 14: Testing the scoring, (COPILOT) Press A for L4, B for L3, X for L2");
+                }
                 
                 break;
             case 14:
