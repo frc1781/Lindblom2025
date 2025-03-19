@@ -43,8 +43,10 @@ import tech.lindblom.utils.EnumCollection;
 public class TestController {
     RobotController robotController;
     DriveController driveController;
-    Arm armSystem;
-    
+    DriverInput.TestInputHolder testInputs;
+    boolean stepStarted;
+    boolean currentStepPassed = false;
+    String currentMsg = "";
     private int testStep = 0;
     private boolean nextTestStepPushed = false;
     private boolean prevTestStepPushed = false;
@@ -52,12 +54,10 @@ public class TestController {
      public TestController(RobotController robotController) {
         this.robotController = robotController;
         this.driveController = robotController.driveController;
-        this.armSystem = robotController.armSystem;
      }
 
-     public void periodic(DriverInput.TestInputHolder testInputs){
-        boolean stepStarted = false;
-
+     private void ifStartingStep() {
+        stepStarted = false;
         if (testInputs.nextTest && !nextTestStepPushed) {
             nextTestStepPushed = true;
             testStep++;
@@ -70,55 +70,39 @@ public class TestController {
             testStep--;
         }
         prevTestStepPushed = testInputs.prevTest;  
-        
+
+        if (stepStarted) {
+            currentStepPassed = false;
+        }
+     }
+
+     public void periodic(DriverInput.TestInputHolder testInputs) {
+        this.testInputs = testInputs;
+        System.out.println(this.testInputs.nextTest);
+        ifStartingStep();
         switch(testStep) {
             case 0:
-                //do nothing
-                if (stepStarted) {
-                    System.out.println("Starting testing, hit B for first test");
-                }
-                robotController.ledsSystem.setState(LEDState.OFF);
+                currentMsg = "Starting testing, hit B for first test";
+                currentStepPassed = true; //passes by default
                 break;
             case 1:
-                if (stepStarted) {
-                    System.out.println("Test 1: Testing leds, they should be green");
-                }
-                robotController.ledsSystem.setState(LEDState.GREEN);
+                currentMsg = "Test 1: Testing leds, they should be green";
+                currentStepPassed = true;  //passes by default but check leds are green
                 break;
             case 2:
-                if (stepStarted) {
-                    System.out.println("Test 2: Testing front Time of Flights, put your hands in front of both");
-                }
-                if (driveController.testFrontTOFs()) {
-					robotController.ledsSystem.setState(LEDState.GREEN);
-				} else {
-					robotController.ledsSystem.setState(LEDState.RED);
-				}
+                currentMsg = "Test 2: Testing front Time of Flights, put your hands in front of both";
+                currentStepPassed = driveController.testFrontTOFs();
                 break;
             case 3:
-                if (stepStarted) {
-                    System.out.println("Test 3: Testing Arm Time of Flight, put your hand in front of it");
-                }
-                if (driveController.testArmTOF()) {
-                    robotController.ledsSystem.setState(LEDState.GREEN);
-                } else {
-                    robotController.ledsSystem.setState(LEDState.RED);
-                }
+                currentMsg = "Test 3: Testing Arm Time of Flight, put your hand in front of it";
+                currentStepPassed = driveController.testArmTOF();
                 break;
             case 4:
-                if (stepStarted) {
-                    System.out.println("Test 4: ");
-                }
+                currentMsg = "Test 4: don't know??";
                 break;
             case 5:
-                if (stepStarted) {
-                    System.out.println("Test 5: Testing Coral Time of Flight, put your hand in front of it");
-                }
-                if (armSystem.testHasCoral()) {
-                    robotController.ledsSystem.setState(LEDState.GREEN);
-                } else {
-                    robotController.ledsSystem.setState(LEDState.RED);
-                }
+                currentMsg = "Test 5: Testing Coral Time of Flight, put your hand in front of it";
+                currentStepPassed = robotController.armSystem.testHasCoral();
                 break;
             case 6:
                 
@@ -145,10 +129,7 @@ public class TestController {
                 
                 break;
             case 14:
-                if (stepStarted) {
-                    System.out.println("Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center");
-                }
-                
+                currentMsg = "Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center";
                 break;
             case 15:
                 
@@ -158,6 +139,15 @@ public class TestController {
                 robotController.ledsSystem.setState(LEDState.OFF); 
             break;
         }
-     }
 
+        if (stepStarted) {
+            System.out.println(currentMsg);
+            stepStarted = true;
+        }
+        robotController.ledsSystem.setState(currentStepPassed ? LEDState.GREEN : LEDState.OFF);
+        Logger.recordOutput("TestController/currentStep", testStep);
+        Logger.recordOutput("TestController/currentStepPassed", currentStepPassed);
+        Logger.recordOutput("TestController/currentMsg", currentMsg);
+        robotController.ledsSystem.periodic();
+     }
 }

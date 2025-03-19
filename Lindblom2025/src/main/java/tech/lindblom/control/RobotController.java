@@ -138,6 +138,7 @@ public class RobotController {
                 ledsSystem.setState(LEDState.SYNC);
                 break;
             case TEST:
+                System.out.println("asdf");
                 testController.periodic(driverInput.getTestInputs());
                 break;
             case SIMULATION:
@@ -234,9 +235,9 @@ public class RobotController {
                 
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
-            case TEST:
+            case TEST:  //ONLY USE TEST CONTROLLER, RETURNS TO NOT SEND PERIODIC TO SUBSYSTEMS!
                 testController.periodic(driverInput.getTestInputs());
-                break;
+                return;
             case SIMULATION:
                 break;
             default:

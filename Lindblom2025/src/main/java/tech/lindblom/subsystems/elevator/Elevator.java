@@ -121,22 +121,30 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
 
-        if (currentOperatingMode == OperatingMode.DISABLED) return;
-
-        if (robotController.isManualControlMode()) {
-            switch ((ElevatorState) getCurrentState()) {
-                case SAFE:
-                    motorRight.set(0.02);
-                    break;
-                case MANUAL_DOWN:
-                    motorRight.set(-0.5);
-                    break;
-                case MANUAL_UP:
-                    motorRight.set(0.5);
-                    break;
+        if (currentOperatingMode == OperatingMode.DISABLED) {
+            //disabled
+        }
+        else if (currentOperatingMode == OperatingMode.TEST) {
+            //testing
+        }
+        else if (currentOperatingMode == OperatingMode.TELEOP || currentOperatingMode == OperatingMode.AUTONOMOUS)
+        {
+            if (robotController.isManualControlMode()) {
+                switch ((ElevatorState) getCurrentState()) {
+                    case SAFE:
+                        motorRight.set(0.02);
+                        break;
+                    case MANUAL_DOWN:
+                        motorRight.set(-0.5);
+                        break;
+                    case MANUAL_UP:
+                        motorRight.set(0.5);
+                        break;
+                }
             }
-        } else if (positions.containsKey(getCurrentState())) {
-            goToPosition();
+            else if (positions.containsKey(getCurrentState())) {
+                goToPosition();
+            }
         }
     }
 
