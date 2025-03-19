@@ -48,7 +48,7 @@ public class DriverInput {
         testInputHolder.driverRightJoystickPosition = getControllerJoyAxis(ControllerSide.RIGHT, 0);
 
         testInputHolder.nextTest = getButton("B", 0);
-        testInputHolder.prevTest = getButton("X", 0);
+        testInputHolder.prevTest = getButton("Y", 0);
 
         ArrayList<RobotController.SubsystemSetting> subsystemSettings = new ArrayList<>();
 
