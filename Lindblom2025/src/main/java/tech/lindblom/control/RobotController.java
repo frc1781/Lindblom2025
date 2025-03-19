@@ -350,6 +350,25 @@ public class RobotController {
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
 
+    public void testDriverDriving(Translation2d translation, Translation2d rotation) {
+        int flipForRed = isRed() ? -1 : 1;
+
+        double xVelocity = -translation.getY() * flipForRed;
+        double yVelocity = -translation.getX() * flipForRed;
+        double rotVelocity = -rotation.getX() * Constants.Drive.DRIVER_ROTATION_INPUT_MULTIPIER;
+
+        Logger.recordOutput("Driver/movement/x", translation.getX());
+        Logger.recordOutput("Driver/rotation/x", rotation.getX());
+        Logger.recordOutput("Driver/movement/y", translation.getY());
+        Logger.recordOutput("Driver/rotation/y", rotation.getY());
+        Logger.recordOutput("Driver/isRed", isRed());
+
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+        driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
+    }
+
     public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
         Pose2d estimatedPose = visionEstimate.estimatedPose.toPose2d();
         driveController.updatePoseUsingVisionEstimate(

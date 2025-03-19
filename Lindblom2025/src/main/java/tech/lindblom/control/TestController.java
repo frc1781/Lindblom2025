@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import tech.lindblom.control.DriverInput.TestInputHolder;
 import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.auto.Auto;
 import tech.lindblom.subsystems.auto.AutoStep;
@@ -111,7 +112,7 @@ public class TestController {
                 break;
             case 5:
                 currentMsg = "Test 5: Testing Coral Time of Flight, put a coral into the arm";
-                currentStepPassed = robotController.armSystem.testHasCoral();
+                currentStepPassed = robotController.armSystem.hasCoral();
                 break;
             case 6:
                 currentMsg = "Test 6: Testing Conveyer Beambreaks, put your hand in front of each";
@@ -157,7 +158,9 @@ public class TestController {
                 break;
             case 10:
                 currentMsg = "Test 10: Testing Wheels, Use joysticks to move robot's wheels and see if they move in correct directions";
-                currentStepPassed = false;
+                DriverInput.TestInputHolder testInputHolder = robotController.driverInput.getTestInputs();
+                robotController.testDriverDriving(testInputHolder.driverLeftJoystickPosition, testInputHolder.driverRightJoystickPosition);
+                currentStepPassed = true;  //passes by default but check wheels are moving in correct directions
                 break;
             case 11:
                 

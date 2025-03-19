@@ -231,24 +231,6 @@ public class Arm extends StateSubsystem {
         return coralTimeOfFlight.getRange() < 50;
     }
 
-    public boolean testHasCoral() {
-        if (coralTimeOfFlight.isRangeValid()) {
-            timeCoralTOFInvalid.reset();
-        }
-        else {
-            if (!timeCoralTOFInvalid.isRunning()) {
-                timeCoralTOFInvalid.start();
-            }
-        }
-
-        if (timeCoralTOFInvalid.get() > 0.1) {
-            return false;
-        }
-
-        return coralTimeOfFlight.getRange() < 50;
-    }
-
-
     private boolean preventDescore() {
         return (getCurrentState() == getDefaultState() && (previousState == ArmState.L4 || previousState == ArmState.L3 || previousState == ArmState.L2 || previousState == ArmState.L1)
                 && timeInState.get() < 2
