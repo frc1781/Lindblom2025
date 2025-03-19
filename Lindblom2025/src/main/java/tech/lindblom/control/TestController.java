@@ -50,6 +50,7 @@ public class TestController {
     private int testStep = 0;
     private boolean nextTestStepPushed = false;
     private boolean prevTestStepPushed = false;
+    public Timer testTimer = new Timer();
 
      public TestController(RobotController robotController) {
         this.robotController = robotController;
@@ -117,17 +118,46 @@ public class TestController {
                 currentStepPassed = false;
                 break;
             case 7:
-                currentMsg = "Test 7: Testing Cameras, put an apriltag in front of each camera and cover the other cameras not being tested";
-                currentStepPassed = false;
-                break;
+                currentMsg = "Test 7: Testing Cameras, put an apriltag in front of the Front Right Camera for at least 10 seconds and cover the other cameras not being tested";
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_RIGHT) != -1)) {
+                    testTimer.start();
+                }
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_RIGHT) != -1) && testTimer.get() > 10) {
+                    currentStepPassed = true;
+                    testTimer.reset();
+                }
+                else {
+                    currentStepPassed = false;
+                }
             case 8:
-                
+                currentMsg = "Test 8: Testing Cameras, put an apriltag in front of the Front Left Camera for at least 10 seconds and cover the other cameras not being tested";
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_LEFT) != -1)) {
+                    testTimer.start();
+                }
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_LEFT) != -1) && testTimer.get() > 10) {
+                    currentStepPassed = true;
+                    testTimer.reset();
+                }
+                else {
+                    currentStepPassed = false;
+                }
                 break;
             case 9:
-                
+                currentMsg = "Test 9: Testing Cameras, put an apriltag in front of the Left Side Camera for at least 10 seconds and cover the other cameras not being tested";
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.LEFT_SIDE) != -1)) {
+                    testTimer.start();
+                }
+                if ((robotController.visionSystem.testApriltag(Vision.Camera.LEFT_SIDE) != -1) && testTimer.get() > 10) {
+                    currentStepPassed = true;
+                    testTimer.reset();
+                }
+                else {
+                    currentStepPassed = false;
+                }
                 break;
             case 10:
-                
+                currentMsg = "Test 10: Testing Wheels, Use joysticks to move robot's wheels and see if they move in correct directions";
+                currentStepPassed = false;
                 break;
             case 11:
                 
@@ -136,13 +166,19 @@ public class TestController {
                 
                 break;
             case 13:
+                
+                break;
+            case 14:
+                
+                break;
+            case 15:
                 currentMsg = "Test 13: Testing the scoring, (COPILOT) Press A for L4, B for L3, X for L2";
                 currentStepPassed = false;
                 break;
-            case 14:
+            case 16:
                 currentMsg = "Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center";
                 break;
-            case 15:
+            case 17:
                 
                 break;
 

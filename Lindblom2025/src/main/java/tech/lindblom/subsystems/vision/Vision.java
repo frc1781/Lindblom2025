@@ -52,7 +52,7 @@ public class Vision extends Subsystem {
     private PhotonPipelineResult leftSideCameraPipelineResult;
 
     VisionSystemSim visionSystemSim;
-
+    private final List<Integer> testApriltagIds = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22);
     private final List<Integer> reefApriltagIds = List.of(17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11);
     private List<Pose3d> seenAprilTags;
 
@@ -165,6 +165,28 @@ public class Vision extends Subsystem {
 
         return closestTarget == null ? -1 : closestTarget.getFiducialId();
     }
+
+    public int testApriltag(Camera camera) {
+        PhotonPipelineResult result = getCameraLatestResults(camera);
+        if (result == null || !result.hasTargets()) return -1;
+        List<PhotonTrackedTarget> targets = result.targets;
+        PhotonTrackedTarget testTarget = null;
+
+        for (PhotonTrackedTarget target : targets) {
+            if (testTarget == null && testApriltagIds.contains(target.getFiducialId())) {
+                testTarget = target;
+                continue;
+            } else if (testTarget == null) {
+                continue;
+            }
+
+            if ((target.area < testTarget.area) && testApriltagIds.contains(target.getFiducialId())) {
+                testTarget = target;
+            }
+        }
+
+        return testTarget == null ? -1 : testTarget.getFiducialId();
+    } 
 
     public double getCameraYaw(Camera camera, int tagID) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
