@@ -157,12 +157,13 @@ public class TestController {
                 }
                 break;
             case 10:
-                currentMsg = "Test 10: Testing Wheels, Use joysticks to move robot's wheels and see if they move in correct directions";
+                currentMsg = "Test 10: Testing Wheels, (PILOT) Use joysticks to move robot's wheels and see if they move in correct directions";
                 DriverInput.TestInputHolder testInputHolder = robotController.driverInput.getTestInputs();
                 robotController.testDriverDriving(testInputHolder.driverLeftJoystickPosition, testInputHolder.driverRightJoystickPosition);
                 currentStepPassed = true;  //passes by default but check wheels are moving in correct directions
                 break;
             case 11:
+                currentMsg = "Test 11: Testing Elevator manually, (PILOT) Press B to toggle manual control and DPAD_UP and DPAD_DOWN to control elevator manually";
                 
                 break;
             case 12:
