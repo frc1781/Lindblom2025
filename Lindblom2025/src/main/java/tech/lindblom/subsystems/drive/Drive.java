@@ -114,6 +114,10 @@ public class Drive extends Subsystem {
         return Math.sqrt(Math.pow(navX.getVelocityX(), 2) + Math.pow(navX.getVelocityY(), 2));  //Pythagorean theorem from navX velocities
     }
 
+    public boolean isNavXRotating() {
+        return navX.isRotating();
+    }
+
     public void orientFieldToRobot() {
         if (resetOrientationByDriver) {  //only do once
             return;

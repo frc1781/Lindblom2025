@@ -172,6 +172,10 @@ public class DriveController extends StateSubsystem {
         driveSubsystem.orientFieldToRobot();
     }
 
+    public boolean isNavXRotating() {
+        return driveSubsystem.isNavXRotating();
+    }
+
     public void driveUsingVelocities(double xVelocity, double yVelocity, double rotSpeed) {
         if (getCurrentState() != DriverStates.DRIVER) return;
 

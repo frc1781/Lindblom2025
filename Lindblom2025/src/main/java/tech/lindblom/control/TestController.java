@@ -138,33 +138,42 @@ public class TestController {
                     currentStepPassed = true;
                 }
                 break;
-            /*case 11:
+            case 11:
+                currentMsg = "Test 11: Test NavX, move the robot counter-clockwise";
+                currentStepPassed = driveController.isNavXRotating();
+                break;
+            /*case 12:
+                currentMsg = "Test 12: Test ";
+                currentStepPassed = driveController.isNavXRotating();
+
+            break;
+            case 13:
                 currentMsg = "Test 10: Testing Wheels, (PILOT) Use joysticks to move robot's wheels and see if they move in correct directions";
                 DriverInput.TestInputHolder testInputHolder = robotController.driverInput.getTestInputs();
                 robotController.testDriverDriving(testInputHolder.driverLeftJoystickPosition, testInputHolder.driverRightJoystickPosition);
                 currentStepPassed = true;  //passes by default but check wheels are moving in correct directions
                 break;
-            case 12:
-                currentMsg = "Test 11: Testing Elevator manually, (PILOT) Press B to toggle manual control and DPAD_UP and DPAD_DOWN to control elevator manually";
-                
-                break;
-            case 13:
-                
-                break;
             case 14:
+                currentMsg = "Test 11: Testing Elevator manually, (PILOT) Press B to toggle manual control and DPAD_UP and DPAD_DOWN to control elevator manually";
                 
                 break;
             case 15:
                 
                 break;
             case 16:
+                
+                break;
+            case 17:
+                
+                break;
+            case 18:
                 currentMsg = "Test 13: Testing the scoring, (COPILOT) Press A for L4, B for L3, X for L2";
                 currentStepPassed = false;
                 break;
-            case 17:
+            case 19:
                 currentMsg = "Test 14: Testing the centering, Press RB to center Right, LB to center Left, Y to center Center";
                 break;
-            case 18:
+            case 20:
                 
                 break;*/
 
