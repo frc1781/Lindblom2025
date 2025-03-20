@@ -26,7 +26,7 @@ public class DriverInput {
                 new Control(0, "DPAD_LEFT", Action.MANUAL_ARM_DOWN),
                 new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", Action.THUMB_SPIN_IN),
+                new Control(0, "LB", Action.THUMB_SPIN_IN),
                 new Control(0, "X", Action.THUMB_SPIN_OUT),
                 new Control(1, "DPAD_RIGHT", Action.HIGH_SCORE_ALGAE),
                 new Control(1, "DPAD_LEFT", Action.GROUND_COLLECT_ALGAE),

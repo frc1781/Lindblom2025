@@ -56,8 +56,8 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | not used rn but here for funiess
-        armMotorConfig.closedLoop.pid(0.008, 0, 0.001, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-0.6, 0.6, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.pid(0.095, 0, 0.001, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-1, 1, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -198,20 +198,14 @@ public class Arm extends StateSubsystem {
             armMotor.set(0);
             return;
         }
-        // if ((getCurrentState() == getDefaultState() && !robotController.isSafeForArmToMove()) || preventDescore()) {
-        //     armMotor.set(0);
-        //     return;
-        // }
 
         if (getCurrentState() == ArmState.COLLECT) {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+        } if (getCurrentState() == ArmState.POLE) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
         } else {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
         }
-
-        /*else if (hasCoral() && getCurrentState() == ArmState.IDLE) {
-            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
-        } */
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }
