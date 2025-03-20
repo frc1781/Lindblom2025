@@ -26,9 +26,10 @@ public class DriverInput {
                 new Control(0, "DPAD_LEFT", Action.MANUAL_ARM_DOWN),
                 new Control(0, "DPAD_UP", Action.MANUAL_ELEVATOR_UP),
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
-                new Control(0, "A", Action.THUMB_SPIN_IN),
+                new Control(0, "LB", Action.THUMB_SPIN_IN),
                 new Control(0, "X", Action.THUMB_SPIN_OUT),
-                new Control(1, "DPAD_RIGHT", Action.GROUND_COLLECT_ALGAE),
+                new Control(1, "DPAD_RIGHT", Action.HIGH_SCORE_ALGAE),
+                new Control(1, "DPAD_LEFT", Action.GROUND_COLLECT_ALGAE),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),
                 new Control(1, "RB", Action.CENTER_REEF_RIGHT),  //Ignore if pole already found and still holding down button
@@ -38,6 +39,8 @@ public class DriverInput {
                 new Control(1, "B", Action.L3),
                 new Control(1, "X", Action.L2),
                 new Control(1, "Y", Action.REMOVE_ALGAE),
+                new Control(1, "LEFT_JOYSTICK_BUTTON", Action.HIGH_HOLD_ALGAE),
+                new Control(1, "RIGHT_JOYSTICK_BUTTON", Action.REEF_COLLECT_ALGAE)
         };
     }
 
@@ -117,7 +120,7 @@ public class DriverInput {
                     driverInputHolder.centeringSide = ReefCenteringSide.LEFT;
                 } else if (control.requestedAction == RobotController.Action.CENTER_REEF_RIGHT) {
                     driverInputHolder.centeringSide = ReefCenteringSide.RIGHT;
-                } else if (control.requestedAction == RobotController.Action.REMOVE_ALGAE) {
+                } else if (control.requestedAction == Action.REEF_COLLECT_ALGAE) {
                     driverInputHolder.centeringSide = ReefCenteringSide.CENTER;
                 }
 
@@ -138,8 +141,8 @@ public class DriverInput {
                         }
 
                         if (subsystemSetting.subsystem == subsystemSettingFromAction.subsystem && subsystemSetting.weight < subsystemSettingFromAction.weight) {
-                            subsystemSettings.add(subsystemSetting);
-                            subsystemSettings.remove(subsystemSettingFromAction);
+                            subsystemSettings.add(subsystemSettingFromAction);
+                            subsystemSettings.remove(subsystemSetting);
                             break;
                         }
                     }
@@ -251,6 +254,10 @@ public class DriverInput {
                 return controllers[controllerIndex].getPOV() == 270;
             case "BACK":
                     return controllers[controllerIndex].getBackButton();
+            case "LEFT_JOYSTICK_BUTTON":
+                return controllers[controllerIndex].getLeftStickButton();
+            case "RIGHT_JOYSTICK_BUTTON":
+                return controllers[controllerIndex].getRightStickButton();
         }
         return false;
     }

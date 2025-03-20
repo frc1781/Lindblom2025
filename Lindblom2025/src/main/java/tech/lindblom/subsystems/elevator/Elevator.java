@@ -37,6 +37,8 @@ public class Elevator extends StateSubsystem {
     private double minFirstStageDistance = 0;
     private double maxFirstStageDistance = 810; 
 
+    private ElevatorState previousSmartState;
+
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
                     Constants.Elevator.ELEVATOR_KG,
@@ -79,8 +81,12 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
+        positions.put(ElevatorState.BARGE_SCORE, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
+        positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, 50.0});
+        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 200.0});
+        positions.put(ElevatorState.SMART_ALGAE, new Double[]{minFirstStageDistance, 50.0});
     }
 
     @Override
@@ -97,6 +103,10 @@ public class Elevator extends StateSubsystem {
     }
 
     public boolean matchesPosition() {
+        if (getCurrentState() == ElevatorState.MANUAL_DOWN || getCurrentState() == ElevatorState.MANUAL_UP) {
+            return false;
+        }
+
         if (RobotBase.isSimulation()) {
             return timeInState.get() > 3;
         }
@@ -104,7 +114,7 @@ public class Elevator extends StateSubsystem {
         Double[] desiredPosition = positions.get(getCurrentState());
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
-        double tolerance = 80;
+        double tolerance = 50;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
@@ -120,6 +130,7 @@ public class Elevator extends StateSubsystem {
         Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
+        Logger.recordOutput(this.name + "/MatchesPosition", matchesPosition());
 
         if (currentOperatingMode == OperatingMode.DISABLED) {
             //disabled
@@ -157,14 +168,35 @@ public class Elevator extends StateSubsystem {
     }
   // public boolean testElevatorTOF(){
 
-   //}
+    public ElevatorState getSmartAlgaeState() {
+        int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
+        if (apriltag == -1) {
+            return ElevatorState.HIGH_ALGAE;
+        }
+
+        if (apriltag % 2 == 0) {
+            return ElevatorState.LOW_ALGAE;
+        } else {
+            return ElevatorState.HIGH_ALGAE;
+        }
+    }
+
     public void goToPosition() {
         double firstStagePosition = getFirstStagePosition();
         double secondStagePosition = getSecondStagePosition();
         double dutyCycle = 0;
         Double[] desiredPosition = positions.get(getCurrentState());
-        double Tolerance = 80;
+        if (getCurrentState() == ElevatorState.SMART_ALGAE) {
+            ElevatorState smartAlgaeState = getSmartAlgaeState();
+            if (previousSmartState == null || previousSmartState != smartAlgaeState) {
+                previousSmartState = smartAlgaeState;
+            }
 
+            Logger.recordOutput(this.name + "/smartAlgaeState", smartAlgaeState);
+            desiredPosition = positions.get(smartAlgaeState);
+        }
+        double Tolerance = 80;
+        
         if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
@@ -189,7 +221,7 @@ public class Elevator extends StateSubsystem {
         //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
         //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
         //to leave it's spot on the second stage until it is back in a safe position.
-        if (!robotController.isSafeForElevatorStage2toMove() && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+        if ((!robotController.isSafeForElevatorStage2toMove() || !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 
@@ -216,6 +248,10 @@ public class Elevator extends StateSubsystem {
         MANUAL_UP,
         COLLECT_LOW,
         POLE,
-        GROUND_COLLECT
+        GROUND_COLLECT,
+        HIGH_ALGAE,
+        LOW_ALGAE,
+        SMART_ALGAE,
+        BARGE_SCORE
     }
 }
