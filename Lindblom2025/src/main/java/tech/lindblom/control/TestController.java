@@ -118,8 +118,8 @@ public class TestController {
                 currentStepPassed = robotController.armSystem.hasCoral();
                 break;
             case 7:
-                currentMsg = "Test 7: Testing Conveyer Beambreaks, put your hand in front of each";
-                currentStepPassed = false;
+                currentMsg = "Test 7: Testing Conveyer Beambreaks, put a coral into the robot";
+                currentStepPassed = robotController.conveyorSystem.testCoralCollectAndConvey();
                 break;
             case 8:
                 currentMsg = "Test 8: Testing Cameras, put an apriltag in front of the Front Right Camera and cover the other cameras not being tested";
