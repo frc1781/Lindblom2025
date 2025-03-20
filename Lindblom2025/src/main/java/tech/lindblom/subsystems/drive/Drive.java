@@ -111,6 +111,32 @@ public class Drive extends Subsystem {
         backRightModule.runDesiredModuleState(moduleStates[3]);
     }
 
+    public void driveWithTorque(ChassisSpeeds speeds) {
+        if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) {
+            System.out.println("MOVING IN DISABLED");
+            return;
+        }
+
+        ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, Constants.General.LOOP_PERIOD_SECONDS);
+        SwerveModuleState[] setPointStatesUnoptimized = swerveDriveKinematics.toSwerveModuleStates(discreteSpeeds);
+        currentSetpoint =
+                swerveSetpointGenerator.generateSetpoint(
+                        Constants.Drive.MODULE_LIMITS,
+                        currentSetpoint,
+                        discreteSpeeds,
+                        Constants.General.LOOP_PERIOD_SECONDS);
+        SwerveModuleState[] moduleStates = currentSetpoint.moduleStates();
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+
+        Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
+        Logger.recordOutput(name + "/setPointsUnoptimized", setPointStatesUnoptimized);
+
+        frontLeftModule.runDesiredModuleState(moduleStates[0]);
+        frontRightModule.runDesiredModuleState(moduleStates[1]);
+        backLeftModule.runDesiredModuleState(moduleStates[2]);
+        backRightModule.runDesiredModuleState(moduleStates[3]);
+    }
+
     public void setInitialPose(Pose2d pose) {
         swerveDrivePoseEstimator.resetPosition(getGioRotation(), getModulePositions(), pose);
     }

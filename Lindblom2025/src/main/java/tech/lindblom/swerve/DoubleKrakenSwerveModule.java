@@ -134,6 +134,25 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
+        double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
+        mDriveMotor.set(FF);
+
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
+        Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
+    }
+
+    public void runDesiredModuleState(SwerveModuleState desiredState, double tourque) {
+        desiredState.optimize(getAbsoluteAngle());
+        desiredState.cosineScale(getAbsoluteAngle());
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
+
+        double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
+        Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
+        mTurnMotor.set(turningControllerOutput);
 
         double radPerSecond = desiredState.speedMetersPerSecond / Constants.Drive.WHEEL_RADIUS;
         double FF = driveFF.calculate(radPerSecond);
@@ -145,10 +164,6 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
-    }
-
-    public void runDesiredModuleState(SwerveModuleState desiredState, double tourque) {
-
     }
 
     public double getDriveMotorSpeed() {
