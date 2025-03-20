@@ -5,6 +5,7 @@ import static org.photonvision.PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON
 import static tech.lindblom.utils.EnumCollection.OperatingMode.AUTONOMOUS;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,6 +165,21 @@ public class Vision extends Subsystem {
         }
 
         return closestTarget == null ? -1 : closestTarget.getFiducialId();
+    }
+
+    public int getDoubleCameraReefApriltag() {
+        PhotonPipelineResult leftResult = getCameraLatestResults(Camera.FRONT_LEFT);
+        PhotonPipelineResult rightResult = getCameraLatestResults(Camera.FRONT_RIGHT);
+        if (leftResult == null || rightResult == null || !leftResult.hasTargets() || !rightResult.hasTargets()) return -1;
+        HashSet<PhotonTrackedTarget> leftTargets = new HashSet<>(leftResult.getTargets());
+        ArrayList<PhotonTrackedTarget> rightTargets = new ArrayList<>(rightResult.getTargets());
+        for (PhotonTrackedTarget target : rightTargets) {
+            if (leftTargets.contains(target)) {
+                return target.getFiducialId();
+            }
+        }
+
+        return -1;
     }
 
     public double getCameraYaw(Camera camera, int tagID) {

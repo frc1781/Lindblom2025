@@ -83,7 +83,8 @@ public class Constants {
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
-        public static double TARGET_CORAL_OFFSET_CENTER = -20.5;
+        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_1 = -23.5;
+        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_2 = -20.5;
     }
 
     public class Auto {

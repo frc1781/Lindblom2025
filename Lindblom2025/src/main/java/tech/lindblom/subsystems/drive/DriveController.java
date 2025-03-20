@@ -206,6 +206,7 @@ public class DriveController extends StateSubsystem {
 
         int apriltagId = 0;
         double cameraOffset = 0.0;
+        double secondCameraOffset = 0.0;
         double cameraDistance = 0.0;
         double targetOffset;
         double targetParallelDistance = Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE;
@@ -229,7 +230,8 @@ public class DriveController extends StateSubsystem {
                 break;
             case CENTER:
                 targetParallelDistance = Constants.Drive.TARGET_TOF_CENTERING_PARALLEL_DISTANCE;
-                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER;
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER_CAMERA_1;
+                secondCameraOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER_CAMERA_2;
                 apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
                 if (apriltagId != -1) {
                     cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_RIGHT, apriltagId);

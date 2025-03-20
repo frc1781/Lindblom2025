@@ -569,7 +569,7 @@ public class RobotController {
         defineAction(Action.CRADLE_COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.HIGH_ALGAE, 2)
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
                 );
 
         defineAction(Action.MANUAL_ELEVATOR_DOWN,
