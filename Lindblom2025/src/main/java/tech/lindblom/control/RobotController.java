@@ -41,8 +41,7 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
-import static tech.lindblom.control.RobotController.Action.GROUND_COLLECT_ALGAE;
-import static tech.lindblom.control.RobotController.Action.START_ARM;
+import static tech.lindblom.control.RobotController.Action.*;
 
 // The robot controller, controls robot.
 public class RobotController {
@@ -93,7 +92,7 @@ public class RobotController {
         );
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
-        thumbSystem = new Thumb();
+        thumbSystem = new Thumb(this);
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
@@ -325,6 +324,7 @@ public class RobotController {
     
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? -1 : 1;
+        double inhibited = shouldInhibitDriveSpeed() ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -336,10 +336,15 @@ public class RobotController {
         Logger.recordOutput("Driver/rotation/y", rotation.getY());
         Logger.recordOutput("Driver/isRed", isRed());
 
-        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
-        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND;
+        double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
+        double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
+        double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited;
+        
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
+    }
+
+    public boolean shouldInhibitDriveSpeed() {
+        return elevatorSystem.getFirstStagePosition() > 150;
     }
 
     public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
@@ -500,15 +505,25 @@ public class RobotController {
         READY_FOR_COLLECT,
         REMOVE_ALGAE,
         START_ARM,
-        GROUND_COLLECT_ALGAE
+        GROUND_COLLECT_ALGAE,
+        REEF_COLLECT_ALGAE,
+        HIGH_HOLD_ALGAE,
+        HIGH_SCORE_ALGAE,
     }
 
     public void createActions() {
         defineAction(GROUND_COLLECT_ALGAE,
-                new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
+        defineAction(HIGH_HOLD_ALGAE,
+                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 4),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4,4),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 4));
+        defineAction(HIGH_SCORE_ALGAE,
+                new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,5),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
         defineAction(START_ARM,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
@@ -518,7 +533,6 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
         defineAction(Action.REMOVE_ALGAE,
-                new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 5));
@@ -574,6 +588,12 @@ public class RobotController {
         defineAction(Action.CENTER_REEF_RIGHT,
             new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6)
         );
+
+        defineAction(Action.REEF_COLLECT_ALGAE,
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SMART_ALGAE, 8),
+                new SubsystemSetting(armSystem, Arm.ArmState.REEF_ALGAE, 8),
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 8),
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 8));
 
         defineAction(Action.L4,
             new SubsystemSetting(true),

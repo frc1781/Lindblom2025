@@ -33,6 +33,8 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
+import java.util.HashMap;
+
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
 public class DriveController extends StateSubsystem {
@@ -56,6 +58,8 @@ public class DriveController extends StateSubsystem {
     private final PIDController distanceController = new PIDController(1, 0, 0);
     private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
+
+    private final HashMap<Integer, Double> reefApriltagAngle = new HashMap<>();
 
     private RobotConfig robotConfig;
     private final boolean isFieldOriented = true;
@@ -118,12 +122,12 @@ public class DriveController extends StateSubsystem {
         }
         Logger.recordOutput(this.name + "/hasSetInitialPose", hasSetInitialPose);
 
-        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
         if (apriltagId != -1) {
-            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_LEFT, apriltagId);
-            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_LEFT, apriltagId);
+            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
+            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
         }
 
         Logger.recordOutput(this.name + "/aprilTag", apriltagId);
@@ -204,6 +208,7 @@ public class DriveController extends StateSubsystem {
         if (robotController.getCenteringSide() == null) 
             return inputSpeeds;
 
+        // hi ian - ally 3/20/25
         int apriltagId = 0;
         double cameraOffset = 0.0;
         double cameraDistance = 0.0;
@@ -229,11 +234,11 @@ public class DriveController extends StateSubsystem {
                 break;
             case CENTER:
                 targetParallelDistance = Constants.Drive.TARGET_TOF_CENTERING_PARALLEL_DISTANCE;
-                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER;
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT);
+                targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER_CAMERA_1;
+                apriltagId = robotController.visionSystem.getDoubleCameraReefApriltag();
                 if (apriltagId != -1) {
-                    cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_LEFT, apriltagId);
-                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Camera.FRONT_LEFT, apriltagId);
+                    cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_RIGHT, apriltagId);
+                    cameraDistance = robotController.visionSystem.getCameraDistanceX(Camera.FRONT_RIGHT, apriltagId);
                 }
                 break;
             default:
@@ -249,6 +254,10 @@ public class DriveController extends StateSubsystem {
             } else {
                 inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
             }
+        }
+
+        if (robotController.getCenteringSide() == ReefCenteringSide.CENTER && apriltagId != -1) {
+            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         }
 
         double leftTOFDistance = leftTOF.getRange();
@@ -331,6 +340,10 @@ public class DriveController extends StateSubsystem {
 
         ChassisSpeeds centeringSpeeds = getCenteringChassisSpeeds(zeroSpeed());
         driveSubsystem.drive(centeringSpeeds);
+    }
+
+    public boolean isSafeForElevatorStage2toMove() {  //Apparently very experimental and should not be relied on, who knows ??
+        return driveSubsystem.getGioSpeed() < 2;
     }
 
     public boolean hasFinishedCentering() {

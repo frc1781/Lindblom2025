@@ -131,8 +131,12 @@ public class Drive extends Subsystem {
         return swerveDrivePoseEstimator.getEstimatedPosition().getRotation();
     }
 
-    private Rotation2d getGioRotation() {
+    public Rotation2d getGioRotation() {
         return new Rotation2d(navX.getRotation2d().getRadians());
+    }
+
+    public double getGioSpeed() {
+        return Math.sqrt(Math.pow(navX.getVelocityX(), 2) + Math.pow(navX.getVelocityY(), 2));  //Pythagorean theorem from navX velocities
     }
 
     public void orientFieldToRobot() {
