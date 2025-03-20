@@ -143,7 +143,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
     }
 
-    public void runDesiredModuleState(SwerveModuleState desiredState, double tourque) {
+    public void runDesiredModuleStateAuto(SwerveModuleState desiredState) {
         desiredState.optimize(getAbsoluteAngle());
         desiredState.cosineScale(getAbsoluteAngle());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);

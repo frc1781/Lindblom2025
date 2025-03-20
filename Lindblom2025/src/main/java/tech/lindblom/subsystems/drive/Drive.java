@@ -16,26 +16,25 @@ import edu.wpi.first.wpilibj.SPI;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.swerve.DoubleKrakenSwerveModule;
-import tech.lindblom.swerve.SwerveModule;
 import tech.lindblom.swerve.utils.SwerveSetpoint;
 import tech.lindblom.swerve.utils.SwerveSetpointGenerator;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EnumCollection;
 
 public class Drive extends Subsystem {
-    private final SwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
+    private final DoubleKrakenSwerveModule frontLeftModule = new DoubleKrakenSwerveModule("Front Left Module",
              Constants.Drive.FRONT_LEFT_MODULE_DRIVE_MOTOR,
              Constants.Drive.FRONT_LEFT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_LEFT_MODULE_STEER_ENCODER,
              Constants.Drive.FRONT_LEFT_MODULE_STEER_OFFSET, false);
-     private final SwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
+     private final DoubleKrakenSwerveModule frontRightModule = new DoubleKrakenSwerveModule("Front Right Module",
              Constants.Drive.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
              Constants.Drive.FRONT_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.FRONT_RIGHT_MODULE_STEER_ENCODER,
              Constants.Drive.FRONT_RIGHT_MODULE_STEER_OFFSET, true);
-     private final SwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
+     private final DoubleKrakenSwerveModule backLeftModule = new DoubleKrakenSwerveModule("Back Left Module",
              Constants.Drive.BACK_LEFT_MODULE_DRIVE_MOTOR,
              Constants.Drive.BACK_LEFT_MODULE_STEER_MOTOR, Constants.Drive.BACK_LEFT_MODULE_STEER_ENCODER,
              Constants.Drive.BACK_LEFT_MODULE_STEER_OFFSET, false);
-     private final SwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
+     private final DoubleKrakenSwerveModule backRightModule = new DoubleKrakenSwerveModule("Back Right Module",
              Constants.Drive.BACK_RIGHT_MODULE_DRIVE_MOTOR,
              Constants.Drive.BACK_RIGHT_MODULE_STEER_MOTOR, Constants.Drive.BACK_RIGHT_MODULE_STEER_ENCODER,
              Constants.Drive.BACK_RIGHT_MODULE_STEER_OFFSET, true);
@@ -111,7 +110,7 @@ public class Drive extends Subsystem {
         backRightModule.runDesiredModuleState(moduleStates[3]);
     }
 
-    public void driveWithTorque(ChassisSpeeds speeds) {
+    public void driveAuto(ChassisSpeeds speeds) {
         if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) {
             System.out.println("MOVING IN DISABLED");
             return;
@@ -131,10 +130,10 @@ public class Drive extends Subsystem {
         Logger.recordOutput(name + "/requestedSwerveModuleStats", moduleStates);
         Logger.recordOutput(name + "/setPointsUnoptimized", setPointStatesUnoptimized);
 
-        frontLeftModule.runDesiredModuleState(moduleStates[0]);
-        frontRightModule.runDesiredModuleState(moduleStates[1]);
-        backLeftModule.runDesiredModuleState(moduleStates[2]);
-        backRightModule.runDesiredModuleState(moduleStates[3]);
+        frontLeftModule.runDesiredModuleStateAuto(moduleStates[0]);
+        frontRightModule.runDesiredModuleStateAuto(moduleStates[1]);
+        backLeftModule.runDesiredModuleStateAuto(moduleStates[2]);
+        backRightModule.runDesiredModuleStateAuto(moduleStates[3]);
     }
 
     public void setInitialPose(Pose2d pose) {

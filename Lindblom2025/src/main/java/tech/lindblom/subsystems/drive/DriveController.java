@@ -22,7 +22,6 @@ import edu.wpi.first.wpilibj.Timer;
 
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
-import tech.lindblom.control.DriverInput;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.control.DriverInput.ReefCenteringSide;
 import tech.lindblom.subsystems.led.LEDs.LEDState;
@@ -406,7 +405,7 @@ public class DriveController extends StateSubsystem {
                 targetOrientation
         );
 
-        driveSubsystem.drive(desiredChassisSpeeds);
+        driveSubsystem.driveAuto(desiredChassisSpeeds);
     }
 
     public boolean hasReachedTargetPose() {
