@@ -351,7 +351,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean testArmTOF() {
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE&& armTOF.isRangeValid();
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid();
     }
 
     public boolean hasFoundReefPole() {
