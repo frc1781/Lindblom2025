@@ -126,25 +126,16 @@ public class TestController {
                 if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_RIGHT) != -1)) {
                     currentStepPassed = true;
                 }
-                else {
-                    currentStepPassed = false;
-                }
             case 9:
                 currentMsg = "Test 9: Testing Cameras, put an apriltag in front of the Front Left Camera and cover the other cameras not being tested";
                 if ((robotController.visionSystem.testApriltag(Vision.Camera.FRONT_LEFT) != -1)) {
                     currentStepPassed = true;
-                }
-                else {
-                    currentStepPassed = false;
                 }
                 break;
             case 10:
                 currentMsg = "Test 10: Testing Cameras, put an apriltag in front of the Left Side Camera and cover the other cameras not being tested";
                 if ((robotController.visionSystem.testApriltag(Vision.Camera.LEFT_SIDE) != -1)) {
                     currentStepPassed = true;
-                }
-                else {
-                    currentStepPassed = false;
                 }
                 break;
             /*case 11:
