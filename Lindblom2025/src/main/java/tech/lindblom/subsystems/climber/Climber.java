@@ -26,7 +26,7 @@ public class Climber extends BaseClimber {
         requestedPosition = armEncoder.getPosition();
         armFeedforward = new ArmFeedforward(Constants.Climber.KS, Constants.Climber.KG, Constants.Climber.KV);
         climberDutyCycle = 0.0;
-        climberPID = new PIDController(0.1, 0, 0);
+        climberPID = new PIDController(2, 0, 0);
         climberPID.reset();
     }
 
@@ -60,21 +60,21 @@ public class Climber extends BaseClimber {
         Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();
 
-
-
         switch((ClimberState)getCurrentState()) {
             case IDLE:
-                requestedPosition = armEncoder.getPosition();
+                if (!climbing) {
+                    requestedPosition = armEncoder.getPosition();
+                }
                 break;
             case DOWN:
-                requestedPosition += 1;
+                requestedPosition += .01;
                 if (!climbing) {
                     climberPID.reset();
                 }
                 climbing = true;
                 break;
             case UP:
-                requestedPosition -= 1;
+                requestedPosition -= .01;
                 if (!climbing) {
                     climberPID.reset();
                 }
@@ -90,7 +90,7 @@ public class Climber extends BaseClimber {
             climberDutyCycle = 0.0;
         }
 
-        climberDutyCycle = EEUtil.clamp(-0.2, 0.2, climberDutyCycle);
+        climberDutyCycle = EEUtil.clamp(-0.3, 0.3, climberDutyCycle);
         leverMotor.set(climberDutyCycle);
         Logger.recordOutput("Climber/dutyCycle", climberDutyCycle);
         Logger.recordOutput("Climber/position", armEncoder.getPosition());
