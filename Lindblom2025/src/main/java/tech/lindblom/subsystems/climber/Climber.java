@@ -18,6 +18,7 @@ public class Climber extends BaseClimber {
     private boolean climbing;
     private double climberDutyCycle;
     private PIDController climberPID;
+    private final double gravityDutyCycle = 0.0;
 
     public Climber() {
         armEncoder = leverMotor.getEncoder();
@@ -59,8 +60,7 @@ public class Climber extends BaseClimber {
         Rotation2d mMotorPosition = Rotation2d.fromRadians(armEncoder.getPosition());
         double mMotorVelocity = getMotorVelocity();
 
-        Logger.recordOutput("Climber/Velocity", mMotorVelocity);
-        Logger.recordOutput("Climber/Position", mMotorPosition);
+
 
         switch((ClimberState)getCurrentState()) {
             case IDLE:
@@ -84,14 +84,16 @@ public class Climber extends BaseClimber {
 
 
         if (climbing) {
-            climberDutyCycle = climberPID.calculate(armEncoder.getPosition(), requestedPosition);
+            climberDutyCycle = climberPID.calculate(armEncoder.getPosition(), requestedPosition) + gravityDutyCycle;
         }
         else {
             climberDutyCycle = 0.0;
         }
 
-        climberDutyCycle = EEUtil.clamp(-0.1, 0.1, climberDutyCycle);
+        climberDutyCycle = EEUtil.clamp(-0.2, 0.2, climberDutyCycle);
         leverMotor.set(climberDutyCycle);
         Logger.recordOutput("Climber/dutyCycle", climberDutyCycle);
+        Logger.recordOutput("Climber/position", armEncoder.getPosition());
+        Logger.recordOutput("Climber/requestedPosition", mMotorPosition);
     }
 }
