@@ -166,7 +166,14 @@ public class Elevator extends StateSubsystem {
     public double getSecondStagePosition() {
         return secondStageTOF.getRange();
     }
-  // public boolean testElevatorTOF(){
+
+    public boolean testFirstStageTOF() {
+        return firstStageTOF.isRangeValid() && firstStageTOF.getRange() <= 810;
+    }
+
+    public boolean testSecondStageTOF() {
+        return secondStageTOF.isRangeValid() && secondStageTOF.getRange() <= 680;
+    }
 
     public ElevatorState getSmartAlgaeState() {
         int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
