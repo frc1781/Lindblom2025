@@ -33,6 +33,8 @@ import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
 
+import java.util.HashMap;
+
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
 public class DriveController extends StateSubsystem {
@@ -56,6 +58,8 @@ public class DriveController extends StateSubsystem {
     private final PIDController distanceController = new PIDController(1, 0, 0);
     private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
+
+    private final HashMap<Integer, Double> reefApriltagAngle = new HashMap<>();
 
     private RobotConfig robotConfig;
     private final boolean isFieldOriented = true;
@@ -204,9 +208,9 @@ public class DriveController extends StateSubsystem {
         if (robotController.getCenteringSide() == null) 
             return inputSpeeds;
 
+        // hi ian - ally 3/20/25
         int apriltagId = 0;
         double cameraOffset = 0.0;
-        double secondCameraOffset = 0.0;
         double cameraDistance = 0.0;
         double targetOffset;
         double targetParallelDistance = Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE;
@@ -231,8 +235,7 @@ public class DriveController extends StateSubsystem {
             case CENTER:
                 targetParallelDistance = Constants.Drive.TARGET_TOF_CENTERING_PARALLEL_DISTANCE;
                 targetOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER_CAMERA_1;
-                secondCameraOffset = Constants.Drive.TARGET_CORAL_OFFSET_CENTER_CAMERA_2;
-                apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
+                apriltagId = robotController.visionSystem.getDoubleCameraReefApriltag();
                 if (apriltagId != -1) {
                     cameraOffset = robotController.visionSystem.getCameraYaw(Camera.FRONT_RIGHT, apriltagId);
                     cameraDistance = robotController.visionSystem.getCameraDistanceX(Camera.FRONT_RIGHT, apriltagId);

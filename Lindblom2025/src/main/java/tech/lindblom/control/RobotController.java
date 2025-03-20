@@ -337,11 +337,8 @@ public class RobotController {
         Logger.recordOutput("Driver/isRed", isRed());
 
         double xSpeed = xControllerLimiter.calculate(xVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
-        // xSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, xSpeed);
         double ySpeed = yControllerLimiter.calculate(yVelocity) * Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited;
-        // ySpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND * inhibited, ySpeed);
         double rotSpeed = rotControllerLimiter.calculate(rotVelocity) * Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited;
-        // rotSpeed = EEUtil.clamp(0, Constants.Drive.MAX_VELOCITY_RADIANS_PER_SECOND * inhibited, rotSpeed);
         
         driveController.driveUsingVelocities(xSpeed, ySpeed, rotSpeed);
     }
@@ -593,7 +590,7 @@ public class RobotController {
         );
 
         defineAction(Action.REEF_COLLECT_ALGAE,
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.HIGH_ALGAE, 8),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SMART_ALGAE, 8),
                 new SubsystemSetting(armSystem, Arm.ArmState.REEF_ALGAE, 8),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 8),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 8));

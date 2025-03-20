@@ -37,6 +37,8 @@ public class Elevator extends StateSubsystem {
     private double minFirstStageDistance = 0;
     private double maxFirstStageDistance = 810; 
 
+    private ElevatorState previousSmartState;
+
     private ElevatorFeedforward feedforwardController = new ElevatorFeedforward
             (Constants.Elevator.ELEVATOR_KS,
                     Constants.Elevator.ELEVATOR_KG,
@@ -84,6 +86,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
         positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, 50.0});
         positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 200.0});
+        positions.put(ElevatorState.SMART_ALGAE, new Double[]{minFirstStageDistance, 50.0});
     }
 
     @Override
@@ -158,14 +161,34 @@ public class Elevator extends StateSubsystem {
         return secondStageTOF.getRange();
     }
 
+    public ElevatorState getSmartAlgaeState() {
+        int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
+        if (apriltag == -1) {
+            return ElevatorState.HIGH_ALGAE;
+        }
+
+        if (apriltag % 2 == 0) {
+            return ElevatorState.LOW_ALGAE;
+        } else {
+            return ElevatorState.HIGH_ALGAE;
+        }
+    }
+
     public void goToPosition() {
         double firstStagePosition = getFirstStagePosition();
         double secondStagePosition = getSecondStagePosition();
         double dutyCycle = 0;
         Double[] desiredPosition = positions.get(getCurrentState());
+        if (getCurrentState() == ElevatorState.SMART_ALGAE) {
+            ElevatorState smartAlgaeState = getSmartAlgaeState();
+            if (previousSmartState == null || previousSmartState != smartAlgaeState) {
+                previousSmartState = smartAlgaeState;
+            }
+
+            Logger.recordOutput(this.name + "/smartAlgaeState", smartAlgaeState);
+            desiredPosition = positions.get(smartAlgaeState);
+        }
         double Tolerance = 80;
-
-
         
         if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
@@ -221,6 +244,7 @@ public class Elevator extends StateSubsystem {
         GROUND_COLLECT,
         HIGH_ALGAE,
         LOW_ALGAE,
+        SMART_ALGAE,
         BARGE_SCORE
     }
 }
