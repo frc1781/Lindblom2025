@@ -68,23 +68,16 @@ public class Constants {
         public static double ARM_TOF_DISTANCE = 700;
         public static double MAX_TIME_LOOKING_FOR_POLE = 0.5;
 
-
         public static int ARM_TOF_ID = 51;
         public static int RIGHT_FRONT_TOF_ID = 52;
         public static int LEFT_FRONT_TOF_ID = 53;
 
-        public static double DISTANCE_TOLERANCE = 0.05;
-        public static double OFFSET_TOLERANCE = 0.02;
-
         public static double TARGET_TOF_PARALLEL_DISTANCE = 290;
         public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 250;
-        public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
-        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
-        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_1 = -23.5;
-        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_2 = -20.5;
+        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_1 = -20.5;
     }
 
     public class Auto {

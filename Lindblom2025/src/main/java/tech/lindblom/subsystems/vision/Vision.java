@@ -85,12 +85,6 @@ public class Vision extends Subsystem {
                 visionSystemSim.addCamera(leftSideCameraSim, Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
                 Constants.Auto.AUTONOMOUS_TAB.add(visionSystemSim.getDebugField());
-
-                // Enable drawing a wireframe visualization of the field to the camera streams.
-                // This is extremely resource-intensive and is disabled by default.
-                //frontRightCameraSim.enableDrawWireframe(true);
-                //frontLeftCameraSim.enableDrawWireframe(true);
-                //leftSideCameraSim.enableDrawWireframe(true);
             }
 
             frontRightCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
@@ -99,16 +93,12 @@ public class Vision extends Subsystem {
             frontLeftCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.FRONT_LEFT_CAMERA_POSITION);
-/*            backCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
-                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                    Constants.Vision.BACK_CAMERA_POSITION);*/
             leftSideCameraPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     Constants.Vision.LEFT_SIDE_CAMERA_POSITION);
 
             frontRightCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
             frontLeftCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
-            //backCameraPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
             leftSideCameraPoseEstimator.setMultiTagFallbackStrategy(LOWEST_AMBIGUITY);
         } catch (Exception e) {
             System.out.println("Could not initialize Vision, please view the error below.");
@@ -171,11 +161,19 @@ public class Vision extends Subsystem {
         PhotonPipelineResult leftResult = getCameraLatestResults(Camera.FRONT_LEFT);
         PhotonPipelineResult rightResult = getCameraLatestResults(Camera.FRONT_RIGHT);
         if (leftResult == null || rightResult == null || !leftResult.hasTargets() || !rightResult.hasTargets()) return -1;
-        HashSet<PhotonTrackedTarget> leftTargets = new HashSet<>(leftResult.getTargets());
-        ArrayList<PhotonTrackedTarget> rightTargets = new ArrayList<>(rightResult.getTargets());
-        for (PhotonTrackedTarget target : rightTargets) {
-            if (leftTargets.contains(target)) {
-                return target.getFiducialId();
+
+        HashSet<Integer> leftTargets = new HashSet<>();
+        for (PhotonTrackedTarget target : leftResult.targets) {
+            leftTargets.add(target.getFiducialId());
+        }
+        ArrayList<Integer> rightTargets = new ArrayList<>();
+        for (PhotonTrackedTarget target : rightResult.targets) {
+            rightTargets.add(target.getFiducialId());
+        }
+
+        for (Integer target : rightTargets) {
+            if (reefApriltagIds.contains(target) && leftTargets.contains(target)) {
+                return target;
             }
         }
 
@@ -195,22 +193,6 @@ public class Vision extends Subsystem {
             }
         }
 
-
-        return Constants.Vision.ERROR_CONSTANT;
-    }
-
-    public double getCameraSkew(Camera camera, int tagID) {
-        PhotonPipelineResult result = getCameraLatestResults(camera);
-
-        if (result == null) {
-            return Constants.Vision.ERROR_CONSTANT;
-        }
-
-        for (PhotonTrackedTarget target : result.getTargets()) {
-            if (target.getFiducialId() == tagID) {
-                return target.bestCameraToTarget.getRotation().getAngle();
-            }
-        }
 
         return Constants.Vision.ERROR_CONSTANT;
     }
