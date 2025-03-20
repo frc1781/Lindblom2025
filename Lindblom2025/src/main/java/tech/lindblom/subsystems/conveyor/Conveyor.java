@@ -101,6 +101,10 @@ public class Conveyor extends StateSubsystem {
         return !coralCradleSensor.get();
     }
 
+    public boolean testCoralCollectAndConvey() {
+        return !sideRampSensor.get() || !backRampSensor.get() || !coralHopperSensorFront.get() || !coralHopperSensorBack.get() || !coralCradleSensor.get();
+    }
+
     public enum ConveyorState implements SubsystemState {
         IDLE, CONVEY, COLLECT
     }
