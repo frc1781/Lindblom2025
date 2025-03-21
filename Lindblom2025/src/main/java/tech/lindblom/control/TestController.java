@@ -51,6 +51,9 @@ public class TestController {
     private int testStep = 0;
     private boolean nextTestStepPushed = false;
     private boolean prevTestStepPushed = false;
+    public double currentX = 0;
+    public double currrentAngle = 0;
+    public Timer testTimer = new Timer();
 
      public TestController(RobotController robotController) {
         this.robotController = robotController;
@@ -63,12 +66,15 @@ public class TestController {
             nextTestStepPushed = true;
             testStep++;
             stepStarted = true;
+            testTimer.reset();
         }
         nextTestStepPushed = testInputs.nextTest;
+
         if (testInputs.prevTest && !prevTestStepPushed) {
             prevTestStepPushed = true;
             stepStarted = true;
             testStep--;
+            testTimer.reset();
         }
         prevTestStepPushed = testInputs.prevTest;  
 
@@ -84,6 +90,7 @@ public class TestController {
         testStep = 0;
         nextTestStepPushed = false;
         prevTestStepPushed = false;
+        testTimer.reset();
      }
 
      public void periodic(DriverInput.TestInputHolder testInputs) {
@@ -142,11 +149,38 @@ public class TestController {
                 currentMsg = "Test 11: Test NavX, move the robot counter-clockwise";
                 currentStepPassed = driveController.isNavXRotating();
                 break;
-            /*case 12:
-                currentMsg = "Test 12: Test ";
-                currentStepPassed = driveController.isNavXRotating();
+                
+            case 12:
+                currentMsg = "Test 12: Test to make sure wheels are free to move, wheels should move forward";
+                if (testTimer.get() < 5) {
+                    driveController.driveUsingVelocities(0.1, 0, 0);
+                }
+                else {
+                    driveController.driveUsingVelocities(0, 0, 0);
+                }
+                currentStepPassed = driveController.getRobotPose().getX() != currentX;
             break;
             case 13:
+                currentMsg = "Test 13: Test to make sure wheels are free to move, wheels should move reverse";
+                if (testTimer.get() < 5) {
+                    driveController.driveUsingVelocities(-0.1, 0, 0);
+                }
+                else {
+                    driveController.driveUsingVelocities(0, 0, 0);
+                }
+                currentStepPassed = driveController.getRobotPose().getX() != currentX;
+                break;
+            case 14:
+                currentMsg = "Test 14: Test to make sure wheels are free to move, wheels should move turn 45 degrees";
+                if (testTimer.get() < 5) {
+                    driveController.driveUsingVelocities(0, 0, 0.1);
+                }
+                else {
+                    driveController.driveUsingVelocities(0, 0, 0);
+                }
+                //currentStepPassed = driveController.getRobotPose().getRotation().getDegrees() != currentAngle;
+                break;
+            /*case 13:
                 currentMsg = "Test 10: Testing Wheels, (PILOT) Use joysticks to move robot's wheels and see if they move in correct directions";
                 DriverInput.TestInputHolder testInputHolder = robotController.driverInput.getTestInputs();
                 robotController.testDriverDriving(testInputHolder.driverLeftJoystickPosition, testInputHolder.driverRightJoystickPosition);
@@ -184,11 +218,16 @@ public class TestController {
         if (stepStarted) {
             System.out.println(currentMsg);
             stepStarted = true;
+            testTimer.start();
+            currentX = driveController.getRobotPose().getX();
+            currrentAngle = driveController.getRobotPose().getRotation().getDegrees();
+            driveController.orientFieldToRobot();
         }
         robotController.ledsSystem.setState(currentStepPassed ? LEDState.GREEN : LEDState.OFF);
         Logger.recordOutput("TestController/currentStep", testStep);
         Logger.recordOutput("TestController/currentStepPassed", currentStepPassed);
         Logger.recordOutput("TestController/currentMsg", currentMsg);
+        Logger.recordOutput("TestController/testTimer", testTimer.get());
         robotController.ledsSystem.periodic();
      }
 }
