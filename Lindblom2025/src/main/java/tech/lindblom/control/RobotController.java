@@ -215,7 +215,7 @@ public class RobotController {
                     ledsSystem.setState(LEDState.YELLOW);
                 }
                 else if (armSystem.hasCoral()) {
-                    ledsSystem.setState(LEDState.BLUE);   
+                    ledsSystem.setState(LEDState.BLUE);
                 }
                 else if (conveyorSystem.conveyorHasCoral()) {
                     ledsSystem.setState(LEDState.FLASH_YELLOW);
@@ -223,7 +223,7 @@ public class RobotController {
                 else {
                     ledsSystem.setState(LEDState.OPERATING_COLOR);
                 }
-                
+
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
