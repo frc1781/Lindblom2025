@@ -145,7 +145,6 @@ public class TestController {
             /*case 12:
                 currentMsg = "Test 12: Test ";
                 currentStepPassed = driveController.isNavXRotating();
-
             break;
             case 13:
                 currentMsg = "Test 10: Testing Wheels, (PILOT) Use joysticks to move robot's wheels and see if they move in correct directions";
