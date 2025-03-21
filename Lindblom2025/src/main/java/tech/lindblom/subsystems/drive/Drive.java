@@ -115,7 +115,11 @@ public class Drive extends Subsystem {
     }
 
     public boolean isNavXRotating() {
-        return navX.isRotating();
+        return navX.isRotating() && isNavXPositive();
+    }
+
+    public boolean isNavXPositive() {
+        return navX.getYaw() < 0 ? false : true;
     }
 
     public void orientFieldToRobot() {
