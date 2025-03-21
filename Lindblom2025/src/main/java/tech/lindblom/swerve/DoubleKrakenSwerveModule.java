@@ -130,18 +130,10 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
 
-        //Rotation2d zero = new Rotation2d();
         double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
-/*        //double ff = driveFF.calculateWithVelocities(getDriveMotorSpeed(), desiredState.speedMetersPerSecond);
-        double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", ff);
-        System.out.printf("cv: %.2f dv: %.2f dc: %.2f\n", 
-            getDriveMotorSpeed(),
-            desiredState.speedMetersPerSecond,
-            ff);*/
         double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
         mDriveMotor.setControl(
                 velocityControl

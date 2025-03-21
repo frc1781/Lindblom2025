@@ -161,15 +161,26 @@ public class Vision extends Subsystem {
         PhotonPipelineResult leftResult = getCameraLatestResults(Camera.FRONT_LEFT);
         PhotonPipelineResult rightResult = getCameraLatestResults(Camera.FRONT_RIGHT);
         if (leftResult == null || rightResult == null || !leftResult.hasTargets() || !rightResult.hasTargets()) return -1;
+        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag() && currentOperatingMode == AUTONOMOUS) {
+            int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
+            for (PhotonTrackedTarget target : rightResult.getTargets()) {
+                if (target.getFiducialId() == targetTag) {
+                    return targetTag;
+                }
+            }
+
+            return -1;
+        }
 
         HashSet<Integer> leftTargets = new HashSet<>();
+        ArrayList<Integer> rightTargets = new ArrayList<>();
         for (PhotonTrackedTarget target : leftResult.targets) {
             leftTargets.add(target.getFiducialId());
         }
-        ArrayList<Integer> rightTargets = new ArrayList<>();
         for (PhotonTrackedTarget target : rightResult.targets) {
             rightTargets.add(target.getFiducialId());
         }
+
 
         for (Integer target : rightTargets) {
             if (reefApriltagIds.contains(target) && leftTargets.contains(target)) {
