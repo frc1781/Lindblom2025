@@ -56,7 +56,7 @@ public class DriveController extends StateSubsystem {
     private final ProfiledPIDController centeringRotController = new ProfiledPIDController(0.05, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
-    private final PIDController centeringYawController = new PIDController(0.015, 0, 0);
+    private final PIDController centeringYawController = new PIDController(0.035, 0, 0);
     private final PIDController distanceController = new PIDController(1, 0, 0);
     private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
@@ -193,7 +193,7 @@ public class DriveController extends StateSubsystem {
         driveSubsystem.drive(speeds);
     }
 
-    private boolean areValidCameraReading(double cameraOffset) {
+    private boolean isValidCameraReading(double cameraOffset) {
        return 
         cameraOffset != Constants.Vision.ERROR_CONSTANT &&
         cameraOffset != 0.0; //0.0 indicates it is not estimating distance
@@ -249,7 +249,7 @@ public class DriveController extends StateSubsystem {
                 && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (cameraOffset != Constants.Vision.ERROR_CONSTANT) {
-                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, centeringYawController.calculate(cameraOffset, targetOffset));
             } else {
                 inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             }
@@ -306,6 +306,7 @@ public class DriveController extends StateSubsystem {
         if (newState == DriverStates.CENTERING_LEFT || newState == DriverStates.CENTERING_RIGHT) {
             detectedPole = false;
             reachedDesiredDistance = false;
+            robotController.visionSystem.forgetClosestAprilTag();
         }
 
         if (previousState == DriverStates.PATH) {
