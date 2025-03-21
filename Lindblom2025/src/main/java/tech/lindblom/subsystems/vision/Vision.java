@@ -148,7 +148,7 @@ public class Vision extends Subsystem {
         List<PhotonTrackedTarget> targets = result.targets;
         PhotonTrackedTarget closestTarget = null;
 
-        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag() && currentOperatingMode == AUTONOMOUS) {
+        if (currentOperatingMode == AUTONOMOUS && robotController.autoSystem.getCurrentStep().hasTargetApriltag()) {
             int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
             for (PhotonTrackedTarget target : targets) {
                 if (target.getFiducialId() == targetTag) {

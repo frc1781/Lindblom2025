@@ -9,7 +9,7 @@ public class EEtimeOfFlight {
     private TimeOfFlight tof;
     public EEtimeOfFlight(int id, double frequency) {
       tof = new TimeOfFlight(id);
-      tof.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
+      tof.setRangingMode(TimeOfFlight.RangingMode.Short, frequency);
       timeTOFInvalid = new Timer();
     }
 
