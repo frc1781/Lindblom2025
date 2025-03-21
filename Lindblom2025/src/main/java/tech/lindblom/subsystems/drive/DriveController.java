@@ -305,6 +305,7 @@ public class DriveController extends StateSubsystem {
         if (newState == DriverStates.CENTERING_LEFT || newState == DriverStates.CENTERING_RIGHT) {
             detectedPole = false;
             reachedDesiredDistance = false;
+            robotController.visionSystem.forgetClosestAprilTag();
         }
 
         if (previousState == DriverStates.PATH) {
