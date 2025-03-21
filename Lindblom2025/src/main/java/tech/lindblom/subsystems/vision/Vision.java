@@ -163,12 +163,12 @@ public class Vision extends Subsystem {
                 continue;
             }
 
-            if ((target.area < closestTarget.area) && reefApriltagIds.contains(target.getFiducialId())) {
+            if ((Math.abs(target.skew) < Math.abs(closestTarget.skew)) && reefApriltagIds.contains(target.getFiducialId())) {
                 closestTarget = target;
             }
         }
 
-        if(closestTarget == null) {
+        if (closestTarget == null || (closestTarget.getFiducialId() != lastClosestAprilTag && lastClosestAprilTag != -1)) {
             if (!invalidTagTime.isRunning()) {
                 invalidTagTime.start();
             } 

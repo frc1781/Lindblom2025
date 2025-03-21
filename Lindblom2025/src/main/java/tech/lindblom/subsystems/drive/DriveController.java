@@ -248,7 +248,7 @@ public class DriveController extends StateSubsystem {
 
         double leftTOFDistance = leftTOF.getRange();
         double rightTOFDistance = rightTOF.getRange();
-        if (leftTOF.isRangeValid() && rightTOF.isRangeValid()) {
+        if (leftTOF.isRangeValidRegularCheck() && rightTOF.isRangeValidRegularCheck()) {
             if (Math.abs((leftTOFDistance + rightTOFDistance) / 2.0 - targetParallelDistance) >= 50) {
                 inputSpeeds.vxMetersPerSecond = EEUtil.clamp(-0.5, 0.5, 0.005 * ((leftTOFDistance + rightTOFDistance) / 2.0 - targetParallelDistance));
             } else {
