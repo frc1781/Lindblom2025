@@ -19,8 +19,8 @@ public class LEDs extends StateSubsystem {
     private final RobotController robotController;
     private final int LED_LENGTH = 150;
 
-    private AddressableLED mLedController = null;
-    private AddressableLEDBuffer mLedBuffer = null;
+    private AddressableLED ledController = null;
+    private AddressableLEDBuffer ledBuffer = null;
 
     private int mRainbowFirstPixelHue = 1;
     private Timer flashingTimer;
@@ -29,6 +29,12 @@ public class LEDs extends StateSubsystem {
     public LEDs(RobotController _robotController) {
         super("LEDs", LEDState.OPERATING_COLOR);
         this.robotController = _robotController;
+
+        ledController = new AddressableLED(1);
+        ledBuffer = new AddressableLEDBuffer(LED_LENGTH + 1);
+        ledController.setLength(ledBuffer.getLength());
+        ledController.setData(ledBuffer);
+        ledController.start();
     }
 
     @Override
@@ -36,19 +42,11 @@ public class LEDs extends StateSubsystem {
         super.init();
         flashingTimer = new Timer();
         flashingTimer.reset();
-        if (mLedController == null) {
-            mLedController = new AddressableLED(1);
-            mLedBuffer = new AddressableLEDBuffer(LED_LENGTH + 1);
-
-            mLedController.setLength(mLedBuffer.getLength());
-            mLedController.setData(mLedBuffer);
-            mLedController.start();
-        }
     }
 
     @Override
     public void periodic() {
-        if ((mLedBuffer == null || mLedController == null)) {
+        if ((ledBuffer == null || ledController == null)) {
             return;
         }
 
@@ -106,12 +104,12 @@ public class LEDs extends StateSubsystem {
                 break;
         }
 
-        mLedController.setData(mLedBuffer);
+        ledController.setData(ledBuffer);
     }
 
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, g, r, b);
+            ledBuffer.setRGB(i, g, r, b);
         }
     }
 
@@ -133,7 +131,7 @@ public class LEDs extends StateSubsystem {
     private void rainbow() {
         for (var i = 0; i < LED_LENGTH; i++) {
             var hue = (mRainbowFirstPixelHue + (i * 180 / LED_LENGTH)) % 180;
-            mLedBuffer.setHSV(i, hue, 255, 128);
+            ledBuffer.setHSV(i, hue, 255, 128);
         }
 
         mRainbowFirstPixelHue += 3;
