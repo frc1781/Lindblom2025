@@ -110,8 +110,11 @@ public class Elevator extends StateSubsystem {
         if (RobotBase.isSimulation()) {
             return timeInState.get() > 3;
         }
-
         Double[] desiredPosition = positions.get(getCurrentState());
+        if (getCurrentState() == ElevatorState.SMART_ALGAE) {
+            ElevatorState smartAlgaeState = getSmartAlgaeState();
+            desiredPosition = positions.get(smartAlgaeState);
+        }
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
         double tolerance = 50;
@@ -163,8 +166,8 @@ public class Elevator extends StateSubsystem {
 
     public ElevatorState getSmartAlgaeState() {
         int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
-        if (apriltag == -1) {
-            return ElevatorState.HIGH_ALGAE;
+        if (apriltag == -1 && previousSmartState != null) {
+            return previousSmartState;
         }
 
         if (apriltag % 2 == 0) {
@@ -224,10 +227,10 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.5, 0.5, dutyCycle);
+            return EEUtil.clamp(-0.6, 0.6, dutyCycle);
         }
 
-        return EEUtil.clamp(0, 0.5, dutyCycle);
+        return EEUtil.clamp(0, 0.6, dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {
