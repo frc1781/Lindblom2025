@@ -393,7 +393,7 @@ public class DriveController extends StateSubsystem {
                 targetOrientation
         );
 
-        driveSubsystem.driveAuto(desiredChassisSpeeds);
+        driveSubsystem.drive(desiredChassisSpeeds);
     }
 
     public boolean hasReachedTargetPose() {
