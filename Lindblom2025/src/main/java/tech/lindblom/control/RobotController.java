@@ -103,16 +103,16 @@ public class RobotController {
             climberSystem = new ClimberSim();
         }
         stateSubsystems = new ArrayList<>();
-        stateSubsystems.add(thumbSystem);
-        stateSubsystems.add(elevatorSystem);
-        stateSubsystems.add(armSystem);
-        stateSubsystems.add(climberSystem);
+        //stateSubsystems.add(thumbSystem);
+        //stateSubsystems.add(elevatorSystem);
+        //stateSubsystems.add(armSystem);
+        //stateSubsystems.add(climberSystem);
         stateSubsystems.add(driveController);
-        stateSubsystems.add(conveyorSystem);
+        //stateSubsystems.add(conveyorSystem);
         subsystems = new ArrayList<>();
         subsystems.add(visionSystem);
-        subsystems.add(autoSystem);
-        subsystems.add(thumbSystem);
+        //subsystems.add(autoSystem);
+        //subsystems.add(thumbSystem);
         subsystems.add(ledsSystem);
         createActions();
     }

@@ -31,6 +31,7 @@ import tech.lindblom.subsystems.vision.Vision.Camera;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
 import tech.lindblom.utils.EnumCollection;
+import tech.lindblom.utils.EEtimeOfFlight;
 
 import java.util.HashMap;
 
@@ -44,8 +45,8 @@ public class DriveController extends StateSubsystem {
     private final Timer trajectoryTime;
     private Pose2d targetPose;
     private HolonomicDriveController trajectoryController;
-    private final TimeOfFlight leftTOF;
-    private final TimeOfFlight rightTOF;
+    private final EEtimeOfFlight leftTOF;
+    private final EEtimeOfFlight rightTOF;
     private final TimeOfFlight armTOF;
 
     private final PIDController XController = new PIDController(3, 0, 0);
@@ -73,10 +74,8 @@ public class DriveController extends StateSubsystem {
         armTOF = new TimeOfFlight(Constants.Drive.ARM_TOF_ID);
         armTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
         armTOF.setRangeOfInterest(6, 6, 10, 10);
-        leftTOF = new TimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID);
-        leftTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
-        rightTOF = new TimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID);
-        rightTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
+        leftTOF = new EEtimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID, 20);
+        rightTOF = new EEtimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID, 20);
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
@@ -113,9 +112,9 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/armTOF", armTOF.getRange());
         Logger.recordOutput(this.name + "/armTOFVaild", armTOF.isRangeValid());
         Logger.recordOutput(this.name + "/leftTOF", leftTOF.getRange());
-        Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
-        Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/rightTOFVaild", rightTOF.isRangeValidRegularCheck());
         if (trajectoryTime != null) {
             Logger.recordOutput(this.name + "/trajectoryTime", trajectoryTime.get());
         }
@@ -184,7 +183,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean readyForCentering() {
-         return leftTOF.isRangeValid() && rightTOF.isRangeValid() && 
+         return leftTOF.isRangeValidRegularCheck() && rightTOF.isRangeValidRegularCheck() && 
             leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
                 robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
                 robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
@@ -281,12 +280,15 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/rightTOFDistance", rightTOF.getRange());
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
+        Logger.recordOutput(this.name + "/centeringAprilTag", apriltagId);
 
         //LEDs
         if (apriltagId != -1 && !hasFoundReefPole()) {
-            robotController.ledsSystem.setState(LEDState.GREEN);
+            robotController.ledsSystem.setState(LEDState.RED);
         } 
-        
+        else {
+            robotController.ledsSystem.setState(LEDState.YELLOW);
+        }
         if (reachedDesiredDistance && hasFoundReefPole()) {
             return zeroSpeed();
         }
