@@ -198,14 +198,14 @@ public class Arm extends StateSubsystem {
             armMotor.set(0);
             return;
         }
-
-        if (getCurrentState() == ArmState.COLLECT) {
-            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-        } if (getCurrentState() == ArmState.POLE) {
-            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
-        } else {
-            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-        }
+//
+//        if (getCurrentState() == ArmState.COLLECT) {
+//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+//        } if (getCurrentState() == ArmState.POLE) {
+//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
+//        } else {
+//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+//        }
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }

@@ -3,6 +3,8 @@ package tech.lindblom.swerve;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.compound.Diff_VelocityDutyCycle_Velocity;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -15,6 +17,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.AngularVelocityUnit;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
@@ -24,13 +28,15 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     private final TalonFX mDriveMotor;
     private final TalonFX mTurnMotor;
 
+    private double thingy = 0.0;
+
     private final CANcoder mTurnAbsoluteEncoder;
     private boolean isInverted;
+    private VelocityDutyCycle velocityControl = new VelocityDutyCycle(0.0);
 
     private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
             moduleConfiguration().drivingKS,
-            moduleConfiguration().drivingKV,
-            moduleConfiguration().drivingKA
+            moduleConfiguration().drivingKV
     );
 
     private final ProfiledPIDController turningController = new ProfiledPIDController(
@@ -128,22 +134,21 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
-        //double ff = driveFF.calculateWithVelocities(getDriveMotorSpeed(), desiredState.speedMetersPerSecond);
+/*        //double ff = driveFF.calculateWithVelocities(getDriveMotorSpeed(), desiredState.speedMetersPerSecond);
         double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", ff);
         System.out.printf("cv: %.2f dv: %.2f dc: %.2f\n", 
             getDriveMotorSpeed(),
             desiredState.speedMetersPerSecond,
-            ff);
-        mDriveMotor.set(ff);
+            ff);*/
+
+        thingy += 0.0001;
+        mDriveMotor.set(thingy);
+        mDriveMotor.setControl(velocityControl.withVelocity().withFeedForward().withEnableFOC());
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
-    }
-
-    public void runDesiredModuleState(SwerveModuleState desiredState, double tourque) {
-
     }
 
     public double getDriveMotorSpeed() {
@@ -169,10 +174,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingP = 0;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
-        ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
+        //ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
         ret_val.drivingKS = 0.0; //.0154;
-        ret_val.drivingKV = 0.263;
-        ret_val.drivingKA = 0.0; //0.16;
+        ret_val.drivingKV = 0.0; //0.263;
 
         ret_val.turningP = 5;
         ret_val.turningI = 0;

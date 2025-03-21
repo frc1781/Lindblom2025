@@ -222,7 +222,7 @@ public class Elevator extends StateSubsystem {
         }
 
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
-        motorRight.set(dutyCycle);
+        //motorRight.set(dutyCycle);
     }
 
     public double clampDutyCycle(double dutyCycle) {
