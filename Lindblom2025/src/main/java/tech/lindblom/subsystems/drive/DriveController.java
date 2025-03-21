@@ -303,10 +303,13 @@ public class DriveController extends StateSubsystem {
 
     @Override
     public void stateTransition(SubsystemState previousState, SubsystemState newState) {
-        if (newState == DriverStates.CENTERING_LEFT || newState == DriverStates.CENTERING_RIGHT) {
+        if (newState == DriverStates.CENTERING_LEFT || 
+            newState == DriverStates.CENTERING_RIGHT || 
+            newState == DriverStates.CENTERING_CENTER) {  
             detectedPole = false;
             reachedDesiredDistance = false;
             robotController.visionSystem.forgetClosestAprilTag();
+            targetedCenteringApriltagId = -1;
         }
 
         if (previousState == DriverStates.PATH) {
