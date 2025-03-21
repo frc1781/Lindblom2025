@@ -54,7 +54,7 @@ public class DriveController extends StateSubsystem {
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
-    private final PIDController centeringYawController = new PIDController(0.015, 0, 0);
+    private final PIDController centeringYawController = new PIDController(0.035, 0, 0);
     private final PIDController distanceController = new PIDController(1, 0, 0);
     private final ProfiledPIDController parallelController = new ProfiledPIDController(0.1, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
@@ -231,20 +231,24 @@ public class DriveController extends StateSubsystem {
                 return inputSpeeds;
         }
 
-        if (robotController.isElevatorInPoleState()
-                && robotController.isArmInPoleState()
-                && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
-        {
-            if (apriltagId == -1) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
-            } else {
-                inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-            }
+        if (cameraOffset != Constants.Vision.ERROR_CONSTANT) {
+            inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.2, 0.2, centeringYawController.calculate(cameraOffset, targetOffset));
         }
 
-        if (robotController.getCenteringSide() == ReefCenteringSide.CENTER && apriltagId != -1) {
-            inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
-        }
+        // if (robotController.isElevatorInPoleState()
+        //     && robotController.isArmInPoleState()
+        //     && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
+        // {
+        //     if (apriltagId == -1) {
+        //         inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
+        //     } else {
+        //         inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+        //     }
+        // }
+
+        // if (robotController.getCenteringSide() == ReefCenteringSide.CENTER && apriltagId != -1 && cameraOffset != Constants.Vision.ERROR_CONSTANT) {
+        //     inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
+        // }
 
         double leftTOFDistance = leftTOF.getRange();
         double rightTOFDistance = rightTOF.getRange();

@@ -129,6 +129,10 @@ public class Vision extends Subsystem {
         seenAprilTags = new ArrayList<>();
     }
 
+    public void forgetClosestAprilTag() {
+        lastClosestAprilTag = -1;
+    }
+
     public int getClosestReefApriltag(Camera camera) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
         if (result == null || !result.hasTargets()) {
@@ -220,7 +224,6 @@ public class Vision extends Subsystem {
                 return target.yaw;
             }
         }
-
 
         return Constants.Vision.ERROR_CONSTANT;
     }
