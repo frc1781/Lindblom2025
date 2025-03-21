@@ -128,9 +128,14 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
-        double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
-        mDriveMotor.set(FF);
+        //double ff = driveFF.calculateWithVelocities(getDriveMotorSpeed(), desiredState.speedMetersPerSecond);
+        double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
+        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", ff);
+        System.out.printf("cv: %.2f dv: %.2f dc: %.2f\n", 
+            getDriveMotorSpeed(),
+            desiredState.speedMetersPerSecond,
+            ff);
+        mDriveMotor.set(ff);
 
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
@@ -165,9 +170,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
         ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
-        ret_val.drivingKS = 0.0154;
-        ret_val.drivingKV = .263;
-        ret_val.drivingKA = 0.16;
+        ret_val.drivingKS = 0.0; //.0154;
+        ret_val.drivingKV = 0.263;
+        ret_val.drivingKA = 0.0; //0.16;
 
         ret_val.turningP = 5;
         ret_val.turningI = 0;
