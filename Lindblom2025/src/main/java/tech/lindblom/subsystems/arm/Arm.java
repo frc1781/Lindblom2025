@@ -56,8 +56,8 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.0025, 0, 0.000, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-0.1, .1); 
+        armMotorConfig.closedLoop.pid(0.005, 0, 0.000, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-0.3, .3); 
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
