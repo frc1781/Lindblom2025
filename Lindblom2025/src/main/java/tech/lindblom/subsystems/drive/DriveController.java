@@ -82,6 +82,7 @@ public class DriveController extends StateSubsystem {
 
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
+        centeringRotController.enableContinuousInput(-180, 180);
         trajectoryTime = new Timer();
 
         reefApriltagAngle.put(17, 60.0);
