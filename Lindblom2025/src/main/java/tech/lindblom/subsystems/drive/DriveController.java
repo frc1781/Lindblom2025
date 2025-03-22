@@ -259,7 +259,7 @@ public class DriveController extends StateSubsystem {
             inputSpeeds.vyMetersPerSecond = centeringYawController.calculate(cameraOffset, targetOffset);
         }
 
-        if (Math.abs(getRobotHeading().getDegrees() - reefApriltagAngle.get(apriltagId)) > 1) {
+        if (EEUtil.angleDiffDegrees(getRobotHeading().getDegrees(), reefApriltagAngle.get(apriltagId)) > 1) {
             inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.05 * centeringRotController.calculate(getRobotHeading().getDegrees(), reefApriltagAngle.get(apriltagId)));
         } else {
             inputSpeeds.omegaRadiansPerSecond = 0;
