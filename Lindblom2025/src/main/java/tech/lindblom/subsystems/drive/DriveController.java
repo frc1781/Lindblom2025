@@ -122,18 +122,6 @@ public class DriveController extends StateSubsystem {
         }
         Logger.recordOutput(this.name + "/hasSetInitialPose", hasSetInitialPose);
 
-        int apriltagId = robotController.visionSystem.getClosestReefApriltag(Camera.FRONT_RIGHT);
-        double cameraOffset = 0.0;
-        double cameraDistance = 0.0;
-        if (apriltagId != -1) {
-            cameraOffset = robotController.visionSystem.getCameraYaw(Vision.Camera.FRONT_RIGHT, apriltagId);
-            cameraDistance = robotController.visionSystem.getCameraDistanceX(Vision.Camera.FRONT_RIGHT, apriltagId);
-        }
-
-        Logger.recordOutput(this.name + "/aprilTag", apriltagId);
-        Logger.recordOutput(this.name + "/cameraOffset", cameraOffset);
-        Logger.recordOutput(this.name + "/cameraDistance", cameraDistance);
-
         if (currentOperatingMode == DISABLED) return;
 
         switch ((DriverStates) getCurrentState()) {
