@@ -16,13 +16,14 @@ import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.EEtimeOfFlight;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 public class Arm extends StateSubsystem {
     private SparkMax armMotor;
     private HashMap<ArmState,Double> positionMap;
     private RobotController robotController;
-    private TimeOfFlight coralTimeOfFlight;
+    private EEtimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
 
@@ -31,8 +32,7 @@ public class Arm extends StateSubsystem {
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
-        coralTimeOfFlight = new TimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID);
-        coralTimeOfFlight.setRangingMode(TimeOfFlight.RangingMode.Short, 24);
+        coralTimeOfFlight = new EEtimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID, 24);
         robotController = controller;
         timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
@@ -47,7 +47,7 @@ public class Arm extends StateSubsystem {
         // Slot 0 configs
         armMotorConfig.closedLoop.pid(0.008, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-.55, .55);
+        armMotorConfig.closedLoop.outputRange(-0.2, 0.2); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
         // Slot 1 configs
@@ -55,9 +55,9 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.outputRange(-0.2, 0.2, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
-        // Slot 2 configs | not used rn but here for funiess
-        armMotorConfig.closedLoop.pid(0.095, 0, 0.001, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-1, 1, ClosedLoopSlot.kSlot2);
+        // Slot 2 configs | pole state
+        armMotorConfig.closedLoop.pid(0.0025, 0, 0.000, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-0.1, .1); 
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -120,7 +120,7 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/MatchesPosition", matchesDesiredPosition());
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
-        Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValid());
+        Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
 
         if(currentOperatingMode == OperatingMode.DISABLED) {
@@ -198,14 +198,14 @@ public class Arm extends StateSubsystem {
             armMotor.set(0);
             return;
         }
-//
-//        if (getCurrentState() == ArmState.COLLECT) {
-//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-//        } if (getCurrentState() == ArmState.POLE) {
-//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
-//        } else {
-//            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-//        }
+
+       if (getCurrentState() == ArmState.COLLECT) {
+           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+       } if (getCurrentState() == ArmState.POLE) {
+           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
+       } else {
+           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+       }
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }
@@ -213,7 +213,7 @@ public class Arm extends StateSubsystem {
     public boolean hasCoral() {
         //TOF reported inValid for very short times even when valid, filtering out so only reporting invalid if
         //has been reporting invalid for more than 0.1 seconds.
-        if (coralTimeOfFlight.isRangeValid()) {
+        if (coralTimeOfFlight.isRangeValidRegularCheck()) {
             timeCoralTOFInvalid.reset();
         }
         else {

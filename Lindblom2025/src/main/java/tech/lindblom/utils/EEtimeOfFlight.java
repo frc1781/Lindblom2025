@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 //Problem with reporting invalid times for one cycle even though really valid
 public class EEtimeOfFlight {
     private Timer timeTOFInvalid;
-    private TimeOfFlight tof;
+    public TimeOfFlight tof;
     public EEtimeOfFlight(int id, double frequency) {
       tof = new TimeOfFlight(id);
       tof.setRangingMode(TimeOfFlight.RangingMode.Short, frequency);

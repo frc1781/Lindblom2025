@@ -47,7 +47,7 @@ public class DriveController extends StateSubsystem {
     private HolonomicDriveController trajectoryController;
     private final EEtimeOfFlight leftTOF;
     private final EEtimeOfFlight rightTOF;
-    private final TimeOfFlight armTOF;
+    private final EEtimeOfFlight armTOF;
 
     private final PIDController XController = new PIDController(3, 0, 0);
     private final PIDController YController = new PIDController(3, 0, 0);
@@ -74,9 +74,8 @@ public class DriveController extends StateSubsystem {
         super("DriveController", DriverStates.IDLE);
         driveSubsystem = new Drive();
         robotController = controller;
-        armTOF = new TimeOfFlight(Constants.Drive.ARM_TOF_ID);
-        armTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
-        armTOF.setRangeOfInterest(6, 6, 10, 10);
+        armTOF = new EEtimeOfFlight(Constants.Drive.ARM_TOF_ID, 20);
+        armTOF.tof.setRangeOfInterest(6, 6, 10, 10);
         leftTOF = new EEtimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID, 20);
         rightTOF = new EEtimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID, 20);
 
@@ -128,7 +127,7 @@ public class DriveController extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/armTOF", armTOF.getRange());
-        Logger.recordOutput(this.name + "/armTOFVaild", armTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/armTOFVaild", armTOF.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/leftTOF", leftTOF.getRange());
         Logger.recordOutput(this.name + "/leftTOFVaild", leftTOF.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/rightTOF", rightTOF.getRange());
@@ -245,14 +244,14 @@ public class DriveController extends StateSubsystem {
                 return inputSpeeds;
         }
 
-        if (robotController.isElevatorInPoleState()
-                && robotController.isArmInPoleState()
-                && robotController.getCenteringSide() != ReefCenteringSide.CENTER)
+        //if (robotController.isElevatorInPoleState()
+        //        && robotController.isArmInPoleState() &&
+        if(robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (cameraOffset != Constants.Vision.ERROR_CONSTANT) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, centeringYawController.calculate(cameraOffset, targetOffset));
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, centeringYawController.calculate(cameraOffset, targetOffset));
             } else {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.08, 0.08, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             }
         }
 
@@ -275,7 +274,7 @@ public class DriveController extends StateSubsystem {
                 inputSpeeds.vxMetersPerSecond = 0;
             }
 
-            if (inputSpeeds.omegaRadiansPerSecond == 0 && inputSpeeds.vxMetersPerSecond == 0) {
+            if (/* inputSpeeds.omegaRadiansPerSecond <  && */ inputSpeeds.vxMetersPerSecond == 0) {
                 reachedDesiredDistance = true;
             }
 
@@ -294,6 +293,8 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/poleTOFdDistance", armTOF.getRange());
         Logger.recordOutput(this.name + "/hasFoundReefPole", hasFoundReefPole());
         Logger.recordOutput(this.name + "/centeringAprilTag", apriltagId);
+        Logger.recordOutput(this.name + "/isElevatorInPoleState", robotController.isElevatorInPoleState());
+        Logger.recordOutput(this.name + "/isArmInPoleState", robotController.isArmInPoleState());
         
         if (reachedDesiredDistance && hasFoundReefPole()) {
             return zeroSpeed();
@@ -354,11 +355,11 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean reefPoleDetected() {  //added just for LEDs
-        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid()  && robotController.armSystem.getPosition() < 60;
+        return armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValidRegularCheck()  && robotController.armSystem.getPosition() < 60;
     }
 
     public boolean hasFoundReefPole() {
-        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValid() && robotController.isArmInPoleState() && robotController.isElevatorInPoleState();
+        boolean hasFoundReefPole = armTOF.getRange() < Constants.Drive.ARM_TOF_DISTANCE && armTOF.isRangeValidRegularCheck() && robotController.isArmInPoleState() && robotController.isElevatorInPoleState();
         if (hasFoundReefPole) {
             detectedPole = true;
         }

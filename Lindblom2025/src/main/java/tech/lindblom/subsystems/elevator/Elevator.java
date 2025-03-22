@@ -18,6 +18,7 @@ import tech.lindblom.subsystems.arm.Arm;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EEtimeOfFlight;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.HashMap;
@@ -28,8 +29,8 @@ public class Elevator extends StateSubsystem {
 
     private SparkMax motorLeft;
 
-    private TimeOfFlight firstStageTOF;
-    private TimeOfFlight secondStageTOF;
+    private EEtimeOfFlight firstStageTOF;
+    private EEtimeOfFlight secondStageTOF;
     // measure the max distance
     private double minSecondStageDistance = 0;
     private double maxSecondStageDistance = 680;
@@ -52,10 +53,8 @@ public class Elevator extends StateSubsystem {
     public Elevator(RobotController robotController) {
         super("Elevator", ElevatorState.SAFE);
         this.robotController = robotController;
-        firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
-        firstStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
-        secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
-        secondStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
+        firstStageTOF = new EEtimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF, 20);
+        secondStageTOF = new EEtimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF, 20);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -130,8 +129,8 @@ public class Elevator extends StateSubsystem {
     public void periodic() {
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
-        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
-        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValidRegularCheck());
+        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
         Logger.recordOutput(this.name + "/MatchesPosition", matchesPosition());
 
@@ -193,13 +192,13 @@ public class Elevator extends StateSubsystem {
         }
         double Tolerance = 80;
         
-        if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
+        if (secondStageTOF.isRangeValidRegularCheck() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
-        } else if (firstStageTOF.isRangeValid() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
+        } else if (firstStageTOF.isRangeValidRegularCheck() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
@@ -222,7 +221,7 @@ public class Elevator extends StateSubsystem {
         }
 
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
-        //motorRight.set(dutyCycle);
+        motorRight.set(dutyCycle);
     }
 
     public double clampDutyCycle(double dutyCycle) {
