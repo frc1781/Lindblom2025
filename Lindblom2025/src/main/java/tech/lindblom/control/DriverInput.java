@@ -106,6 +106,10 @@ public class DriverInput {
         double x;
         double y;
 
+        if (!selectedController.isConnected()) {
+            return new Translation2d();
+        }
+
         if (side == ControllerSide.LEFT) {
             x = selectedController.getLeftX();
             y = selectedController.getLeftY();
