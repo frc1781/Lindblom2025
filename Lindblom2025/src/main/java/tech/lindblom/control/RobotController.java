@@ -509,6 +509,7 @@ public class RobotController {
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
         HIGH_SCORE_ALGAE,
+        INHIBIT_DRIVE,
     }
 
     public void createActions() {
@@ -664,6 +665,8 @@ public class RobotController {
 
          defineAction(Action.THUMB_SPIN_OUT,
                  new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
+        defineAction(Action.INHIBIT_DRIVE, 
+                 new SubsystemSetting(driveController, DriveController.DriverStates.INHIBIT_DRIVE, 5));
     }
 
     public boolean isSafeForArmToLeaveIdle() {
