@@ -9,6 +9,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.RobotBase;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -46,6 +47,8 @@ public class Elevator extends StateSubsystem {
                     Constants.Elevator.ELEVATOR_KV,
                     Constants.Elevator.ELEVATOR_KA
             );
+
+    private PIDController positionPID = new PIDController(0.001, 0,0);
 
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
     private RobotController robotController;
@@ -123,6 +126,7 @@ public class Elevator extends StateSubsystem {
     @Override
     public void init() {
         super.init();
+        positionPID.reset();
     }
 
     @Override
@@ -226,7 +230,7 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.6, 0.6, dutyCycle);
+            return EEUtil.clamp(-0.8, 0.8, dutyCycle);
         }
 
         return EEUtil.clamp(0, 0.6, dutyCycle);
