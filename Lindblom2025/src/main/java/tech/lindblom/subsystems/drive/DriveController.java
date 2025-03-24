@@ -78,6 +78,7 @@ public class DriveController extends StateSubsystem {
         leftTOF = new EEtimeOfFlight(Constants.Drive.LEFT_FRONT_TOF_ID, 20);
         rightTOF = new EEtimeOfFlight(Constants.Drive.RIGHT_FRONT_TOF_ID, 20);
 
+        centeringRotController.enableContinuousInput(0, Math.PI * 2);
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
         centeringRotController.enableContinuousInput(-180, 180);
@@ -219,6 +220,7 @@ public class DriveController extends StateSubsystem {
         if (targetedCenteringApriltagId == -1) {
             targetedCenteringApriltagId = robotController.visionSystem.getDoubleCameraReefApriltag(); // could return -1 . make led state for that
         }
+
         apriltagId = targetedCenteringApriltagId;
 
         if (targetedCenteringApriltagId == -1) {
@@ -267,7 +269,8 @@ public class DriveController extends StateSubsystem {
         }
 
         if (EEUtil.angleDiffDegrees(getRobotHeading().getDegrees(), reefApriltagAngle.get(apriltagId)) > 1) {
-            inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, 0.05 * centeringRotController.calculate(getRobotHeading().getDegrees(), reefApriltagAngle.get(apriltagId)));
+            System.out.println(getRobotHeading().getRadians() + " " + Rotation2d.fromDegrees(reefApriltagAngle.get(apriltagId)).getRadians());
+            inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, centeringRotController.calculate(getRobotHeading().getRadians(), Rotation2d.fromDegrees(reefApriltagAngle.get(apriltagId)).getRadians()));
         } else {
             inputSpeeds.omegaRadiansPerSecond = 0;
         }
