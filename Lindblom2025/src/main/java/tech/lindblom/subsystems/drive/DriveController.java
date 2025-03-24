@@ -269,7 +269,6 @@ public class DriveController extends StateSubsystem {
         }
 
         if (EEUtil.angleDiffDegrees(getRobotHeading().getDegrees(), reefApriltagAngle.get(apriltagId)) > 1) {
-            System.out.println(getRobotHeading().getRadians() + " " + Rotation2d.fromDegrees(reefApriltagAngle.get(apriltagId)).getRadians());
             inputSpeeds.omegaRadiansPerSecond = EEUtil.clamp(-0.5, 0.5, centeringRotController.calculate(getRobotHeading().getRadians(), Rotation2d.fromDegrees(reefApriltagAngle.get(apriltagId)).getRadians()));
         } else {
             inputSpeeds.omegaRadiansPerSecond = 0;

@@ -737,7 +737,7 @@ public class RobotController {
     }
 
     public boolean isArmInL4() {
-        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) && (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesDesiredPosition()) && (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
+        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesDesiredPosition()) || (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
     }
 
     public static boolean isRed() {
