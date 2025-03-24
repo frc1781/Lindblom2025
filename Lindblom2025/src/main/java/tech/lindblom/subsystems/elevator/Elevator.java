@@ -159,6 +159,10 @@ public class Elevator extends StateSubsystem {
         }
     }
 
+    public boolean shouldDriveInhibited() {
+        return firstStageTOF.isRangeValidRegularCheck() && firstStageTOF.getRange() > 150;
+    }
+
     public double getFirstStagePosition() {
         return firstStageTOF.getRange();
     }
