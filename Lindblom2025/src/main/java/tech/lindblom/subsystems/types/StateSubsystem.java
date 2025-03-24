@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 
 public abstract class StateSubsystem extends Subsystem {
     private SubsystemState currentState;
-    public final SubsystemState defaultState;
+    private final SubsystemState defaultState;
     protected Timer timeInState;
     
     protected StateSubsystem(String _name, SubsystemState _defaultState) {
@@ -15,6 +15,12 @@ public abstract class StateSubsystem extends Subsystem {
         currentState = defaultState;
         timeInState = new Timer();
         Logger.recordOutput(name + "/currentState", currentState.toString());
+    }
+
+    public void init() {
+        if (currentOperatingMode != EnumCollection.OperatingMode.DISABLED) {
+            resetTimeInState();
+        }
     }
 
     public abstract boolean matchesState();
@@ -41,7 +47,11 @@ public abstract class StateSubsystem extends Subsystem {
         return currentState;
     }
     public void restoreToDefaultState() {
-        setState(defaultState);
+        setState(getDefaultState());
+    }
+
+    public SubsystemState getDefaultState() {
+        return defaultState;
     }
 
     public interface SubsystemState {}

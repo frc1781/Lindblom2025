@@ -20,11 +20,25 @@ public class LeftThreeCoral implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(
                     new AutoStep[] {
-                        new AutoStep(Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("start;IJ")),
-                        new AutoStep(Action.CONVEY_AND_COLLECT, Auto.getPathFromName("IJ;collect")),
-                        new AutoStep(Action.CENTER_REEF_RIGHT_L4, Auto.getPathFromName("collect;LK")),
-                        new AutoStep(Action.CONVEY_AND_COLLECT, Auto.getPathFromName("LK;collect")),
-                        new AutoStep(Action.CENTER_REEF_LEFT_L4, Auto.getPathFromName("collect;LK")),
+                        new AutoStep(Auto.getPathFromName("start;IJ")),
+                        new AutoStep(Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Auto.getPathFromName("collect;LK")),
+
+                        new AutoStep(Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Auto.getPathFromName("collect;LK")),
+/*                        new AutoStep(Action.START_ARM),
+                        new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("start;IJ")),
+                        new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 11, 20),
+
+                        new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Action.CONVEY_AND_COLLECT),
+                        new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("collect;LK")),
+                        new AutoStep(Action.CENTER_REEF_RIGHT_L4, 6, 19),
+
+                        new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Action.CONVEY_AND_COLLECT),
+                        new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("collect;LK")),
+                        new AutoStep(Action.CENTER_REEF_LEFT_L4, 6, 19),*/
                     }
                 )
         };

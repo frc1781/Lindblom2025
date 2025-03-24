@@ -152,7 +152,10 @@ public class Auto extends Subsystem {
         // boolean currentAlliance = true; //TESTING TEMPORARY RobotController.isRed();
         AutoRoutine chosenRoutine = autoChooser.getSelected(); //testRoutine;
 
-        if (chosenRoutine == null) return;
+        if (chosenRoutine == null) {
+            chosenRoutine = new CenterOneCoral();
+        }
+        
         Logger.recordOutput(name + "/ChosenRoutine", chosenRoutine.getName());
 
         if (currentAutoRoutine == null || 
@@ -183,11 +186,7 @@ public class Auto extends Subsystem {
 
         throw new NoStartingPositionException();
     }
-
-    public AutoStep getCurrentAutoStep() {
-        return currentStep;
-    }
-
+    
     public static PathPlannerPath getPathFromName(String name) {
         try {
             PathPlannerPath path = PathPlannerPath.fromPathFile(name);

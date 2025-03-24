@@ -45,7 +45,7 @@ public class Conveyor extends StateSubsystem {
             case IDLE:
                 yield false;
             case COLLECT:
-                yield hasConveyorHasCoral();
+                yield conveyorHasCoral();
             case CONVEY:
                 yield cradleHasCoral();
         };
@@ -53,6 +53,7 @@ public class Conveyor extends StateSubsystem {
 
     @Override
     public void init() {
+        super.init();
         coralConveyor.set(0);
     }
 
@@ -65,7 +66,7 @@ public class Conveyor extends StateSubsystem {
         Logger.recordOutput(this.name + "/coralCradleSensor", coralCradleSensor.get());
 
         if (currentOperatingMode == EnumCollection.OperatingMode.DISABLED) return;
-        if (hasConveyorHasCoral() && getCurrentState() == ConveyorState.IDLE) {
+        if (conveyorHasCoral() && getCurrentState() == ConveyorState.IDLE) {
             setState(ConveyorState.CONVEY);
         }
 
@@ -76,10 +77,10 @@ public class Conveyor extends StateSubsystem {
             case CONVEY:
                     if (!controller.elevatorInConveyPosition()) 
                         return;
-                    if ((cradleHasCoral() && !hasConveyorHasCoral())) {
+                    if ((cradleHasCoral() && !conveyorHasCoral())) {
                         setState(ConveyorState.IDLE);
                     }
-                    if (!cradleHasCoral() && !hasConveyorHasCoral()) {
+                    if (!cradleHasCoral() && !conveyorHasCoral()) {
                         setState(ConveyorState.IDLE);
                     }
 
@@ -92,7 +93,7 @@ public class Conveyor extends StateSubsystem {
         }
     }
 
-    public boolean hasConveyorHasCoral() {
+    public boolean conveyorHasCoral() {
         return !sideRampSensor.get() || !backRampSensor.get() || !coralHopperSensorFront.get() || !coralHopperSensorBack.get();
     }
 

@@ -13,8 +13,13 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import tech.lindblom.swerve.utils.ModuleLimits;
 
 public class Constants {
+
+    public class General {
+        public static final double LOOP_PERIOD_SECONDS = 0.02;
+    }
 
     public class Drive {
         // Left
@@ -37,15 +42,16 @@ public class Constants {
 
         //Drive motor offsets
         public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0.38916;
-        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0.66748;
+        public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -0.324463;
         public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0.709473;
         public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0.476074;
 
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.65;
+        public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.0;
+        public static final double INHIBITED_MULTIPLIER = 0.2;
         public static final double DRIVETRAIN_TRACKWIDTH = Units.inchesToMeters(26);
         public static final double DRIVETRAIN_WHEELBASE = Units.inchesToMeters(22.5);
 
-        public static final double WHEEL_RADIUS = 0.0508;
+        public static final double WHEEL_RADIUS = Units.inchesToMeters(2);
 
         public static final double MAX_VELOCITY_RADIANS_PER_SECOND = (MAX_VELOCITY_METERS_PER_SECOND /
                 (Math.hypot(DRIVETRAIN_TRACKWIDTH / 2, DRIVETRAIN_WHEELBASE / 2)));
@@ -63,24 +69,34 @@ public class Constants {
         public static Translation2d BACK_RIGHT_MODULE_POSITION = new Translation2d(-DRIVETRAIN_WHEELBASE / 2,
                 -DRIVETRAIN_TRACKWIDTH / 2);
 
+        public static final Translation2d[] MODULE_TRANSLATIONS = {
+                FRONT_LEFT_MODULE_POSITION,
+                FRONT_RIGHT_MODULE_POSITION,
+                BACK_LEFT_MODULE_POSITION,
+                BACK_RIGHT_MODULE_POSITION
+        };
+
+        public static double MAX_LINEAR_SPEED = 4.0;
+        public static double MAX_ANGULAR_SPEED = MAX_LINEAR_SPEED / WHEEL_RADIUS;
+
+        public static final ModuleLimits MODULE_LIMITS =
+                new ModuleLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED, Units.degreesToRadians(1080.0));
+
         public static double TARGET_CORAL_DISTANCE = 0.4;
         public static double ARM_TOF_DISTANCE = 700;
         public static double MAX_TIME_LOOKING_FOR_POLE = 0.5;
-
 
         public static int ARM_TOF_ID = 51;
         public static int RIGHT_FRONT_TOF_ID = 52;
         public static int LEFT_FRONT_TOF_ID = 53;
 
-        public static double DISTANCE_TOLERANCE = 0.05;
-        public static double OFFSET_TOLERANCE = 0.02;
-
-        public static double TARGET_TOF_PARALLEL_DISTANCE = 250;
-        public static double TARGET_CORAL_DISTANCE_LEFT = 0.35;
-        public static double TARGET_CORAL_DISTANCE_RIGHT = 0.41;
+        public static double TARGET_TOF_PARALLEL_DISTANCE = 280;
+        public static double TARGET_TOF_PARALLEL_DISTANCE_SHORT = 250;
+        public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 250;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;
         public static double TARGET_CORAL_OFFSET_RIGHT = 2.8;
+        public static double TARGET_CORAL_OFFSET_CENTER_CAMERA_1 = -20.5;
     }
 
     public class Auto {
@@ -142,9 +158,9 @@ public class Constants {
         public static final int SECOND_STAGE_TOF = 57;
         // https://www.reca.lc/linear?angle=%7B%22s%22%3A90%2C%22u%22%3A%22deg%22%7D&currentLimit=%7B%22s%22%3A30%2C%22u%22%3A%22A%22%7D&efficiency=100&limitAcceleration=0&limitDeceleration=0&limitVelocity=0&limitedAcceleration=%7B%22s%22%3A400%2C%22u%22%3A%22in%2Fs2%22%7D&limitedDeceleration=%7B%22s%22%3A50%2C%22u%22%3A%22in%2Fs2%22%7D&limitedVelocity=%7B%22s%22%3A10%2C%22u%22%3A%22in%2Fs%22%7D&load=%7B%22s%22%3A5.93175%2C%22u%22%3A%22lbs%22%7D&motor=%7B%22quantity%22%3A2%2C%22name%22%3A%22NEO%22%7D&ratio=%7B%22magnitude%22%3A9%2C%22ratioType%22%3A%22Reduction%22%7D&spoolDiameter=%7B%22s%22%3A1%2C%22u%22%3A%22in%22%7D&travelDistance=%7B%22s%22%3A35%2C%22u%22%3A%22in%22%7D
         public static final double MAX_ELEVATION_MPS = 0.87;
-        public static final double ELEVATOR_KS = 0.01; // KS cannot be modeled and needs to be measured
-        public static final double ELEVATOR_KG = 0.07;
-        public static final double ELEVATOR_KV = 4.60;
+        public static final double ELEVATOR_KS = 0.02; // KS cannot be modeled and needs to be measured
+        public static final double ELEVATOR_KG = 0.13;
+        public static final double ELEVATOR_KV = 13.81;
         public static final double ELEVATOR_KA = 0.01;
     }
 
@@ -181,8 +197,7 @@ public class Constants {
         public static final int CORAL_CONVEYOR_ID = 15;
     }
 
-    public class Mouth {
-        public static final int SPIN_MOUTH_MOTOR = 17;
-        public static final int POSITION_MOUTH_MOTOR = 16;
+    public class Thumb {
+        public static final int SPIN_THUMB_MOTOR = 17;
     }
 }

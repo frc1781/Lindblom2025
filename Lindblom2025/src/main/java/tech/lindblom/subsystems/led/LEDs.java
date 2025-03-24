@@ -2,26 +2,40 @@ package tech.lindblom.subsystems.led;
 
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.drive.DriveController;
+import tech.lindblom.subsystems.drive.DriveController.DriverStates;
 import tech.lindblom.subsystems.types.StateSubsystem;
+import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EnumCollection;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Robot;
 
 public class LEDs extends StateSubsystem {
-    private final int LED_LENGTH = 75 + 75;
-    private RobotController robotController;
+    private final RobotController robotController;
+    private final int LED_LENGTH = 150;
 
     private AddressableLED mLedController = null;
     private AddressableLEDBuffer mLedBuffer = null;
+
+    private int mRainbowFirstPixelHue = 1;
+    private Timer flashingTimer;
+    private boolean flashAlt;
 
     public LEDs(RobotController _robotController) {
         super("LEDs", LEDState.OPERATING_COLOR);
         this.robotController = _robotController;
     }
 
-
     @Override
     public void init() {
+        super.init();
+        flashingTimer = new Timer();
+        flashingTimer.reset();
         if (mLedController == null) {
             mLedController = new AddressableLED(1);
             mLedBuffer = new AddressableLEDBuffer(LED_LENGTH + 1);
@@ -34,23 +48,62 @@ public class LEDs extends StateSubsystem {
 
     @Override
     public void periodic() {
-  
         if ((mLedBuffer == null || mLedController == null)) {
             return;
         }
 
-        if (currentOperatingMode == OperatingMode.TELEOP) {
-            solid(128, 0, 0);                                         
-        } else if (currentOperatingMode == OperatingMode.AUTONOMOUS) {
-            solid(255, 215, 0);       
-        }
-
-        if (robotController.driveController.hasFoundReefPole()) {
-            solid(0, 255, 0);
-        }
-
-        if (robotController.isManualControlMode() && robotController.driveController.reefPoleDetected()) {
-            solid(0, 255, 0);
+        switch((LEDState) getCurrentState()) {
+            case OPERATING_COLOR:
+                switch (currentOperatingMode) {
+                    case AUTONOMOUS:
+                        solid(250, 156, 28);
+                        break;
+                    case TELEOP:
+                        solid(0, 255, 255);
+                        break;
+                    case DISABLED:
+                        rainbow();
+                        break;
+                }
+                break;
+            case RAINBOW:
+                rainbow();
+                break;
+            case WHITE:
+                solid(0, 255, 255);
+                break;
+            case RED:
+                solid(255, 0, 0);
+                break;
+            case GREEN:
+                solid(0, 255, 0);
+                break;
+            case BLUE:
+                solid(0, 0, 255);
+                break;
+            case YELLOW:
+                solid(255, 255, 0);
+                break;
+            case PURPLE:
+                solid(255, 0, 255);
+                break;
+            case FLASH_YELLOW:
+                flashing(255, 255, 0);
+            case SYNC:
+                flashing(0, 255, 0);
+                if (timeInState.get() > 1) {
+                    setState(LEDState.WHITE);
+                }
+                break;
+            case OFF: 
+                solid(0, 0, 0);
+                break;
+            case OVER:
+                flashing(255, 255, 0);
+                break;
+            case EXPECTED_FAIL:
+                flashing(255, 0, 0);
+                break;
         }
 
         mLedController.setData(mLedBuffer);
@@ -58,9 +111,35 @@ public class LEDs extends StateSubsystem {
 
     private void solid(int r, int g, int b) {
         for(int i = 0; i < LED_LENGTH; i++) {
-            mLedBuffer.setRGB(i, g,r,b);
+            mLedBuffer.setRGB(i, g, r, b);
         }
     }
+
+    private void flashing(int r, int g, int b) {
+        if (flashingTimer.get() > 0.2) {
+            if (flashAlt) {
+                solid(0, 0, 0);
+            } else {
+                solid(r, g, b);
+            }
+            flashingTimer.reset();
+            flashingTimer.stop();
+            flashAlt = !flashAlt;
+        }
+
+        flashingTimer.start();
+    }
+
+    private void rainbow() {
+        for (var i = 0; i < LED_LENGTH; i++) {
+            var hue = (mRainbowFirstPixelHue + (i * 180 / LED_LENGTH)) % 180;
+            mLedBuffer.setHSV(i, hue, 255, 128);
+        }
+
+        mRainbowFirstPixelHue += 3;
+        mRainbowFirstPixelHue %= 180;
+    }
+
 
     @Override
     public boolean matchesState() {
@@ -68,6 +147,6 @@ public class LEDs extends StateSubsystem {
     }
 
     public enum LEDState implements SubsystemState{
-        OPERATING_COLOR, WHITE, RED, GREEN, BLUE, EXPECTED_FAIL
+        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, FLASH_YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
     }
 }

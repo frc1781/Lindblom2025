@@ -3,6 +3,8 @@ package tech.lindblom.swerve;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.compound.Diff_VelocityDutyCycle_Velocity;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -15,6 +17,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.AngularVelocityUnit;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.utils.Constants;
@@ -26,6 +30,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
     private final CANcoder mTurnAbsoluteEncoder;
     private boolean isInverted;
+    private VelocityDutyCycle velocityControl = new VelocityDutyCycle(0.0);
 
     private final SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward (
             moduleConfiguration().drivingKS,
@@ -120,6 +125,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
 
     public void runDesiredModuleState(SwerveModuleState desiredState) {
         desiredState.optimize(getAbsoluteAngle());
+        desiredState.cosineScale(getAbsoluteAngle());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Requested Velocity", desiredState.speedMetersPerSecond);
         Logger.recordOutput("DriveModule/" + this.name + "/Turn Requested Position", desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/RequestedAndRealDifference", Math.abs(desiredState.angle.getRotations() - getAbsoluteRotation()));
@@ -128,20 +134,24 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
 
-        double FF = driveFF.calculate(desiredState.speedMetersPerSecond);
-        Logger.recordOutput("DriveModule/" + this.name + "/DrivingFeedForwardOutput", FF);
-        mDriveMotor.set(FF);
-
+        double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
+        mDriveMotor.setControl(
+                velocityControl
+                        .withVelocity(desiredState.speedMetersPerSecond)
+                        .withFeedForward(ff)
+                        .withEnableFOC(true)
+        );
+        Logger.recordOutput("DriveModule/" + this.name + "/Drive FF", ff);
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Velocity", getDriveMotorSpeed());
         Logger.recordOutput("DriveModule/" + this.name + "/Drive Motor Position", getDriveMotorPosition());
         Logger.recordOutput("DriveModule/" + this.name + "/Turning Motor Position", mTurnAbsoluteEncoder.getAbsolutePosition().getValueAsDouble());
     }
 
-    private double getDriveMotorSpeed() {
+    public double getDriveMotorSpeed() {
         return mDriveMotor.getVelocity().getValueAsDouble();
     }
 
-    private double getDriveMotorPosition() {
+    public double getDriveMotorPosition() {
         return mDriveMotor.getPosition().getValueAsDouble();
     }
 
@@ -157,13 +167,12 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         ret_val.velocityConversion = ret_val.metersPerRevolution / 60.0;
         ret_val.radiansPerSecond = ret_val.radiansPerRevolution / 60.0;
 
-        ret_val.drivingP = 0;
+        ret_val.drivingP = 0.5;
         ret_val.drivingI = 0;
         ret_val.drivingD = 0;
-        ret_val.drivingFF = 1.0 / (Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND);
-        ret_val.drivingKS = 0.0154;
-        ret_val.drivingKV = .263;
-        ret_val.drivingKA = 0.16;
+        ret_val.drivingKS = .0154;
+        ret_val.drivingKV = 1 / Constants.Drive.MAX_VELOCITY_METERS_PER_SECOND;
+        ret_val.drivingKA = .3;
 
         ret_val.turningP = 5;
         ret_val.turningI = 0;
