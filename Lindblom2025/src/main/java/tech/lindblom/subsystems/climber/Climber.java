@@ -67,14 +67,14 @@ public class Climber extends BaseClimber {
                 }
                 break;
             case DOWN:
-                requestedPosition += .01;
+                requestedPosition += .02;
                 if (!climbing) {
                     climberPID.reset();
                 }
                 climbing = true;
                 break;
             case UP:
-                requestedPosition -= .01;
+                requestedPosition -= .02;
                 if (!climbing) {
                     climberPID.reset();
                 }
