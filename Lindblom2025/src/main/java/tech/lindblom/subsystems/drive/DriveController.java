@@ -34,6 +34,7 @@ import tech.lindblom.utils.EnumCollection;
 
 import java.util.HashMap;
 
+import static tech.lindblom.control.RobotController.Action.INHIBIT_DRIVE;
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
 public class DriveController extends StateSubsystem {
@@ -149,6 +150,9 @@ public class DriveController extends StateSubsystem {
             case DRIVER:
                 //RobotController is inputing speeds from driver input
                 break;
+            case INHIBIT_DRIVE:
+
+                break;
             case PATH:
                 boolean hasRobotReachedTargetPose = hasReachedTargetPose();
                 Logger.recordOutput(name + "/hasRobotReachedTargetPose", hasRobotReachedTargetPose);
@@ -200,11 +204,12 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean readyForCentering() {
-         return leftTOF.isRangeValidRegularCheck() && rightTOF.isRangeValidRegularCheck() && 
-            leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
-                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
-                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
-            );
+         return 
+            leftTOF.isRangeValidRegularCheck() && 
+            rightTOF.isRangeValidRegularCheck() && 
+            leftTOF.getRange() < 1000 && 
+            rightTOF.getRange() < 1000 && 
+            robotController.visionSystem.getDoubleCameraReefApriltag() != -1;
     }
 
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
