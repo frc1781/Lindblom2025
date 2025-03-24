@@ -28,6 +28,7 @@ public class DriverInput {
                 new Control(0, "DPAD_DOWN", Action.MANUAL_ELEVATOR_DOWN),
                 new Control(0, "LB", Action.THUMB_SPIN_IN),
                 new Control(0, "X", Action.THUMB_SPIN_OUT),
+                new Control(0, "RIGHT_TRIGGER", Action.INHIBIT_DRIVE),
                 new Control(1, "DPAD_RIGHT", Action.HIGH_SCORE_ALGAE),
                 new Control(1, "DPAD_LEFT", Action.GROUND_COLLECT_ALGAE),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
@@ -206,6 +207,8 @@ public class DriverInput {
                 return controllers[controllerIndex].getLeftStickButton();
             case "RIGHT_JOYSTICK_BUTTON":
                 return controllers[controllerIndex].getRightStickButton();
+            case "RIGHT_TRIGGER":
+                return controllers[controllerIndex].getRightTriggerAxis() > 0.9;
         }
         return false;
     }

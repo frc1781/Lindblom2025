@@ -474,13 +474,14 @@ public class DriveController extends StateSubsystem {
         return switch ((DriverStates) getCurrentState()) {
             case CENTERING_RIGHT, CENTERING_LEFT, CENTERING_CENTER -> hasFinishedCentering();
             case PATH -> hasReachedTargetPose();
-            case IDLE, DRIVER -> false;
+            case IDLE, DRIVER, INHIBIT_DRIVE -> false;
         };
     }
 
     public enum DriverStates implements SubsystemState {
         IDLE,
         DRIVER,
+        INHIBIT_DRIVE,
         CENTERING_RIGHT,
         CENTERING_LEFT,
         CENTERING_CENTER,
