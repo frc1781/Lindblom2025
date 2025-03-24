@@ -344,7 +344,7 @@ public class RobotController {
     }
 
     public boolean shouldInhibitDriveSpeed() {
-        return elevatorSystem.getFirstStagePosition() > 150;
+        return elevatorSystem.shouldDriveInhibited();
     }
 
     public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
