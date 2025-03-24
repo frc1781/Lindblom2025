@@ -203,11 +203,12 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean readyForCentering() {
-         return leftTOF.isRangeValidRegularCheck() && rightTOF.isRangeValidRegularCheck() && 
-            leftTOF.getRange() < 1000 && rightTOF.getRange() < 1000 && (
-                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_LEFT) != -1 || 
-                robotController.visionSystem.getClosestReefApriltag(Vision.Camera.FRONT_RIGHT) != 1
-            );
+         return 
+            leftTOF.isRangeValidRegularCheck() && 
+            rightTOF.isRangeValidRegularCheck() && 
+            leftTOF.getRange() < 1000 && 
+            rightTOF.getRange() < 1000 && 
+            robotController.visionSystem.getDoubleCameraReefApriltag() != -1;
     }
 
     public ChassisSpeeds getCenteringChassisSpeeds(ChassisSpeeds inputSpeeds) {
