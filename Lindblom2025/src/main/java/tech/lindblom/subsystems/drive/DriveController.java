@@ -62,6 +62,7 @@ public class DriveController extends StateSubsystem {
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
 
     private final HashMap<Integer, Double> reefApriltagAngle = new HashMap<>();
+    private final Timer reefTimer = new Timer();
 
     private RobotConfig robotConfig;
     private final boolean isFieldOriented = true;
@@ -82,7 +83,6 @@ public class DriveController extends StateSubsystem {
         centeringRotController.enableContinuousInput(0, Math.PI * 2);
         rotController.enableContinuousInput(0, Math.PI * 2);
         parallelController.enableContinuousInput(0, Math.PI * 2);
-        centeringRotController.enableContinuousInput(-180, 180);
         trajectoryTime = new Timer();
 
         reefApriltagAngle.put(17, 60.0);
@@ -312,6 +312,7 @@ public class DriveController extends StateSubsystem {
         
         if (reachedDesiredDistance && hasFoundReefPole()) {
             if (robotController.isArmInL4()) {
+                reefTimer.start();
                 inputSpeeds.vxMetersPerSecond = -0.5;
                 inputSpeeds.omegaRadiansPerSecond = 0;
                 inputSpeeds.vyMetersPerSecond = 0;
@@ -321,6 +322,10 @@ public class DriveController extends StateSubsystem {
         }
 
         return inputSpeeds;
+    }
+
+    public boolean hasStartedBackingUp() {
+        return reefTimer.get() > 0.2;
     }
 
     @Override
@@ -345,6 +350,8 @@ public class DriveController extends StateSubsystem {
         }
 
         if (previousState == DriverStates.CENTERING_LEFT || previousState == DriverStates.CENTERING_RIGHT || previousState == DriverStates.CENTERING_CENTER) {
+            reefTimer.stop();
+            reefTimer.reset();
             targetedCenteringApriltagId = -1;
         }
     }

@@ -12,7 +12,7 @@ public class LeftThreeCoral implements AutoRoutine {
 
     @Override
     public String getName() {
-        return "Left Three Coral";
+        return "GG";
     }
 
     @Override
@@ -20,14 +20,14 @@ public class LeftThreeCoral implements AutoRoutine {
         return new AutoStepGroup[] {
                 new DependGroup(
                     new AutoStep[] {
-                        new AutoStep(Auto.getPathFromName("start;IJ")),
+/*                        new AutoStep(Auto.getPathFromName("gggggg")),
                         new AutoStep(Auto.getPathFromName("LK;collect")),
                         new AutoStep(Auto.getPathFromName("collect;LK")),
 
                         new AutoStep(Auto.getPathFromName("LK;collect")),
-                        new AutoStep(Auto.getPathFromName("collect;LK")),
-/*                        new AutoStep(Action.START_ARM),
-                        new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("start;IJ")),
+                        new AutoStep(Auto.getPathFromName("collect;LK")),*/
+                        new AutoStep(Action.START_ARM, Auto.getPathFromName("gggggg")),
+                       // new AutoStep(Action.READY_FOP_POLE),
                         new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 11, 20),
 
                         new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("LK;collect")),
@@ -38,7 +38,7 @@ public class LeftThreeCoral implements AutoRoutine {
                         new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("LK;collect")),
                         new AutoStep(Action.CONVEY_AND_COLLECT),
                         new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("collect;LK")),
-                        new AutoStep(Action.CENTER_REEF_LEFT_L4, 6, 19),*/
+                        new AutoStep(Action.CENTER_REEF_LEFT_L4, 6, 19),
                     }
                 )
         };

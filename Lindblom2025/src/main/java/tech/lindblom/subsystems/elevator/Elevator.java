@@ -16,6 +16,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.arm.Arm;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
@@ -97,7 +98,11 @@ public class Elevator extends StateSubsystem {
             return false;
         }
 
-        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null) {
+        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null &&
+                (robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_RIGHT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_LEFT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)
+        ) {
             return robotController.driveController.matchesState();
         }
 
@@ -119,7 +124,7 @@ public class Elevator extends StateSubsystem {
         }
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
-        double tolerance = 50;
+        double tolerance = 70;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 

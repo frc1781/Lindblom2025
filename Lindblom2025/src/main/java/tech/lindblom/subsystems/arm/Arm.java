@@ -16,6 +16,7 @@ import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEtimeOfFlight;
@@ -47,7 +48,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.absoluteEncoder.zeroOffset(0.3209622);
 
         // Slot 0 configs
-        armMotorConfig.closedLoop.pid(0.009, 0,0.001);
+        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
@@ -89,6 +90,14 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
+
+        if (currentOperatingMode == OperatingMode.AUTONOMOUS && robotController.getCenteringSide() != null &&
+                (robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_RIGHT
+                || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_LEFT
+                || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)) {
+            return robotController.driveController.hasStartedBackingUp();
+        }
+
         return matchesDesiredPosition();
     }
 
@@ -98,7 +107,7 @@ public class Arm extends StateSubsystem {
                 return timeInState.get() > 3;
             }
 
-            double tolerance = 6;
+            double tolerance = 8;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
             return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
         }
