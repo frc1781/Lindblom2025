@@ -7,6 +7,8 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.HashMap;
@@ -51,8 +53,8 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
         // Slot 1 configs
-        armMotorConfig.closedLoop.pid(0.005, 0, 0.001, ClosedLoopSlot.kSlot1);
-        armMotorConfig.closedLoop.outputRange(-0.2, 0.2, ClosedLoopSlot.kSlot1);
+        armMotorConfig.closedLoop.pid(0.001, 0, 0.001, ClosedLoopSlot.kSlot1);
+        armMotorConfig.closedLoop.outputRange(-0.1, 0.1, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
@@ -199,9 +201,13 @@ public class Arm extends StateSubsystem {
             return;
         }
 
+        if (timeInState.get() < 0.05) {
+            return;
+        }
+
        if (getCurrentState() == ArmState.COLLECT) {
            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-       } if (getCurrentState() == ArmState.POLE) {
+       } else if (getCurrentState() == ArmState.POLE) {
            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
        } else {
            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
