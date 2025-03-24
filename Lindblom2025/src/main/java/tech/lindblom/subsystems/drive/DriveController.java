@@ -224,6 +224,16 @@ public class DriveController extends StateSubsystem {
         if (targetedCenteringApriltagId == -1) {
             return inputSpeeds;
         }
+
+        if (robotController.getCurrentSequentialAction() != null)  {
+            switch (robotController.getCurrentSequentialAction()) {
+                case L4:
+                    break;
+                case L3, L2:
+                    targetParallelDistance = Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE_SHORT;
+                    break;
+            }
+        }
         
         switch (robotController.getCenteringSide()) {
             case LEFT:

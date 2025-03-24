@@ -91,6 +91,7 @@ public class Constants {
         public static int LEFT_FRONT_TOF_ID = 53;
 
         public static double TARGET_TOF_PARALLEL_DISTANCE = 350;
+        public static double TARGET_TOF_PARALLEL_DISTANCE_SHORT = 250;
         public static double TARGET_TOF_CENTERING_PARALLEL_DISTANCE = 250;
         // I have no idea what unit this is in -ally
         public static double TARGET_CORAL_OFFSET_LEFT = -14.2;

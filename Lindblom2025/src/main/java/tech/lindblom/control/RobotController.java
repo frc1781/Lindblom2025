@@ -605,16 +605,12 @@ public class RobotController {
 
         defineAction(Action.L3,
             new SubsystemSetting(true),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
         );
 
         defineAction(Action.L2,
             new SubsystemSetting(true),
-                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
             new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
             new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
         );
@@ -738,7 +734,7 @@ public class RobotController {
     }
 
     public boolean isArmInL4() {
-        return armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70;
+        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) && (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesDesiredPosition()) && (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
     }
 
     public static boolean isRed() {
@@ -749,6 +745,10 @@ public class RobotController {
             return false;
         }
 
+    }
+
+    public Action getCurrentSequentialAction() {
+        return currentSequentialAction;
     }
 
     private static class SequentialActionStatus {
