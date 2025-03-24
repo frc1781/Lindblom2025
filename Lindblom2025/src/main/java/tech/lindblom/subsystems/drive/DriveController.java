@@ -34,6 +34,7 @@ import tech.lindblom.utils.EnumCollection;
 
 import java.util.HashMap;
 
+import static tech.lindblom.control.RobotController.Action.INHIBIT_DRIVE;
 import static tech.lindblom.utils.EnumCollection.OperatingMode.*;
 
 public class DriveController extends StateSubsystem {
@@ -147,6 +148,9 @@ public class DriveController extends StateSubsystem {
                 break;
             case DRIVER:
                 //RobotController is inputing speeds from driver input
+                break;
+            case INHIBIT_DRIVE:
+
                 break;
             case PATH:
                 boolean hasRobotReachedTargetPose = hasReachedTargetPose();

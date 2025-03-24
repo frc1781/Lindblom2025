@@ -324,7 +324,7 @@ public class RobotController {
     
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? -1 : 1;
-        double inhibited = shouldInhibitDriveSpeed() ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
+        double inhibited = shouldInhibitDriveSpeed() || driveController.getCurrentState() == DriveController.DriverStates.INHIBIT_DRIVE ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
