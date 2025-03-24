@@ -737,6 +737,10 @@ public class RobotController {
         actionMap.put(action, settings);
     }
 
+    public boolean isArmInL4() {
+        return armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70;
+    }
+
     public static boolean isRed() {
         try {
             return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;

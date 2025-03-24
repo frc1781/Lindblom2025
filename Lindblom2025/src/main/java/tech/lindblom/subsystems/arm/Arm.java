@@ -45,9 +45,9 @@ public class Arm extends StateSubsystem {
         armMotorConfig.absoluteEncoder.zeroOffset(0.3209622);
 
         // Slot 0 configs
-        armMotorConfig.closedLoop.pid(0.008, 0,0.001);
+        armMotorConfig.closedLoop.pid(0.009, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
-        armMotorConfig.closedLoop.outputRange(-0.2, 0.2); //(-.55, .55);
+        armMotorConfig.closedLoop.outputRange(-0.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
         // Slot 1 configs
@@ -56,8 +56,8 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.005, 0, 0.000, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-0.3, .3); 
+        armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-1, 1, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -72,7 +72,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
         positionMap.put(ArmState.L3, 70.0);
-        positionMap.put(ArmState.L4, 45.0);
+        positionMap.put(ArmState.L4, 65.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 185.0);
         positionMap.put(ArmState.START_HIGH, 5.0);

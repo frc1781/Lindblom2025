@@ -4,7 +4,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
-import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
@@ -244,14 +243,12 @@ public class DriveController extends StateSubsystem {
                 return inputSpeeds;
         }
 
-        //if (robotController.isElevatorInPoleState()
-        //        && robotController.isArmInPoleState() &&
         if(robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (cameraOffset != Constants.Vision.ERROR_CONSTANT) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.1, 0.1, centeringYawController.calculate(cameraOffset, targetOffset));
-            } else {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.08, 0.08, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.2, 0.2, centeringYawController.calculate(cameraOffset, targetOffset));
+            } else if (robotController.isElevatorInPoleState() && robotController.isArmInPoleState()) {
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
             }
         }
 
@@ -297,6 +294,12 @@ public class DriveController extends StateSubsystem {
         Logger.recordOutput(this.name + "/isArmInPoleState", robotController.isArmInPoleState());
         
         if (reachedDesiredDistance && hasFoundReefPole()) {
+            if (robotController.isArmInL4()) {
+                inputSpeeds.vxMetersPerSecond = -0.5;
+                inputSpeeds.omegaRadiansPerSecond = 0;
+                inputSpeeds.vyMetersPerSecond = 0;
+                return inputSpeeds;
+            }
             return zeroSpeed();
         }
 
