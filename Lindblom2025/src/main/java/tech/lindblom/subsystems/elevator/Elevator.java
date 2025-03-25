@@ -88,7 +88,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
         positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 280.0});
+        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 350.0});
         positions.put(ElevatorState.SMART_ALGAE, new Double[]{minFirstStageDistance, 50.0});
     }
 
@@ -182,12 +182,11 @@ public class Elevator extends StateSubsystem {
             return previousSmartState;
         }
 
-        return ElevatorState.HIGH_ALGAE;
-/*        if (apriltag % 2 != 0) {
+        if (apriltag % 2 != 0) {
             return ElevatorState.LOW_ALGAE;
         } else {
             return ElevatorState.HIGH_ALGAE;
-        }*/
+        }
     }
 
     public void goToPosition() {

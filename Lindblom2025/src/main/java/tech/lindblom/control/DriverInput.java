@@ -29,7 +29,6 @@ public class DriverInput {
                 new Control(0, "LB", Action.THUMB_SPIN_IN),
                 new Control(0, "X", Action.THUMB_SPIN_OUT),
                 new Control(0, "RIGHT_TRIGGER", Action.INHIBIT_DRIVE),
-                new Control(1, "DPAD_RIGHT", Action.HIGH_SCORE_ALGAE),
                 new Control(1, "DPAD_LEFT", Action.GROUND_COLLECT_ALGAE),
                 new Control(1, "DPAD_UP", Action.CLIMBER_UP),
                 new Control(1, "DPAD_DOWN", Action.CLIMBER_DOWN),

@@ -508,7 +508,6 @@ public class RobotController {
         GROUND_COLLECT_ALGAE,
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
-        HIGH_SCORE_ALGAE,
         INHIBIT_DRIVE,
     }
 
@@ -519,14 +518,9 @@ public class RobotController {
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
 
         defineAction(HIGH_HOLD_ALGAE,
-                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 4),
+                new SubsystemSetting(armSystem, Arm.ArmState.READY_ALGAE, 4),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4,4),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 4));
-
-        defineAction(HIGH_SCORE_ALGAE,
-                new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,5),
-                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
 
         defineAction(START_ARM,
                 new SubsystemSetting(true),

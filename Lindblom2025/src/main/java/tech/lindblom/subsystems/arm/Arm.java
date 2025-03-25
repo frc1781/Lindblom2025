@@ -45,7 +45,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.3209622);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
         // Slot 0 configs
         armMotorConfig.closedLoop.pid(0.01, 0,0.001);
@@ -62,6 +62,12 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
+
+        
+        // Slot 2 configs | algae ready state
+        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-1, 1, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -82,7 +88,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
-        positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
+        positionMap.put(ArmState.READY_ALGAE, 21.0);
     }
 
     @Override
@@ -214,7 +220,9 @@ public class Arm extends StateSubsystem {
             return;
         }
 
-       if (getCurrentState() == ArmState.COLLECT) {
+        if (getCurrentState() == ArmState.READY_ALGAE) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
+        } else if (getCurrentState() == ArmState.COLLECT) {
            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
        } else if (getCurrentState() == ArmState.POLE) {
            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
@@ -252,6 +260,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, SLIGHT_TOSS
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE
     }
 }
