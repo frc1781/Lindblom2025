@@ -210,6 +210,9 @@ public class Elevator extends StateSubsystem {
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
+            if (secondStagePosition < 200) {
+                clampedResult = clampedResult/2;  //try slowing dow if close to hitting first stage.
+            }
             dutyCycle = clampedResult;
         } else if (firstStageTOF.isRangeValidRegularCheck() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
