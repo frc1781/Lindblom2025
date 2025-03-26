@@ -77,14 +77,14 @@ public class Elevator extends StateSubsystem {
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
-        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
+        positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.SAFER, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 165.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.BARGE_SCORE, new Double[]{maxFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, minSecondStageDistance});
+        positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
         positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 350.0});
