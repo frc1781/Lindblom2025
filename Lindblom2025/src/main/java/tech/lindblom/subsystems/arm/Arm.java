@@ -220,15 +220,15 @@ public class Arm extends StateSubsystem {
             return;
         }
 
-    //     if (getCurrentState() == ArmState.READY_ALGAE) {
-    //         armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
-    //     } else if (getCurrentState() == ArmState.COLLECT) {
-    //        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-    //    } else if (getCurrentState() == ArmState.POLE) {
-    //        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
-    //    } else {
-    //        armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-    //    }
+         if (getCurrentState() == ArmState.READY_ALGAE) {
+             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
+         } else if (getCurrentState() == ArmState.COLLECT) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+        } else if (getCurrentState() == ArmState.POLE) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
+        } else {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        }
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }
