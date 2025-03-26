@@ -65,7 +65,7 @@ public class Elevator extends StateSubsystem {
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.idleMode(IdleMode.kCoast);
-        rightMotorConfig.smartCurrentLimit(5, 20);
+        rightMotorConfig.smartCurrentLimit(20,30);
         motorRight.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Left Elevator Motor
@@ -73,7 +73,7 @@ public class Elevator extends StateSubsystem {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.idleMode(IdleMode.kCoast);
         leftMotorConfig.follow(motorRight, true);
-        leftMotorConfig.smartCurrentLimit(5, 20);
+        leftMotorConfig.smartCurrentLimit(20,30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
@@ -238,10 +238,10 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.01, 0.6, dutyCycle);
+            return EEUtil.clamp(-0.2, 0.8, dutyCycle);
         }
 
-        return EEUtil.clamp(0, 0.6, dutyCycle);
+        return EEUtil.clamp(0, 0.8, dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {
