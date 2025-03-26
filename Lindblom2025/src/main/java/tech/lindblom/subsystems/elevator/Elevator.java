@@ -65,7 +65,7 @@ public class Elevator extends StateSubsystem {
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.idleMode(IdleMode.kCoast);
-        rightMotorConfig.smartCurrentLimit(20,30);
+        rightMotorConfig.smartCurrentLimit(30);
         motorRight.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Left Elevator Motor
@@ -73,7 +73,7 @@ public class Elevator extends StateSubsystem {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.idleMode(IdleMode.kCoast);
         leftMotorConfig.follow(motorRight, true);
-        leftMotorConfig.smartCurrentLimit(20,30);
+        leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
