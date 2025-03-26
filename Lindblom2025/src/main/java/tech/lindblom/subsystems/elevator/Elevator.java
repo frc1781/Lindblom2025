@@ -238,7 +238,7 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.1, 0.6, dutyCycle);
+            return EEUtil.clamp(-0.01, 0.6, dutyCycle);
         }
 
         return EEUtil.clamp(0, 0.6, dutyCycle);
