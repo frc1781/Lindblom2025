@@ -65,7 +65,7 @@ public class Elevator extends StateSubsystem {
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.idleMode(IdleMode.kCoast);
-        rightMotorConfig.smartCurrentLimit(30);
+        rightMotorConfig.smartCurrentLimit(10);
         motorRight.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //Left Elevator Motor
