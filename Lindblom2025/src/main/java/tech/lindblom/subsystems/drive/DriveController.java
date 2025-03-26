@@ -325,7 +325,7 @@ public class DriveController extends StateSubsystem {
     }
 
     public boolean hasStartedBackingUp() {
-        return reefTimer.get() > 0.2;
+        return reefTimer.get() > 0.4;
     }
 
     @Override
