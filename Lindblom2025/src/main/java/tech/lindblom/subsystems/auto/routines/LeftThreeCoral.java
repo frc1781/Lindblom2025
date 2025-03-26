@@ -12,7 +12,7 @@ public class LeftThreeCoral implements AutoRoutine {
 
     @Override
     public String getName() {
-        return "GG";
+        return "left3";
     }
 
     @Override
