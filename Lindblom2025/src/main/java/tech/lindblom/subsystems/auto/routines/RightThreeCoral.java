@@ -19,7 +19,7 @@ public class RightThreeCoral implements AutoRoutine {
                 new DependGroup(
                         new AutoStep[] {
                                 new AutoStep(RobotController.Action.START_ARM),
-                                new AutoStep(RobotController.Action.READY_FOP_POLE, Auto.getPathFromName("start;EF")),
+                                new AutoStep(RobotController.Action.READY_FOP_POLE, Auto.getPathFromName("startRight")),
                                 new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 9, 22),
 
                                 new AutoStep(RobotController.Action.READY_FOR_COLLECT, Auto.getPathFromName("EF;collect")),

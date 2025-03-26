@@ -16,6 +16,7 @@ import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.spark.SparkLowLevel;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEtimeOfFlight;
@@ -44,15 +45,15 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(30);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.3209622);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
         // Slot 0 configs
-        armMotorConfig.closedLoop.pid(0.009, 0,0.001);
+        armMotorConfig.closedLoop.pid(0.008, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
-        // Slot 1 configs
+        // Slot 1 configs | collect state
         armMotorConfig.closedLoop.pid(0.001, 0, 0.001, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.outputRange(-0.1, 0.1, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
@@ -61,6 +62,12 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
+
+        
+        // Slot 2 configs | algae ready state
+        armMotorConfig.closedLoop.pid(0.02, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-0.2, 0.8, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -81,7 +88,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
-        positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
+        positionMap.put(ArmState.READY_ALGAE, 25.0);
     }
 
     @Override
@@ -89,6 +96,14 @@ public class Arm extends StateSubsystem {
         if (getCurrentState() == ArmState.MANUAL_DOWN || getCurrentState() == ArmState.MANUAL_UP) {
             return true;
         }
+
+        if (currentOperatingMode == OperatingMode.AUTONOMOUS && robotController.getCenteringSide() != null &&
+                (robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_RIGHT
+                || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_LEFT
+                || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)) {
+            return robotController.driveController.hasStartedBackingUp();
+        }
+
         return matchesDesiredPosition();
     }
 
@@ -98,7 +113,7 @@ public class Arm extends StateSubsystem {
                 return timeInState.get() > 3;
             }
 
-            double tolerance = 6;
+            double tolerance = 8;
             Logger.recordOutput(this.name + "/DesiredPositionDifference", Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()));
             return Math.abs(positionMap.get(getCurrentState()) - armMotor.getAbsoluteEncoder().getPosition()) <= tolerance;
         }
@@ -205,13 +220,15 @@ public class Arm extends StateSubsystem {
             return;
         }
 
-       if (getCurrentState() == ArmState.COLLECT) {
-           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-       } else if (getCurrentState() == ArmState.POLE) {
-           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
-       } else {
-           armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-       }
+         if (getCurrentState() == ArmState.READY_ALGAE) {
+             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
+         } else if (getCurrentState() == ArmState.COLLECT) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+        } else if (getCurrentState() == ArmState.POLE) {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
+        } else {
+            armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        }
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }
@@ -243,6 +260,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, SLIGHT_TOSS
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE
     }
 }

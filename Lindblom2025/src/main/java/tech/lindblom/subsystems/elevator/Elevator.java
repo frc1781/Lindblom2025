@@ -16,6 +16,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.arm.Arm;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
@@ -75,7 +76,6 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.SAFER, new Double[]{minFirstStageDistance, 80.0});
@@ -87,7 +87,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
         positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, minSecondStageDistance});
-        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 280.0});
+        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 350.0});
         positions.put(ElevatorState.SMART_ALGAE, new Double[]{minFirstStageDistance, 50.0});
     }
 
@@ -97,7 +97,11 @@ public class Elevator extends StateSubsystem {
             return false;
         }
 
-        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null) {
+        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null &&
+                (robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_RIGHT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_LEFT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)
+        ) {
             return robotController.driveController.matchesState();
         }
 
@@ -119,7 +123,7 @@ public class Elevator extends StateSubsystem {
         }
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
-        double tolerance = 50;
+        double tolerance = 70;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
@@ -177,12 +181,11 @@ public class Elevator extends StateSubsystem {
             return previousSmartState;
         }
 
-        return ElevatorState.HIGH_ALGAE;
-/*        if (apriltag % 2 != 0) {
+        if (apriltag % 2 != 0) {
             return ElevatorState.LOW_ALGAE;
         } else {
             return ElevatorState.HIGH_ALGAE;
-        }*/
+        }
     }
 
     public void goToPosition() {
@@ -225,7 +228,7 @@ public class Elevator extends StateSubsystem {
         //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
         //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
         //to leave it's spot on the second stage until it is back in a safe position.
-        if ((!robotController.isSafeForElevatorStage2toMove() || !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+        if ((!robotController.isSafeForElevatorStage2toMove())) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 
@@ -235,10 +238,10 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.8, 0.8, dutyCycle);
+            return EEUtil.clamp(-0.2, 0.8, dutyCycle);
         }
 
-        return EEUtil.clamp(0, 0.6, dutyCycle);
+        return EEUtil.clamp(0, 0.8, dutyCycle);
     }
 
     public enum ElevatorState implements SubsystemState {

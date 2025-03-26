@@ -114,7 +114,10 @@ public class Drive extends Subsystem {
     }
 
     public void setInitialPose(Pose2d pose) {
-        swerveDrivePoseEstimator.resetPosition(getGioRotation(), getModulePositions(), pose);
+        swerveDrivePoseEstimator.resetPosition(
+                getGioRotation(),
+                getModulePositions(),
+                pose);
     }
 
     public void updatePoseUsingVisionEstimate(Pose2d estimatedPose, double time, Matrix<N3, N1> stdValue) {

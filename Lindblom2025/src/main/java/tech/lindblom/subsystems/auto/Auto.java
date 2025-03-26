@@ -178,7 +178,9 @@ public class Auto extends Subsystem {
             switch (currentStep.getStepType()) {
                 case PATH_AND_ACTION:
                 case PATH:
-                    return currentStep.getPath().getStartingDifferentialPose();
+                    return new Pose2d(
+                        currentStep.getPath().getStartingDifferentialPose().getTranslation(),
+                        currentStep.getPath().getIdealStartingState().rotation());
             }
         } else {
             System.out.println("Selected routine is null");
