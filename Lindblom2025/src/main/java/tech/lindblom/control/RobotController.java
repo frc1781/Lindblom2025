@@ -569,7 +569,7 @@ public class RobotController {
                     we have that possibility I don't know how useful some of that is but well
                  */
         defineAction(Action.CRADLE_COLLECT,
-                new SubsystemSetting(true),
+                //new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2));
 
