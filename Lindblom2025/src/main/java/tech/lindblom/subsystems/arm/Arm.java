@@ -48,12 +48,12 @@ public class Arm extends StateSubsystem {
         armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
         // Slot 0 configs
-        armMotorConfig.closedLoop.pid(0.01, 0,0.001);
+        armMotorConfig.closedLoop.pid(0.001, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
-        // Slot 1 configs
+        // Slot 1 configs | collect state
         armMotorConfig.closedLoop.pid(0.001, 0, 0.001, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.outputRange(-0.1, 0.1, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
