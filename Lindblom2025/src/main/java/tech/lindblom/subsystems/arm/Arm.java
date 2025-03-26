@@ -47,25 +47,26 @@ public class Arm extends StateSubsystem {
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
         armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
+        // Slot 0 configs
         armMotorConfig.closedLoop.pid(0.001, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
 
-        // collect state
+        // Slot 1 configs | collect state
         armMotorConfig.closedLoop.pid(0.001, 0, 0.001, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.outputRange(-0.1, 0.1, ClosedLoopSlot.kSlot1);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
-        // pole state
+        // Slot 2 configs | pole state
         armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         
-        // algae ready state
-        armMotorConfig.closedLoop.pid(0.02, 0, 0.000, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.outputRange(-0.2, 0.8, ClosedLoopSlot.kSlot3);
+        // Slot 2 configs | algae ready state
+        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-1, 1, ClosedLoopSlot.kSlot3);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -87,7 +88,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
-        positionMap.put(ArmState.READY_ALGAE, 25.0);
+        positionMap.put(ArmState.READY_ALGAE, 21.0);
     }
 
     @Override
