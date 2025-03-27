@@ -38,11 +38,6 @@ public class Thumb extends StateSubsystem {
 
     @Override
     public void periodic() {
-        if (prevState == ThumbState.SPIN_IN && getCurrentState() == ThumbState.IDLE && timeInState.get() < 1) {
-            spinMotor.set(0.5);
-            return;
-        }
-
         switch ((ThumbState) getCurrentState()) {
             case SPIN_IN:
                 spinMotor.set(-1);

@@ -504,10 +504,16 @@ public class RobotController {
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
         INHIBIT_DRIVE,
-        SCORE_START_ARM
+        SCORE_START_ARM,
+        HIGH_SCORE_ALGAE
     }
 
     public void createActions() {
+        defineAction(HIGH_SCORE_ALGAE,
+            new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 233),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,233),
+            new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 233));
+
         defineAction(SCORE_START_ARM,
             new SubsystemSetting(true),
             new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),

@@ -89,6 +89,8 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
         positionMap.put(ArmState.READY_ALGAE, 25.0);
+        positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
+
     }
 
     @Override
@@ -260,6 +262,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE, SLIGHT_TOSS
     }
 }

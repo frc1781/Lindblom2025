@@ -177,6 +177,7 @@ public class Elevator extends StateSubsystem {
 
     public ElevatorState getSmartAlgaeState() {
         int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
+
         if (apriltag == -1 && previousSmartState != null) {
             return previousSmartState;
         }
@@ -254,6 +255,13 @@ public class Elevator extends StateSubsystem {
         }
 
         return EEUtil.clamp(0, 0.8, dutyCycle);
+    }
+
+    @Override
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        if (previousState == ElevatorState.SMART_ALGAE) {
+            previousSmartState = null;
+        }
     }
 
     public enum ElevatorState implements SubsystemState {
