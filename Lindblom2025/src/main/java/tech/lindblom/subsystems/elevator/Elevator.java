@@ -228,7 +228,7 @@ public class Elevator extends StateSubsystem {
         //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
         //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
         //to leave it's spot on the second stage until it is back in a safe position.
-        if ((!robotController.isSafeForElevatorStage2toMove())) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+        if (((!robotController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100)) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 

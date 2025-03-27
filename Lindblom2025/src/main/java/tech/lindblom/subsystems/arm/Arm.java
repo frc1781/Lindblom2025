@@ -64,7 +64,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
         
-        // Slot 2 configs | algae ready state
+        // Slot 3 configs | algae ready state
         armMotorConfig.closedLoop.pid(0.02, 0, 0.000, ClosedLoopSlot.kSlot3);
         armMotorConfig.closedLoop.outputRange(-0.2, 0.8, ClosedLoopSlot.kSlot3);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
