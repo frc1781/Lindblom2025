@@ -23,7 +23,7 @@ public class LeftThreeCoral implements AutoRoutine {
                         new AutoStep(Action.START_ARM, Auto.getPathFromName("startLeft")),
                         new AutoStep(RobotController.Action.CENTER_REEF_LEFT_L4, 11, 20),
 
-                        new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("LK;collect")),
+                        new AutoStep(Action.READY_FOR_COLLECT, Auto.getPathFromName("IJ;collect")),
                         new AutoStep(Action.CONVEY_AND_COLLECT),
                         new AutoStep(Action.READY_FOP_POLE, Auto.getPathFromName("collect;LK")),
                         new AutoStep(Action.CENTER_REEF_RIGHT_L4, 6, 19),
