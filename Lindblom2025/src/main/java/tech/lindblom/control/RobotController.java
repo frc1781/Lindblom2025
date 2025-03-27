@@ -81,13 +81,8 @@ public class RobotController {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
                 new TestRoutine(),
-                new Collect(),
                 new LeftThreeCoral(),
                 new RightThreeCoral(),
-                new RightFourCoral(),
-                new LeftFourCoral(),
-                new LeftOneCoral(),
-                new RightOneCoral(),
                 new CenterOneCoral()
         );
         visionSystem = new Vision(this);
