@@ -181,10 +181,22 @@ public class Elevator extends StateSubsystem {
             return previousSmartState;
         }
 
-        if (apriltag % 2 != 0) {
+        if (apriltag == -1 && previousSmartState == null) {
             return ElevatorState.LOW_ALGAE;
+        }
+
+        if (RobotController.isRed()) {
+            if (apriltag % 2 != 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         } else {
-            return ElevatorState.HIGH_ALGAE;
+            if (apriltag % 2 == 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         }
     }
 

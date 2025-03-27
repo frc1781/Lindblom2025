@@ -59,7 +59,7 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.pid(0.015, 0, 0.000, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
 
@@ -211,7 +211,7 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position){
-        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID) {
+        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID && getCurrentState() != ArmState.REEF_ALGAE) {
             armMotor.set(0);
             return;
         }
