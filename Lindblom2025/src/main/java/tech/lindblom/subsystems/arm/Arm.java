@@ -149,11 +149,11 @@ public class Arm extends StateSubsystem {
                 case IDLE:
                     armMotor.set(0);
                     break;
-                case MANUAL_DOWN:
-                    armMotor.set(-0.3);
+                case MANUAL_DOWN:   //logic is reverses down is up
+                    armMotor.set(-0.8);
                     break;
-                case MANUAL_UP:
-                    armMotor.set(0.3);
+                case MANUAL_UP:  // and up is down
+                    armMotor.set(0.2);
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
