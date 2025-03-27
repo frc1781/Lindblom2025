@@ -49,8 +49,8 @@ public class DriveController extends StateSubsystem {
     private final EEtimeOfFlight rightTOF;
     private final EEtimeOfFlight armTOF;
 
-    private final PIDController XController = new PIDController(3, 0, 0);
-    private final PIDController YController = new PIDController(3, 0, 0);
+    private final PIDController XController = new PIDController(3.5, 0, 0);
+    private final PIDController YController = new PIDController(3.5, 0, 0);
     private final ProfiledPIDController rotController = new ProfiledPIDController(4, 0, 0,
             new TrapezoidProfile.Constraints(3.6 * Math.PI, 7.2 * Math.PI));
     private final ProfiledPIDController centeringRotController = new ProfiledPIDController(0.05, 0, 0,
@@ -239,6 +239,8 @@ public class DriveController extends StateSubsystem {
                 case L3, L2:
                     targetParallelDistance = Constants.Drive.TARGET_TOF_PARALLEL_DISTANCE_SHORT;
                     break;
+                default:
+                    break;
             }
         }
         
@@ -263,9 +265,9 @@ public class DriveController extends StateSubsystem {
         if(robotController.getCenteringSide() != ReefCenteringSide.CENTER)
         {
             if (cameraOffset != Constants.Vision.ERROR_CONSTANT) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.2, 0.2, centeringYawController.calculate(cameraOffset, targetOffset));
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.4, 0.4, centeringYawController.calculate(cameraOffset, targetOffset));
             } else if (robotController.isElevatorInPoleState() && robotController.isArmInPoleState()) {
-                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.3, 0.3, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.30 : 0.30);
+                inputSpeeds.vyMetersPerSecond = EEUtil.clamp(-0.4, 0.4, getCurrentState() == DriverStates.CENTERING_RIGHT ? -0.40 : 0.40);
             }
         }
 

@@ -123,9 +123,9 @@ public class Arm extends StateSubsystem {
     @Override
     public void init() {
         super.init();
-       if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
+       //if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
             performedSafeStates = false;
-       }
+       //}
     }
 
     public double getPosition() {
