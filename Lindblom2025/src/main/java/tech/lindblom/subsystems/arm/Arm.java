@@ -59,9 +59,9 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.015, 0, 0.000, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.pid(0.03, 0, 0.001, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-.7, .7, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.velocityFF((double) 1 / 565, ClosedLoopSlot.kSlot2);
 
         
         // Slot 3 configs | algae ready state
@@ -83,7 +83,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.L3, 30.0);
         positionMap.put(ArmState.L4, 65.0);
         positionMap.put(ArmState.WAIT, 25.0);
-        positionMap.put(ArmState.COLLECT, 185.0);
+        positionMap.put(ArmState.COLLECT, 179.0);
         positionMap.put(ArmState.START_HIGH, 5.0);
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
