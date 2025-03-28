@@ -369,6 +369,10 @@ public class RobotController {
             };
         }
 
+        if (mostRecentInputHolder == null) {
+            return null; // No input received yet
+        }
+
         return mostRecentInputHolder.centeringSide;
     }
 
@@ -744,7 +748,7 @@ public class RobotController {
 
     public boolean isArmInL4() {
         return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) 
-                || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesDesiredPosition()) 
+                || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesState()) 
                 || (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
     }
 

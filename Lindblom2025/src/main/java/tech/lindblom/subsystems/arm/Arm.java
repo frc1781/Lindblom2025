@@ -43,7 +43,7 @@ public class Arm extends StateSubsystem {
         //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
-        armMotorConfig.smartCurrentLimit(30);
+        armMotorConfig.smartCurrentLimit(40);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
         armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
@@ -65,8 +65,8 @@ public class Arm extends StateSubsystem {
 
         
         // Slot 3 configs | algae ready state
-        armMotorConfig.closedLoop.pid(0.02, 0, 0.000, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.outputRange(-0.2, 0.8, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-0.2, 1, ClosedLoopSlot.kSlot3);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -80,7 +80,7 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.IDLE, 2.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 30.0);
+        positionMap.put(ArmState.L3, 28.0);
         positionMap.put(ArmState.L4, 65.0);
         positionMap.put(ArmState.WAIT, 25.0);
         positionMap.put(ArmState.COLLECT, 179.0);
@@ -156,7 +156,7 @@ public class Arm extends StateSubsystem {
                     armMotor.set(0);
                     break;
                 case MANUAL_DOWN:   //logic is reverses down is up
-                    armMotor.set(-0.8);
+                    armMotor.set(-1);
                     break;
                 case MANUAL_UP:  // and up is down
                     armMotor.set(0.2);
