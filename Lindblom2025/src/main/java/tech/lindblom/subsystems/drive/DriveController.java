@@ -23,6 +23,7 @@ import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.control.DriverInput.ReefCenteringSide;
+import tech.lindblom.subsystems.arm.Arm.ArmState;
 import tech.lindblom.subsystems.led.LEDs.LEDState;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.subsystems.vision.Vision;
@@ -378,6 +379,10 @@ public class DriveController extends StateSubsystem {
     public boolean hasFinishedCentering() {
         if (robotController.getCenteringSide() == null)  {
             return false;
+        }
+
+        if (robotController.armSystem.getCurrentState() == ArmState.L3) {
+            return reachedDesiredDistance;
         }
 
         return reachedDesiredDistance && hasFoundReefPole();

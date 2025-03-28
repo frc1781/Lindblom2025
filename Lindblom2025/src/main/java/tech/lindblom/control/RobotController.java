@@ -615,7 +615,8 @@ public class RobotController {
         defineAction(Action.L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5));
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3_LOW, 5));
 
         defineAction(Action.L2,
                 new SubsystemSetting(true),

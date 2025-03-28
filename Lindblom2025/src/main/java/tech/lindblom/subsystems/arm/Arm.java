@@ -106,6 +106,10 @@ public class Arm extends StateSubsystem {
             return robotController.driveController.hasStartedBackingUp();
         }
 
+        if (robotController.getCenteringSide() != null && getCurrentState() == ArmState.L3) {
+                return robotController.driveController.matchesState();
+            }
+
         return matchesDesiredPosition();
     }
 
