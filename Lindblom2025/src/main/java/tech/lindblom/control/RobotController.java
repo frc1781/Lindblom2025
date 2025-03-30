@@ -81,13 +81,8 @@ public class RobotController {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
                 new TestRoutine(),
-                new Collect(),
                 new LeftThreeCoral(),
                 new RightThreeCoral(),
-                new RightFourCoral(),
-                new LeftFourCoral(),
-                new LeftOneCoral(),
-                new RightOneCoral(),
                 new CenterOneCoral()
         );
         visionSystem = new Vision(this);
@@ -374,6 +369,10 @@ public class RobotController {
             };
         }
 
+        if (mostRecentInputHolder == null) {
+            return null; // No input received yet
+        }
+
         return mostRecentInputHolder.centeringSide;
     }
 
@@ -509,9 +508,22 @@ public class RobotController {
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
         INHIBIT_DRIVE,
+        SCORE_START_ARM,
+        HIGH_SCORE_ALGAE
     }
 
     public void createActions() {
+        defineAction(HIGH_SCORE_ALGAE,
+            new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 233),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,233),
+            new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 233));
+
+        defineAction(SCORE_START_ARM,
+            new SubsystemSetting(true),
+            new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 100),
+            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 100));
+
         defineAction(GROUND_COLLECT_ALGAE,
                 new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
@@ -607,7 +619,8 @@ public class RobotController {
         defineAction(Action.L3,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5));
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3_LOW, 5));
 
         defineAction(Action.L2,
                 new SubsystemSetting(true),
@@ -734,7 +747,9 @@ public class RobotController {
     }
 
     public boolean isArmInL4() {
-        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesDesiredPosition()) || (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
+        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) 
+                || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesState()) 
+                || (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
     }
 
     public static boolean isRed() {

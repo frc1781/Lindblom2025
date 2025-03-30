@@ -82,6 +82,7 @@ public class Elevator extends StateSubsystem {
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 165.0});
+        positions.put(ElevatorState.L3_LOW, new Double[]{minFirstStageDistance, 350.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.BARGE_SCORE, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
@@ -177,14 +178,27 @@ public class Elevator extends StateSubsystem {
 
     public ElevatorState getSmartAlgaeState() {
         int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
+
         if (apriltag == -1 && previousSmartState != null) {
             return previousSmartState;
         }
 
-        if (apriltag % 2 != 0) {
+        if (apriltag == -1 && previousSmartState == null) {
             return ElevatorState.LOW_ALGAE;
+        }
+
+        if (RobotController.isRed()) {
+            if (apriltag % 2 != 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         } else {
-            return ElevatorState.HIGH_ALGAE;
+            if (apriltag % 2 == 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         }
     }
 
@@ -228,7 +242,7 @@ public class Elevator extends StateSubsystem {
         //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
         //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
         //to leave it's spot on the second stage until it is back in a safe position.
-        if ((!robotController.isSafeForElevatorStage2toMove())) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+        if (((!robotController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100)) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 
@@ -238,10 +252,17 @@ public class Elevator extends StateSubsystem {
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.2, 0.8, dutyCycle);
+            return EEUtil.clamp(0.0, 0.75, dutyCycle);
         }
 
         return EEUtil.clamp(0, 0.8, dutyCycle);
+    }
+
+    @Override
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        if (previousState == ElevatorState.SMART_ALGAE) {
+            previousSmartState = null;
+        }
     }
 
     public enum ElevatorState implements SubsystemState {
@@ -250,6 +271,7 @@ public class Elevator extends StateSubsystem {
         L1,
         L2,
         L3,
+        L3_LOW,
         L4,
         MANUAL_DOWN,
         MANUAL_UP,

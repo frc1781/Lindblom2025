@@ -67,14 +67,14 @@ public class Climber extends BaseClimber {
                 }
                 break;
             case DOWN:
-                requestedPosition += .02;
+                requestedPosition += .03;
                 if (!climbing) {
                     climberPID.reset();
                 }
                 climbing = true;
                 break;
             case UP:
-                requestedPosition -= .02;
+                requestedPosition -= .03;
                 if (!climbing) {
                     climberPID.reset();
                 }
@@ -90,7 +90,7 @@ public class Climber extends BaseClimber {
             climberDutyCycle = 0.0;
         }
 
-        climberDutyCycle = EEUtil.clamp(-0.3, 0.3, climberDutyCycle);
+        climberDutyCycle = EEUtil.clamp(-0.5, 0.5, climberDutyCycle);
         leverMotor.set(climberDutyCycle);
         Logger.recordOutput("Climber/dutyCycle", climberDutyCycle);
         Logger.recordOutput("Climber/position", armEncoder.getPosition());

@@ -43,7 +43,7 @@ public class Arm extends StateSubsystem {
         //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
         SparkMaxConfig armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
-        armMotorConfig.smartCurrentLimit(30);
+        armMotorConfig.smartCurrentLimit(40);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
         armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
@@ -59,14 +59,14 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
 
         // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.01, 0, 0.000, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-.55, .55, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.pid(0.03, 0, 0.001, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.outputRange(-.7, .7, ClosedLoopSlot.kSlot2);
+        armMotorConfig.closedLoop.velocityFF((double) 1 / 565, ClosedLoopSlot.kSlot2);
 
         
-        // Slot 2 configs | algae ready state
-        armMotorConfig.closedLoop.pid(0.02, 0, 0.000, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.outputRange(-0.2, 0.8, ClosedLoopSlot.kSlot3);
+        // Slot 3 configs | algae ready state
+        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-0.2, 1, ClosedLoopSlot.kSlot3);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
@@ -80,15 +80,17 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.IDLE, 2.0);
         positionMap.put(ArmState.L1, 45.0);
         positionMap.put(ArmState.L2, 0.0);
-        positionMap.put(ArmState.L3, 30.0);
+        positionMap.put(ArmState.L3, 28.0);
         positionMap.put(ArmState.L4, 65.0);
         positionMap.put(ArmState.WAIT, 25.0);
-        positionMap.put(ArmState.COLLECT, 185.0);
+        positionMap.put(ArmState.COLLECT, 179.0);
         positionMap.put(ArmState.START_HIGH, 5.0);
         positionMap.put(ArmState.START_MID, 40.0);
         positionMap.put(ArmState.GROUND_ALGAE, 159.0);
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
         positionMap.put(ArmState.READY_ALGAE, 25.0);
+        positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
+
     }
 
     @Override
@@ -103,6 +105,10 @@ public class Arm extends StateSubsystem {
                 || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)) {
             return robotController.driveController.hasStartedBackingUp();
         }
+
+        if (robotController.getCenteringSide() != null && getCurrentState() == ArmState.L3) {
+                return robotController.driveController.matchesState();
+            }
 
         return matchesDesiredPosition();
     }
@@ -123,9 +129,9 @@ public class Arm extends StateSubsystem {
     @Override
     public void init() {
         super.init();
-       if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
+       //if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
             performedSafeStates = false;
-       }
+       //}
     }
 
     public double getPosition() {
@@ -149,11 +155,11 @@ public class Arm extends StateSubsystem {
                 case IDLE:
                     armMotor.set(0);
                     break;
-                case MANUAL_DOWN:
-                    armMotor.set(-0.3);
+                case MANUAL_DOWN:   //logic is reverses down is up
+                    armMotor.set(-1);
                     break;
-                case MANUAL_UP:
-                    armMotor.set(0.3);
+                case MANUAL_UP:  // and up is down
+                    armMotor.set(0.2);
                     break;
             }
         } else if (positionMap.containsKey(getCurrentState())) {
@@ -211,7 +217,7 @@ public class Arm extends StateSubsystem {
     }
 
     private void getToPosition(double position){
-        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID) {
+        if (getCurrentState() != ArmState.IDLE && !robotController.isSafeForArmToLeaveIdle() && getCurrentState() != ArmState.START_MID && getCurrentState() != ArmState.REEF_ALGAE) {
             armMotor.set(0);
             return;
         }
@@ -260,6 +266,6 @@ public class Arm extends StateSubsystem {
     }
 
     public enum ArmState implements SubsystemState {
-        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE
+        IDLE, L1, L2, L3, L4, MANUAL_UP, MANUAL_DOWN, COLLECT, WAIT, POLE, START_MID, START_HIGH, GROUND_ALGAE, REEF_ALGAE, READY_ALGAE, SLIGHT_TOSS
     }
 }
