@@ -29,6 +29,7 @@ public class Arm extends StateSubsystem {
     private EEtimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
+    private double requestedPosition;
 
     private boolean performedSafeStates = true;
 
@@ -45,7 +46,11 @@ public class Arm extends StateSubsystem {
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(40);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
-        armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
+        armMotorConfig.absoluteEncoder.zeroOffset(0.7483);
+        armMotorConfig.absoluteEncoder.zeroCentered(true);
+        armMotorConfig.absoluteEncoder.inverted(true);
+        armMotorConfig.inverted(true);
+        armMotorConfig.encoder.positionConversionFactor(9.375);
 
         // Slot 0 configs
         armMotorConfig.closedLoop.pid(0.008, 0,0.001);
@@ -64,16 +69,18 @@ public class Arm extends StateSubsystem {
         armMotorConfig.closedLoop.velocityFF((double) 1 / 565, ClosedLoopSlot.kSlot2);
 
         
-        // Slot 3 configs | algae ready state
-        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.outputRange(-0.2, 1, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
+        // Slot 3 configs | FOR TESTING
+        armMotorConfig.closedLoop.pid(0.03, 0, 0.000, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.outputRange(-0.2, 0.2, ClosedLoopSlot.kSlot3);
+        armMotorConfig.closedLoop.velocityFF(1.0 / 565.0, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
         armMotorConfig.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
 
         armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        armMotor.getEncoder().setPosition(0);
+        
 
         positionMap = new HashMap<>();
         positionMap.put(ArmState.POLE, 25.0);
@@ -128,6 +135,7 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
+        requestedPosition = armMotor.getEncoder().getPosition();
         super.init();
        //if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
             performedSafeStates = false;
@@ -141,7 +149,9 @@ public class Arm extends StateSubsystem {
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/MatchesPosition", matchesDesiredPosition());
-        Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
+        Logger.recordOutput(this.name + "/AbsEncoder", armMotor.getAbsoluteEncoder().getPosition());
+        Logger.recordOutput(this.name + "/RelEncoder", armMotor.getEncoder().getPosition());
+        Logger.recordOutput(this.name + "/RequestedPosition", requestedPosition);
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
@@ -155,13 +165,18 @@ public class Arm extends StateSubsystem {
                 case IDLE:
                     armMotor.set(0);
                     break;
-                case MANUAL_DOWN:   //logic is reverses down is up
-                    armMotor.set(-1);
+                case MANUAL_DOWN:
+                    requestedPosition -= 0.05;
                     break;
                 case MANUAL_UP:  // and up is down
-                    armMotor.set(0.2);
+                    requestedPosition += 0.05;
                     break;
             }
+            armMotor.getClosedLoopController().setReference(
+                requestedPosition, 
+                ControlType.kPosition, 
+                ClosedLoopSlot.kSlot3
+            );
         } else if (positionMap.containsKey(getCurrentState())) {
                 getToPosition(positionMap.get(getCurrentState()));
         }
