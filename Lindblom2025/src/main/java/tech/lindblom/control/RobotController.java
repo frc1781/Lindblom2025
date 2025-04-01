@@ -10,6 +10,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.NumericalIntegration;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -56,6 +57,7 @@ public class RobotController {
     public Thumb thumbSystem;
 
     DriverInput driverInput;
+    public NumericInput numericInput;
 
     public Timer autoTimer = new Timer();
 
@@ -85,13 +87,15 @@ public class RobotController {
                 new RightThreeCoral(),
                 new CenterOneCoral()
         );
+        driverInput = new DriverInput(this);
+        numericInput = new NumericInput(this);
         visionSystem = new Vision(this);
         ledsSystem = new LEDs(this);
         thumbSystem = new Thumb(this);
         elevatorSystem = new Elevator(this);
         armSystem = new Arm(this);
         conveyorSystem = new Conveyor(this);
-        driverInput = new DriverInput(this);
+
         if (RobotBase.isReal()) {
             climberSystem = new Climber();
         } else {
@@ -199,6 +203,7 @@ public class RobotController {
                 }
 
                 processDriverInputs();
+                numericInput.periodic();
 
                 if (driveController.reefPoleDetected()) {
                     ledsSystem.setState(LEDState.GREEN);
