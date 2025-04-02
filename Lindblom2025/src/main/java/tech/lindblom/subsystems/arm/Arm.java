@@ -175,24 +175,20 @@ public class Arm extends StateSubsystem {
         }
  
         if (robotController.isManualControlMode()) {
-            switch ((ArmState) getCurrentState()) {
-                case IDLE:
-                    armMotor.set(0);
-                    break;
-                case MANUAL_DOWN:
-                    requestedPosition -= 0.2;
-                    break;
-                case MANUAL_UP:  // and up is down
+            if (getCurrentState() == ArmState.MANUAL_DOWN) {
+                requestedPosition -= 0.2;
+            }
+            else if (getCurrentState() == ArmState.MANUAL_UP) {
                     requestedPosition += 0.2;
-                    break;
             }
             armMotor.getClosedLoopController().setReference(
                 requestedPosition, 
                 ControlType.kPosition, 
                 ClosedLoopSlot.kSlot3
             );
-        } else if (positionMap.containsKey(getCurrentState())) {
-                getToPosition(positionMap.get(getCurrentState()));
+        } 
+        else if (positionMap.containsKey(getCurrentState())) {
+            // getToPosition(positionMap.get(getCurrentState()));
         }
     }
 
