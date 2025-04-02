@@ -1,12 +1,14 @@
 package tech.lindblom.subsystems.arm;
 
 import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -29,12 +31,14 @@ public class Arm extends StateSubsystem {
     private EEtimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
+    private ArmFeedforward armFeedforward;
 
     private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
+        armFeedforward = new ArmFeedforward(0, 0, 0);
         coralTimeOfFlight = new EEtimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID, 24);
         robotController = controller;
         timeCoralTOFInvalid = new Timer(); 
@@ -226,9 +230,9 @@ public class Arm extends StateSubsystem {
             return;
         }
 
-         if (getCurrentState() == ArmState.READY_ALGAE) {
+        if (getCurrentState() == ArmState.READY_ALGAE) {
              armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
-         } else if (getCurrentState() == ArmState.COLLECT) {
+        } else if (getCurrentState() == ArmState.COLLECT) {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
         } else if (getCurrentState() == ArmState.POLE) {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);

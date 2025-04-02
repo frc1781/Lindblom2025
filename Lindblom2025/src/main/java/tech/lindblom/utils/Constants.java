@@ -19,6 +19,7 @@ public class Constants {
 
     public class General {
         public static final double LOOP_PERIOD_SECONDS = 0.02;
+        public static final boolean DEBUG_MODE = true;
     }
 
     public class Drive {
