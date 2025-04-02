@@ -29,21 +29,19 @@ public class Arm extends StateSubsystem {
     private EEtimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
-    private double requestedPosition;
+    private double targetPosition;
+    private double goalPosition;
     private double p;
     private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
-
         coralTimeOfFlight = new EEtimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID, 24);
         robotController = controller;
         timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
-        //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
         configureController();
-        armMotor.getEncoder().setPosition(0);
         
         positionMap = new HashMap<>();
         positionMap.put(ArmState.POLE, 25.0);
@@ -99,13 +97,11 @@ public class Arm extends StateSubsystem {
     @Override
     public void init() {
         configureController();
-        armMotor.getEncoder().setPosition(armMotor.getAbsoluteEncoder().getPosition());
-        requestedPosition = armMotor.getEncoder().getPosition();
         super.init();
-       //if (currentOperatingMode == OperatingMode.TELEOP && getPosition() < 30 && robotController.elevatorSystem.getSecondStagePosition() > 200) {
-            performedSafeStates = false;
-       //}
-
+        performedSafeStates = false;
+        armMotor.getEncoder().setPosition(armMotor.getAbsoluteEncoder().getPosition());
+        targetPosition = armMotor.getEncoder().getPosition();
+        goalPosition = targetPosition;
     }
 
     private void configureController() {
@@ -164,7 +160,8 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/MatchesPosition", matchesDesiredPosition());
         Logger.recordOutput(this.name + "/AbsEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/RelEncoder", armMotor.getEncoder().getPosition());
-        Logger.recordOutput(this.name + "/RequestedPosition", requestedPosition);
+        Logger.recordOutput(this.name + "/TargetPosition", targetPosition);
+        Logger.recordOutput(this.name + "/GoalPosition", goalPosition);
         Logger.recordOutput(this.name + "/p", p);
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValidRegularCheck());
@@ -174,22 +171,24 @@ public class Arm extends StateSubsystem {
             return;
         }
  
-        if (robotController.isManualControlMode()) {
+        if (currentOperatingMode == OperatingMode.TELEOP && robotController.isManualControlMode()) {
             if (getCurrentState() == ArmState.MANUAL_DOWN) {
-                requestedPosition -= 0.2;
+                targetPosition -= 0.2;
             }
             else if (getCurrentState() == ArmState.MANUAL_UP) {
-                    requestedPosition += 0.2;
+                    targetPosition += 0.2;
             }
-            armMotor.getClosedLoopController().setReference(
-                requestedPosition, 
-                ControlType.kPosition, 
-                ClosedLoopSlot.kSlot3
-            );
+
         } 
         else if (positionMap.containsKey(getCurrentState())) {
-            // getToPosition(positionMap.get(getCurrentState()));
+            goalPosition = positionMap.get(getCurrentState());
         }
+
+        armMotor.getClosedLoopController().setReference(
+            targetPosition, 
+            ControlType.kPosition, 
+            ClosedLoopSlot.kSlot3
+        );
     }
 
     @Override
