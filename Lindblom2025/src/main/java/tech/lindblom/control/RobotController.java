@@ -628,8 +628,9 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3_LOW, 5));
 
         defineAction(Action.L2,
-                new SubsystemSetting(true),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+                //JUST REMOVED FOR TESTING
+                //new SubsystemSetting(true),
+                //new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.L2, 5));
 
         defineAction(Action.L1,

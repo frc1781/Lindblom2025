@@ -19,6 +19,7 @@ import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
+import tech.lindblom.utils.ControlCurve;
 import tech.lindblom.utils.EEtimeOfFlight;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
@@ -31,6 +32,7 @@ public class Arm extends StateSubsystem {
     private ArmState previousState;
     private double targetPosition;
     private double goalPosition;
+    private ControlCurve targetCurve;
     private double p;
     private boolean performedSafeStates = true;
 
@@ -42,7 +44,7 @@ public class Arm extends StateSubsystem {
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
         configureController();
-        
+
         positionMap = new HashMap<>();
         positionMap.put(ArmState.POLE, 25.0);
         positionMap.put(ArmState.IDLE, 2.0);
@@ -58,7 +60,6 @@ public class Arm extends StateSubsystem {
         positionMap.put(ArmState.REEF_ALGAE, 60.0);
         positionMap.put(ArmState.READY_ALGAE, 25.0);
         positionMap.put(ArmState.SLIGHT_TOSS, 21.0);
-
     }
 
     @Override
@@ -98,7 +99,10 @@ public class Arm extends StateSubsystem {
     public void init() {
         configureController();
         super.init();
-        performedSafeStates = false;
+        //ONLY FOR TESTING!!!!
+        performedSafeStates = true; //false;
+        setState(ArmState.IDLE);
+        //don't leave this in accidentally
         armMotor.getEncoder().setPosition(armMotor.getAbsoluteEncoder().getPosition());
         targetPosition = armMotor.getEncoder().getPosition();
         goalPosition = targetPosition;
@@ -178,22 +182,28 @@ public class Arm extends StateSubsystem {
             else if (getCurrentState() == ArmState.MANUAL_UP) {
                     targetPosition += 0.2;
             }
-
         } 
-        else if (positionMap.containsKey(getCurrentState())) {
-            goalPosition = positionMap.get(getCurrentState());
+        else if (getCurrentState() == ArmState.L2) {
+            targetPosition = targetCurve.calculate();
         }
 
-        armMotor.getClosedLoopController().setReference(
-            targetPosition, 
-            ControlType.kPosition, 
-            ClosedLoopSlot.kSlot3
-        );
+        // armMotor.getClosedLoopController().setReference(
+        //     targetPosition, 
+        //     ControlType.kPosition, 
+        //     ClosedLoopSlot.kSlot3
+        // );
     }
 
     @Override
     public void stateTransition(SubsystemState previousState, SubsystemState newState) {
         this.previousState = (ArmState) previousState;
+        if (newState == ArmState.L2) {
+            targetCurve = new ControlCurve(
+                armMotor.getEncoder().getPosition(),
+                60.0,
+                4.0
+            );
+        }
     }
 
     public boolean successfullyCollectedAlgae() {
