@@ -28,7 +28,7 @@ import tech.lindblom.utils.SwerveModuleConfiguration;
 public class DoubleKrakenSwerveModule extends SwerveModule {
     private final TalonFX mDriveMotor;
     private final TalonFX mTurnMotor;
-    Orchestra orchestra = new Orchestra();
+    Orchestra orchestra; 
 
 
     private final CANcoder mTurnAbsoluteEncoder;
@@ -52,13 +52,18 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     public DoubleKrakenSwerveModule(String name, int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset, boolean inverted) {
         super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
         this.isInverted = inverted;
-        // Add a single device to the orchestra
-        
-        // Attempt to load the chrp
-      
-
+   
         mDriveMotor = new TalonFX(driveMotorID);
+        orchestra = new Orchestra();
+        var status = orchestra.loadMusic("rr.chrp");
+        if (!status.isOK()) {
+            System.out.println("MMMMMMMMMMMMMMMMMMM not working");
+        }
+        else {
+            System.out.println("Loaded music fine");
+        }
         orchestra.addInstrument(mDriveMotor);
+      
         orchestra.loadMusic("rr.chrp");
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 
@@ -144,6 +149,7 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         mTurnMotor.set(turningControllerOutput);
         if (!orchestra.isPlaying()) {
             orchestra.play();
+            System.out.println("asdlfkjas dlfja sdlfjas df playing music");
         }
         double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
         mDriveMotor.setControl(
