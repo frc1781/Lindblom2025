@@ -1,5 +1,6 @@
 package tech.lindblom.swerve;
 
+import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -27,6 +28,8 @@ import tech.lindblom.utils.SwerveModuleConfiguration;
 public class DoubleKrakenSwerveModule extends SwerveModule {
     private final TalonFX mDriveMotor;
     private final TalonFX mTurnMotor;
+    Orchestra orchestra = new Orchestra();
+
 
     private final CANcoder mTurnAbsoluteEncoder;
     private boolean isInverted;
@@ -49,8 +52,14 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
     public DoubleKrakenSwerveModule(String name, int driveMotorID, int turnMotorID, int cancoderID, double cancoderOffset, boolean inverted) {
         super(name, driveMotorID, turnMotorID, cancoderID, cancoderOffset);
         this.isInverted = inverted;
+        // Add a single device to the orchestra
+        
+        // Attempt to load the chrp
+      
 
         mDriveMotor = new TalonFX(driveMotorID);
+        orchestra.addInstrument(mDriveMotor);
+        orchestra.loadMusic("rr.chrp");
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 
         driveConfig.MotorOutput.Inverted = isInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
@@ -133,7 +142,9 @@ public class DoubleKrakenSwerveModule extends SwerveModule {
         double turningControllerOutput = turningController.calculate(getAbsoluteRotation(), desiredState.angle.getRotations());
         Logger.recordOutput("DriveModule/" + this.name + "/TurningPID", turningControllerOutput);
         mTurnMotor.set(turningControllerOutput);
-
+        if (!orchestra.isPlaying()) {
+            orchestra.play();
+        }
         double ff = driveFF.calculate(desiredState.speedMetersPerSecond);
         mDriveMotor.setControl(
                 velocityControl
