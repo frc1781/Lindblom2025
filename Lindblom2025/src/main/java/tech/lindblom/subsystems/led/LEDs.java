@@ -71,7 +71,7 @@ public class LEDs extends StateSubsystem {
                 rainbow();
                 break;
             case MARCH_WHITE:
-                marching(255, 255, 0);
+                marching(255, 255, 150);
                 break;
             case WHITE:
                 solid(0, 255, 255);
@@ -151,7 +151,7 @@ public class LEDs extends StateSubsystem {
     private int newMarcher;
 
     private void marching(int r, int g, int b) {
-        if(marchingTimer.get() >= 0.2)
+        if(marchingTimer.get() >= 0.01)
         {
             for(int i = LED_LENGTH - 1; i > 0; i--) {
                 ledBuffer.setRGB(i, ledBuffer.getRed(i - 1), ledBuffer.getGreen(i - 1), ledBuffer.getBlue(i - 1));
