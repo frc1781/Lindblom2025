@@ -22,9 +22,8 @@ public class LEDs extends StateSubsystem {
     private AddressableLED ledController = null;
     private AddressableLEDBuffer ledBuffer = null;
 
-    private int mRainbowFirstPixelHue = 1;
     private Timer flashingTimer;
-    private boolean flashAlt;
+    private Timer marchingTimer;
 
     public LEDs(RobotController _robotController) {
         super("LEDs", LEDState.OPERATING_COLOR);
@@ -40,8 +39,12 @@ public class LEDs extends StateSubsystem {
     @Override
     public void init() {
         super.init();
+
         flashingTimer = new Timer();
         flashingTimer.reset();
+
+        marchingTimer = new Timer();
+        marchingTimer.reset();
     }
 
     @Override
@@ -66,6 +69,9 @@ public class LEDs extends StateSubsystem {
                 break;
             case RAINBOW:
                 rainbow();
+                break;
+            case MARCH_WHITE:
+                marching(0, 255, 255);
                 break;
             case WHITE:
                 solid(0, 255, 255);
@@ -113,38 +119,74 @@ public class LEDs extends StateSubsystem {
         }
     }
 
+    private boolean flash;
+
     private void flashing(int r, int g, int b) {
         if (flashingTimer.get() > 0.2) {
-            if (flashAlt) {
+            if (flash) {
                 solid(0, 0, 0);
             } else {
                 solid(r, g, b);
             }
             flashingTimer.reset();
             flashingTimer.stop();
-            flashAlt = !flashAlt;
+            flash = !flash;
         }
 
         flashingTimer.start();
     }
 
+    private int rainbowFirstPixelHue = 1;
+
     private void rainbow() {
-        for (var i = 0; i < LED_LENGTH; i++) {
-            var hue = (mRainbowFirstPixelHue + (i * 180 / LED_LENGTH)) % 180;
+        for (int i = 0; i < LED_LENGTH; i++) {
+            int hue = (rainbowFirstPixelHue + (i * 180 / LED_LENGTH)) % 180;
             ledBuffer.setHSV(i, hue, 255, 128);
         }
 
-        mRainbowFirstPixelHue += 3;
-        mRainbowFirstPixelHue %= 180;
+        rainbowFirstPixelHue += 3;
+        rainbowFirstPixelHue %= 180;
     }
 
+    private int newMarcher;
+
+    private void marching(int r, int g, int b) {
+        if(newMarcher <= 0) {
+            newMarcher = 4;
+            ledBuffer.setRGB(0, r, g, b);
+        }
+
+        if(marchingTimer.get() >= 0.2)
+        {
+            for(int i = LED_LENGTH - 1; i > 0; i++) {
+                ledBuffer.setRGB(i + 1, ledBuffer.getRed(i), ledBuffer.getRed(g), ledBuffer.getRed(b));
+            }
+            flashingTimer.reset();
+            flashingTimer.stop();
+        }
+
+        flashingTimer.start();
+    }
 
     @Override
     public boolean matchesState() {
         return this.getCurrentState() != LEDState.EXPECTED_FAIL;
     }
 
-    public enum LEDState implements SubsystemState{
-        RAINBOW, SYNC, WHITE, RED, GREEN, BLUE, YELLOW, FLASH_YELLOW, PURPLE, OVER, OFF, OPERATING_COLOR, EXPECTED_FAIL
+    public enum LEDState implements SubsystemState {
+        RAINBOW, 
+        MARCH_WHITE,
+        SYNC, 
+        WHITE, 
+        RED, 
+        GREEN, 
+        BLUE, 
+        YELLOW, 
+        FLASH_YELLOW, 
+        PURPLE, 
+        OVER, 
+        OFF, 
+        OPERATING_COLOR, 
+        EXPECTED_FAIL
     }
 }
