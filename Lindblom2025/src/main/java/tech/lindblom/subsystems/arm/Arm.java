@@ -10,6 +10,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -32,50 +33,40 @@ public class Arm extends StateSubsystem {
     private EEtimeOfFlight coralTimeOfFlight;
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
-    private ArmFeedforward armFeedforward;
     private TunedDouble KGTesting;
+    private TunedDouble PSlot0Testing;
+    private SparkMaxConfig armMotorConfig;
 
     private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
 
-        KGTesting = new TunedDouble("/Arm/KGDutyCycle",0);
+        KGTesting = new TunedDouble("Arm/KGDutyCycle",0.1);
+        PSlot0Testing = new TunedDouble("Arm/PSlot0Testing",0.008);
+        // No Coral Cycle 0.095 @ 12 volts
 
-        armFeedforward = new ArmFeedforward(0, 0, 0);
+        // With Coral 0.105
+        // With Algae 0.15
+        // Slot 0 P is 0.004 was 0.008
+
         coralTimeOfFlight = new EEtimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID, 24);
         robotController = controller;
         timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
         //New config based on: https://github.com/REVrobotics/2025-REV-ION-FRC-Starter-Bot/blob/main/src/main/java/frc/robot/Configs.java
-        SparkMaxConfig armMotorConfig = new SparkMaxConfig();
+        armMotorConfig = new SparkMaxConfig();
         armMotorConfig.idleMode(SparkMaxConfig.IdleMode.kBrake);
         armMotorConfig.smartCurrentLimit(40);
         armMotorConfig.absoluteEncoder.positionConversionFactor(360);
         armMotorConfig.absoluteEncoder.zeroOffset(0.4868528);
 
         // Slot 0 configs
-        armMotorConfig.closedLoop.pid(0.008, 0,0.001);
+        armMotorConfig.closedLoop.pid(0.004, 0,0.001);
         armMotorConfig.closedLoop.velocityFF((double) 1 /565); // https://docs.revrobotics.com/brushless/neo/vortex#motor-specifications
         armMotorConfig.closedLoop.outputRange(-.55, .55); //(-.55, .55);
         armMotorConfig.closedLoop.positionWrappingEnabled(true);
-
-        // Slot 1 configs | collect state
-        armMotorConfig.closedLoop.pid(0.001, 0, 0.001, ClosedLoopSlot.kSlot1);
-        armMotorConfig.closedLoop.outputRange(-0.1, 0.1, ClosedLoopSlot.kSlot1);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot1);
-
-        // Slot 2 configs | pole state
-        armMotorConfig.closedLoop.pid(0.03, 0, 0.001, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.outputRange(-.7, .7, ClosedLoopSlot.kSlot2);
-        armMotorConfig.closedLoop.velocityFF((double) 1 / 565, ClosedLoopSlot.kSlot2);
-
-        
-        // Slot 3 configs | algae ready state
-        armMotorConfig.closedLoop.pid(0.05, 0, 0.000, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.outputRange(-0.2, 1, ClosedLoopSlot.kSlot3);
-        armMotorConfig.closedLoop.velocityFF((double) 1 /565, ClosedLoopSlot.kSlot3);
 
         armMotorConfig.softLimit.forwardSoftLimit(180);
         armMotorConfig.softLimit.reverseSoftLimit(0);
@@ -148,6 +139,12 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void periodic() {
+        if (PSlot0Testing.hasChanged()) {
+            System.out.println("Arm motor reconfigured");
+            armMotorConfig.closedLoop.p(PSlot0Testing.get());
+            armMotor.configure(armMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        }
+
         Logger.recordOutput(this.name + "/MatchesPosition", matchesDesiredPosition());
         Logger.recordOutput(this.name + "/MotorEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
@@ -157,7 +154,7 @@ public class Arm extends StateSubsystem {
         if(currentOperatingMode == OperatingMode.DISABLED) {
             return;
         }
- 
+
         if (robotController.isManualControlMode()) {
             switch ((ArmState) getCurrentState()) {
                 case IDLE:
@@ -234,7 +231,17 @@ public class Arm extends StateSubsystem {
             return;
         }
 
-        if (getCurrentState() == ArmState.READY_ALGAE) {
+        double FF = -0.095 * Math.sin(Rotation2d.fromDegrees(getPosition()).getRadians());
+
+        armMotor.getClosedLoopController()
+                .setReference(position,
+                        ControlType.kPosition,
+                        ClosedLoopSlot.kSlot0,
+                        FF,
+                        SparkClosedLoopController.ArbFFUnits.kPercentOut
+                );
+
+/*        if (getCurrentState() == ArmState.READY_ALGAE) {
              armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot3);
         } else if (getCurrentState() == ArmState.COLLECT) {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
@@ -242,7 +249,7 @@ public class Arm extends StateSubsystem {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot2);
         } else {
             armMotor.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-        }
+        }*/
 
         Logger.recordOutput(this.name + "/dutyCycle", armMotor.getAppliedOutput());
     }

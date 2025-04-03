@@ -1,8 +1,3 @@
-// Copyright (c) 2025 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file at https://github.com/Mechanical-Advantage/RobotCode2025Public/blob/main/LICENSE
 package tech.lindblom.utils;
 
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -18,7 +13,7 @@ public class TunedDouble implements DoubleSupplier {
     private boolean hasDefault = false;
     private double defaultValue;
     private LoggedNetworkNumber dashboardNumber;
-    private Map<Integer, Double> lastHasChangedValues = new HashMap<>();
+    private double previousValue;
 
     /**
      * Create a new LoggedTunableNumber
@@ -27,6 +22,7 @@ public class TunedDouble implements DoubleSupplier {
      */
     public TunedDouble(String dashboardKey) {
         this.key = tableKey + "/" + dashboardKey;
+        this.previousValue = 0.0;
     }
 
     /**
@@ -49,6 +45,7 @@ public class TunedDouble implements DoubleSupplier {
         if (!hasDefault) {
             hasDefault = true;
             this.defaultValue = defaultValue;
+            this.previousValue = defaultValue;
             if (Constants.General.DEBUG_MODE) {
                 dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
             }
@@ -62,7 +59,7 @@ public class TunedDouble implements DoubleSupplier {
      */
     public double get() {
         if (!hasDefault) {
-            return 0.0;
+            return Constants.General.DEBUG_MODE ? dashboardNumber.get() : 0.0;
         } else {
             return Constants.General.DEBUG_MODE ? dashboardNumber.get() : defaultValue;
         }
@@ -71,16 +68,15 @@ public class TunedDouble implements DoubleSupplier {
     /**
      * Checks whether the number has changed since our last check
      *
-     * @param id Unique identifier for the caller to avoid conflicts when shared between multiple
-     *     objects. Recommended approach is to pass the result of "hashCode()"
      * @return True if the number has changed since the last time this method was called, false
      *     otherwise.
      */
-    public boolean hasChanged(int id) {
+    public boolean hasChanged() {
         double currentValue = get();
-        Double lastValue = lastHasChangedValues.get(id);
-        if (lastValue == null || currentValue != lastValue) {
-            lastHasChangedValues.put(id, currentValue);
+        double lastValue = this.previousValue;
+
+        if (currentValue != lastValue) {
+            this.previousValue = currentValue;
             return true;
         }
 
