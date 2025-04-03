@@ -43,6 +43,9 @@ public class Arm extends StateSubsystem {
         timeCoralTOFInvalid = new Timer(); 
         armMotor = new SparkMax(Constants.Arm.ARM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         armMotor.setControlFramePeriodMs(20);
+        kP = robotController.numericInput.getNumber("kP", 0.01);
+        dur = robotController.numericInput.getNumber("dur", 4.0);
+        tar = robotController.numericInput.getNumber("tar", 60.0);
         configureController();
 
         positionMap = new HashMap<>();

@@ -9,14 +9,18 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class NumericInput {
-    private double p;
+    private double kP, dur, tar;
 
     public NumericInput(RobotController rc) {
-        SmartDashboard.putNumber("p", 0.01);
+        SmartDashboard.putNumber("kP", 0.01);
+        SmartDashboard.putNumber("dur", 4.0);
+        SmartDashboard.putNumber("tar", 60.0);
     }
 
     public void periodic() {
-        p = SmartDashboard.getNumber("p", 0.0);
+        kP = SmartDashboard.getNumber("kP", 0.01);
+        dur = SmartDashboard.getNumber("dur", 4.0);
+        tar = SmartDashboard.getNumber("tar", 60.0);
     }
 
     public double getNumber(String key, double defaultValue) {
