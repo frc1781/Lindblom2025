@@ -9,15 +9,18 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.RobotBase;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.arm.Arm;
+import tech.lindblom.subsystems.drive.DriveController;
 import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEUtil;
+import tech.lindblom.utils.EEtimeOfFlight;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
 
 import java.util.HashMap;
@@ -28,8 +31,8 @@ public class Elevator extends StateSubsystem {
 
     private SparkMax motorLeft;
 
-    private TimeOfFlight firstStageTOF;
-    private TimeOfFlight secondStageTOF;
+    private EEtimeOfFlight firstStageTOF;
+    private EEtimeOfFlight secondStageTOF;
     // measure the max distance
     private double minSecondStageDistance = 0;
     private double maxSecondStageDistance = 680;
@@ -46,16 +49,16 @@ public class Elevator extends StateSubsystem {
                     Constants.Elevator.ELEVATOR_KA
             );
 
+    private PIDController positionPID = new PIDController(0.001, 0,0);
+
     private final HashMap<ElevatorState, Double[]> positions = new HashMap<>();
     private RobotController robotController;
 
     public Elevator(RobotController robotController) {
         super("Elevator", ElevatorState.SAFE);
         this.robotController = robotController;
-        firstStageTOF = new TimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF);
-        firstStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
-        secondStageTOF = new TimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF);
-        secondStageTOF.setRangingMode(TimeOfFlight.RangingMode.Short, 20);
+        firstStageTOF = new EEtimeOfFlight(Constants.Elevator.FIRST_STAGE_TOF, 20);
+        secondStageTOF = new EEtimeOfFlight(Constants.Elevator.SECOND_STAGE_TOF, 20);
 
         //Right Elevator Motor
         motorRight = new SparkMax(Constants.Elevator.RIGHT_ELEVATOR_MOTOR, MotorType.kBrushless);
@@ -73,19 +76,19 @@ public class Elevator extends StateSubsystem {
         leftMotorConfig.smartCurrentLimit(30);
         motorLeft.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-
         positions.put(ElevatorState.POLE, new Double[]{750.0, minSecondStageDistance});
         positions.put(ElevatorState.SAFE, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.SAFER, new Double[]{minFirstStageDistance, 80.0});
         positions.put(ElevatorState.L1, new Double[]{0.0, 0.0});
         positions.put(ElevatorState.L2, new Double[]{minFirstStageDistance, 80.0});
-        positions.put(ElevatorState.L3, new Double[]{165.0, minSecondStageDistance});
+        positions.put(ElevatorState.L3, new Double[]{minFirstStageDistance, 165.0});
+        positions.put(ElevatorState.L3_LOW, new Double[]{minFirstStageDistance, 350.0});
         positions.put(ElevatorState.L4, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.BARGE_SCORE, new Double[]{maxFirstStageDistance, minSecondStageDistance});
         positions.put(ElevatorState.COLLECT_LOW, new Double[]{minFirstStageDistance, 400.0});
         positions.put(ElevatorState.GROUND_COLLECT, new Double[]{0.0, 290.0});
-        positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, 50.0});
-        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 200.0});
+        positions.put(ElevatorState.HIGH_ALGAE, new Double[]{minFirstStageDistance, minSecondStageDistance});
+        positions.put(ElevatorState.LOW_ALGAE, new Double[]{maxFirstStageDistance, 350.0});
         positions.put(ElevatorState.SMART_ALGAE, new Double[]{minFirstStageDistance, 50.0});
     }
 
@@ -95,7 +98,11 @@ public class Elevator extends StateSubsystem {
             return false;
         }
 
-        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null) {
+        if (getCurrentState() == ElevatorState.POLE && robotController.getCenteringSide() != null &&
+                (robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_RIGHT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_LEFT
+                        || robotController.driveController.getCurrentState() == DriveController.DriverStates.CENTERING_CENTER)
+        ) {
             return robotController.driveController.matchesState();
         }
 
@@ -117,21 +124,22 @@ public class Elevator extends StateSubsystem {
         }
         double firstStageDiff = Math.abs(desiredPosition[0] - getFirstStagePosition());
         double secondStageDiff = Math.abs(desiredPosition[1] - getSecondStagePosition());
-        double tolerance = 50;
+        double tolerance = 70;
         return firstStageDiff <= tolerance && secondStageDiff <= tolerance;
     }
 
     @Override
     public void init() {
         super.init();
+        positionPID.reset();
     }
 
     @Override
     public void periodic() {
         Logger.recordOutput(this.name + "/FirstStageTOF", firstStageTOF.getRange());
         Logger.recordOutput(this.name + "/SecondStageTOF", secondStageTOF.getRange());
-        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValid());
-        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValid());
+        Logger.recordOutput(this.name + "/FirstStageTOFvalid", firstStageTOF.isRangeValidRegularCheck());
+        Logger.recordOutput(this.name + "/SecondStageTOFvalid", secondStageTOF.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/ElevatorMotorEncoderCounts", motorRight.getEncoder().getPosition());
         Logger.recordOutput(this.name + "/MatchesPosition", matchesPosition());
 
@@ -156,6 +164,10 @@ public class Elevator extends StateSubsystem {
         }
     }
 
+    public boolean shouldDriveInhibited() {
+        return firstStageTOF.isRangeValidRegularCheck() && firstStageTOF.getRange() > 150;
+    }
+
     public double getFirstStagePosition() {
         return firstStageTOF.getRange();
     }
@@ -166,14 +178,27 @@ public class Elevator extends StateSubsystem {
 
     public ElevatorState getSmartAlgaeState() {
         int apriltag = robotController.visionSystem.getDoubleCameraReefApriltag();
+
         if (apriltag == -1 && previousSmartState != null) {
             return previousSmartState;
         }
 
-        if (apriltag % 2 == 0) {
+        if (apriltag == -1 && previousSmartState == null) {
             return ElevatorState.LOW_ALGAE;
+        }
+
+        if (RobotController.isRed()) {
+            if (apriltag % 2 != 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         } else {
-            return ElevatorState.HIGH_ALGAE;
+            if (apriltag % 2 == 0) {
+                return ElevatorState.LOW_ALGAE;
+            } else {
+                return ElevatorState.HIGH_ALGAE;
+            }
         }
     }
 
@@ -193,13 +218,13 @@ public class Elevator extends StateSubsystem {
         }
         double Tolerance = 80;
         
-        if (secondStageTOF.isRangeValid() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
+        if (secondStageTOF.isRangeValidRegularCheck() && Math.abs(desiredPosition[1] - secondStagePosition) >= Tolerance) {
             double ff = -feedforwardController.calculate(desiredPosition[1] - secondStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
             Logger.recordOutput(this.name + "/FFClampedOutput", clampedResult);
             dutyCycle = clampedResult;
-        } else if (firstStageTOF.isRangeValid() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
+        } else if (firstStageTOF.isRangeValidRegularCheck() && Math.abs(desiredPosition[0] - firstStagePosition) > Tolerance) {
             double ff = feedforwardController.calculate(desiredPosition[0] - firstStagePosition);
             Logger.recordOutput(this.name + "/FFUnClamped", ff);
             double clampedResult = clampDutyCycle(ff);
@@ -217,20 +242,27 @@ public class Elevator extends StateSubsystem {
         //It really only starts low at the beginning when it is not safe to move the second stage until the arm is moved
         //out.  But once it is up at the top of the second stage it can move into positions that make it dangerous
         //to leave it's spot on the second stage until it is back in a safe position.
-        if ((!robotController.isSafeForElevatorStage2toMove() || !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
+        if (((!robotController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100)) { //|| !robotController.driveController.isSafeForElevatorStage2toMove()) && Math.abs(secondStagePosition - desiredPosition[1]) > 100) {
             dutyCycle = 0.02;
         }
 
         Logger.recordOutput(this.name + "/DutyCycle", dutyCycle);
-        //motorRight.set(dutyCycle);
+        motorRight.set(dutyCycle);
     }
 
     public double clampDutyCycle(double dutyCycle) {
         if (getCurrentState() == ElevatorState.COLLECT_LOW || getCurrentState() == ElevatorState.L3 || getCurrentState() == ElevatorState.L2) {
-            return EEUtil.clamp(-0.6, 0.6, dutyCycle);
+            return EEUtil.clamp(0.0, 0.75, dutyCycle);
         }
 
-        return EEUtil.clamp(0, 0.6, dutyCycle);
+        return EEUtil.clamp(0, 0.8, dutyCycle);
+    }
+
+    @Override
+    public void stateTransition(SubsystemState previousState, SubsystemState newState) {
+        if (previousState == ElevatorState.SMART_ALGAE) {
+            previousSmartState = null;
+        }
     }
 
     public enum ElevatorState implements SubsystemState {
@@ -239,6 +271,7 @@ public class Elevator extends StateSubsystem {
         L1,
         L2,
         L3,
+        L3_LOW,
         L4,
         MANUAL_DOWN,
         MANUAL_UP,

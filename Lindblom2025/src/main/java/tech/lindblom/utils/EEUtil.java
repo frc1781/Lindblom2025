@@ -34,4 +34,11 @@ public class EEUtil {
     public static double clamp(double min, double max, double input) {
         return Math.min(max, Math.max(input, min));
     }
+
+    public static double angleDiffDegrees(double angle1, double angle2) {
+        if (Math.abs(angle2 - angle1) > 180) {
+            return 360 - Math.abs(angle2 - angle1);
+        }
+        return Math.abs(angle2 - angle1);
+    }
 }

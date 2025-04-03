@@ -29,6 +29,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import tech.lindblom.control.RobotController;
 import tech.lindblom.subsystems.types.Subsystem;
 import tech.lindblom.utils.Constants;
@@ -51,6 +52,8 @@ public class Vision extends Subsystem {
     private final PhotonCamera leftSideCamera = new PhotonCamera(Constants.Vision.LEFT_SIDE_CAMERA_NAME);
     private PhotonPoseEstimator leftSideCameraPoseEstimator;
     private PhotonPipelineResult leftSideCameraPipelineResult;
+    private Timer invalidTagTime;
+    private int lastClosestAprilTag;
 
     VisionSystemSim visionSystemSim;
 
@@ -63,6 +66,8 @@ public class Vision extends Subsystem {
         super("Vision");
         this.robotController = _robotController;
         seenAprilTags = new ArrayList<>();
+        invalidTagTime = new Timer();
+        lastClosestAprilTag = -1;
         try {
             fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
@@ -124,13 +129,26 @@ public class Vision extends Subsystem {
         seenAprilTags = new ArrayList<>();
     }
 
+    public void forgetClosestAprilTag() {
+        lastClosestAprilTag = -1;
+    }
+
     public int getClosestReefApriltag(Camera camera) {
         PhotonPipelineResult result = getCameraLatestResults(camera);
-        if (result == null || !result.hasTargets()) return -1;
+        if (result == null || !result.hasTargets()) {
+            if (!invalidTagTime.isRunning()) {
+                invalidTagTime.start();
+            } 
+            return lastClosestAprilTag; //could be -1 if none seen recently, otherwise report the april tag we have been seeing
+        } 
+        else {
+            invalidTagTime.reset();
+        }
+
         List<PhotonTrackedTarget> targets = result.targets;
         PhotonTrackedTarget closestTarget = null;
 
-        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag() && currentOperatingMode == AUTONOMOUS) {
+        if (currentOperatingMode == AUTONOMOUS && robotController.autoSystem.getCurrentStep().hasTargetApriltag()) {
             int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
             for (PhotonTrackedTarget target : targets) {
                 if (target.getFiducialId() == targetTag) {
@@ -154,19 +172,43 @@ public class Vision extends Subsystem {
             }
         }
 
-        return closestTarget == null ? -1 : closestTarget.getFiducialId();
-    }
+        if (closestTarget == null || (closestTarget.getFiducialId() != lastClosestAprilTag && lastClosestAprilTag != -1)) {
+            if (!invalidTagTime.isRunning()) {
+                invalidTagTime.start();
+            } 
+        } 
+        else {
+            invalidTagTime.reset();
+            lastClosestAprilTag = closestTarget.getFiducialId();
+        }
+
+        if (invalidTagTime.get() > 0.1) {
+            lastClosestAprilTag = -1;  //have not seen one for a while
+        }
+
+        return lastClosestAprilTag;
+}
 
     public int getDoubleCameraReefApriltag() {
         PhotonPipelineResult leftResult = getCameraLatestResults(Camera.FRONT_LEFT);
         PhotonPipelineResult rightResult = getCameraLatestResults(Camera.FRONT_RIGHT);
         if (leftResult == null || rightResult == null || !leftResult.hasTargets() || !rightResult.hasTargets()) return -1;
+        if (robotController.autoSystem.getCurrentStep().hasTargetApriltag() && currentOperatingMode == AUTONOMOUS) {
+            int targetTag = robotController.autoSystem.getCurrentStep().getTargetApriltag();
+            for (PhotonTrackedTarget target : rightResult.getTargets()) {
+                if (target.getFiducialId() == targetTag) {
+                    return targetTag;
+                }
+            }
+
+            return -1;
+        }
 
         HashSet<Integer> leftTargets = new HashSet<>();
+        ArrayList<Integer> rightTargets = new ArrayList<>();
         for (PhotonTrackedTarget target : leftResult.targets) {
             leftTargets.add(target.getFiducialId());
         }
-        ArrayList<Integer> rightTargets = new ArrayList<>();
         for (PhotonTrackedTarget target : rightResult.targets) {
             rightTargets.add(target.getFiducialId());
         }

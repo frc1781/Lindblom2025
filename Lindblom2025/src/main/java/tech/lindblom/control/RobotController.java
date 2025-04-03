@@ -81,13 +81,8 @@ public class RobotController {
         driveController = new DriveController(this);
         autoSystem = new Auto(this,
                 new TestRoutine(),
-                new Collect(),
                 new LeftThreeCoral(),
                 new RightThreeCoral(),
-                new RightFourCoral(),
-                new LeftFourCoral(),
-                new LeftOneCoral(),
-                new RightOneCoral(),
                 new CenterOneCoral()
         );
         visionSystem = new Vision(this);
@@ -215,7 +210,7 @@ public class RobotController {
                     ledsSystem.setState(LEDState.YELLOW);
                 }
                 else if (armSystem.hasCoral()) {
-                    ledsSystem.setState(LEDState.BLUE);   
+                    ledsSystem.setState(LEDState.BLUE);
                 }
                 else if (conveyorSystem.conveyorHasCoral()) {
                     ledsSystem.setState(LEDState.FLASH_YELLOW);
@@ -223,7 +218,7 @@ public class RobotController {
                 else {
                     ledsSystem.setState(LEDState.OPERATING_COLOR);
                 }
-                
+
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
                 break;
             case TEST:
@@ -324,7 +319,7 @@ public class RobotController {
     
     private void driverDriving(Translation2d translation, Translation2d rotation) {
         int flipForRed = isRed() ? -1 : 1;
-        double inhibited = shouldInhibitDriveSpeed() ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
+        double inhibited = shouldInhibitDriveSpeed() || driveController.getCurrentState() == DriveController.DriverStates.INHIBIT_DRIVE ? Constants.Drive.INHIBITED_MULTIPLIER : 1;
 
         double xVelocity = -translation.getY() * flipForRed;
         double yVelocity = -translation.getX() * flipForRed;
@@ -344,7 +339,7 @@ public class RobotController {
     }
 
     public boolean shouldInhibitDriveSpeed() {
-        return elevatorSystem.getFirstStagePosition() > 150;
+        return elevatorSystem.shouldDriveInhibited();
     }
 
     public void updateLocalization(EstimatedRobotPose visionEstimate, PhotonPipelineResult pipelineResult) {
@@ -372,6 +367,10 @@ public class RobotController {
                 default:
                     yield null;
             };
+        }
+
+        if (mostRecentInputHolder == null) {
+            return null; // No input received yet
         }
 
         return mostRecentInputHolder.centeringSide;
@@ -508,42 +507,60 @@ public class RobotController {
         GROUND_COLLECT_ALGAE,
         REEF_COLLECT_ALGAE,
         HIGH_HOLD_ALGAE,
-        HIGH_SCORE_ALGAE,
+        INHIBIT_DRIVE,
+        SCORE_START_ARM,
+        HIGH_SCORE_ALGAE
     }
 
     public void createActions() {
+        defineAction(HIGH_SCORE_ALGAE,
+            new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 233),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,233),
+            new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 233));
+
+        defineAction(SCORE_START_ARM,
+            new SubsystemSetting(true),
+            new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
+            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 100),
+            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 100));
+
         defineAction(GROUND_COLLECT_ALGAE,
                 new SubsystemSetting(armSystem, Arm.ArmState.GROUND_ALGAE, 2),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.GROUND_COLLECT, 2),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 2));
+
         defineAction(HIGH_HOLD_ALGAE,
-                new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 4),
+                new SubsystemSetting(armSystem, Arm.ArmState.READY_ALGAE, 4),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4,4),
                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 4));
-        defineAction(HIGH_SCORE_ALGAE,
-                new SubsystemSetting(armSystem, Arm.ArmState.SLIGHT_TOSS, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.BARGE_SCORE,5),
-                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
+
         defineAction(START_ARM,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_MID, 100),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFER, 100),
                 new SubsystemSetting(armSystem, Arm.ArmState.START_HIGH, 100));
+
         defineAction(Action.READY_FOP_POLE,
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5));
+
         defineAction(Action.REMOVE_ALGAE,
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 5));
+
         defineAction(Action.LEDs_BLUE,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.BLUE, 3));
+
         defineAction(Action.LEDs_RED,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.RED, 3));
+
         defineAction(Action.LEDs_GREEN,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.GREEN, 4));
+
         defineAction(Action.EXPECTED_LED_FAIL,
                 new SubsystemSetting(ledsSystem, LEDs.LEDState.EXPECTED_FAIL, 0));
+
                 /* 
                  * 	Collect Action
                     1	Inhibit movement until any sensor detects a coral
@@ -564,10 +581,9 @@ public class RobotController {
                     we have that possibility I don't know how useful some of that is but well
                  */
         defineAction(Action.CRADLE_COLLECT,
-                new SubsystemSetting(true),
+                //new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 2),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2)
-                );
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 2));
 
         defineAction(Action.MANUAL_ELEVATOR_DOWN,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.MANUAL_DOWN, 2));
@@ -582,12 +598,10 @@ public class RobotController {
                 new SubsystemSetting(armSystem, Arm.ArmState.MANUAL_UP, 3));
 
         defineAction(Action.CENTER_REEF_LEFT,
-            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 6)
-        );
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 6));
 
         defineAction(Action.CENTER_REEF_RIGHT,
-            new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6)
-        );
+                new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 6));
 
         defineAction(Action.REEF_COLLECT_ALGAE,
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SMART_ALGAE, 8),
@@ -596,35 +610,28 @@ public class RobotController {
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_CENTER, 8));
 
         defineAction(Action.L4,
-            new SubsystemSetting(true),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
-        );
+                new SubsystemSetting(true),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
 
         defineAction(Action.L3,
-            new SubsystemSetting(true),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.L3, 5)
-        );
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L3, 5),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L3_LOW, 5));
 
         defineAction(Action.L2,
-            new SubsystemSetting(true),
-                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.L2, 5)
-        );
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L2, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L2, 5));
 
         defineAction(Action.L1,
-            new SubsystemSetting(true),
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
-            new SubsystemSetting(armSystem, Arm.ArmState.L1, 5)
-        );
+                new SubsystemSetting(true),
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L1, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
+                new SubsystemSetting(armSystem, Arm.ArmState.L1, 5));
 
         defineAction(Action.CENTER_REEF_LEFT_L4,
                 new SubsystemSetting(true),
@@ -632,42 +639,44 @@ public class RobotController {
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_LEFT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
-                );
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
+
         defineAction(Action.CENTER_REEF_RIGHT_L4,
                 new SubsystemSetting(true),
                 new SubsystemSetting(armSystem, Arm.ArmState.POLE, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.POLE, 5),
                 new SubsystemSetting(driveController, DriveController.DriverStates.CENTERING_RIGHT, 5),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.L4, 5),
-                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5)
-                );
+                new SubsystemSetting(armSystem, Arm.ArmState.L4, 5));
+
         defineAction(Action.CONVEY_AND_COLLECT,
                 new SubsystemSetting(true),
                 new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFE, 5),
                 new SubsystemSetting(armSystem, Arm.ArmState.COLLECT,5),
                 new SubsystemSetting(conveyorSystem, Conveyor.ConveyorState.CONVEY, 5),
-                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5)
-                );
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.COLLECT_LOW, 5));
 
         defineAction(Action.READY_FOR_COLLECT,
-            new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFE, 0),
-            new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0));
+                new SubsystemSetting(elevatorSystem, Elevator.ElevatorState.SAFE, 0),
+                new SubsystemSetting(armSystem, Arm.ArmState.COLLECT, 0));
 
         defineAction(Action.CLIMBER_LATCH_RELEASE,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.RELEASE_LATCH, 5));
 
         defineAction(Action.CLIMBER_DOWN,
-                  new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
+                new SubsystemSetting(climberSystem, BaseClimber.ClimberState.DOWN, 3));
 
         defineAction(Action.CLIMBER_UP,
                 new SubsystemSetting(climberSystem, BaseClimber.ClimberState.UP, 4));
 
-         defineAction(Action.THUMB_SPIN_IN,
-                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 5));
+        defineAction(Action.THUMB_SPIN_IN,
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_IN, 5));
 
-         defineAction(Action.THUMB_SPIN_OUT,
-                 new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
+        defineAction(Action.THUMB_SPIN_OUT,
+                new SubsystemSetting(thumbSystem, Thumb.ThumbState.SPIN_OUT, 5));
+        
+        defineAction(Action.INHIBIT_DRIVE, 
+                new SubsystemSetting(driveController, DriveController.DriverStates.INHIBIT_DRIVE, 5));
     }
 
     public boolean isSafeForArmToLeaveIdle() {
@@ -737,6 +746,12 @@ public class RobotController {
         actionMap.put(action, settings);
     }
 
+    public boolean isArmInL4() {
+        return (armSystem.getCurrentState() == Arm.ArmState.L4 && armSystem.getPosition() > 70) 
+                || (armSystem.getCurrentState() == Arm.ArmState.L3 && armSystem.matchesState()) 
+                || (armSystem.getCurrentState() == Arm.ArmState.L2 && armSystem.matchesDesiredPosition());
+    }
+
     public static boolean isRed() {
         try {
             return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
@@ -745,6 +760,10 @@ public class RobotController {
             return false;
         }
 
+    }
+
+    public Action getCurrentSequentialAction() {
+        return currentSequentialAction;
     }
 
     private static class SequentialActionStatus {
