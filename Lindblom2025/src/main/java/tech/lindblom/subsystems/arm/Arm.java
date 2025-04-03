@@ -31,9 +31,9 @@ public class Arm extends StateSubsystem {
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
     private double targetPosition;
-    private double goalPosition;
+    //private double goalPosition;
     private ControlCurve targetCurve;
-    private double p;
+    private double kP, dur, tar;
     private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
@@ -97,15 +97,17 @@ public class Arm extends StateSubsystem {
 
     @Override
     public void init() {
+        kP = robotController.numericInput.getNumber("kP", 0.01);
+        dur = robotController.numericInput.getNumber("dur", 4.0);
+        tar = robotController.numericInput.getNumber("tar", 60.0);
         configureController();
         super.init();
         //ONLY FOR TESTING!!!!
         performedSafeStates = true; //false;
         setState(ArmState.IDLE);
         //don't leave this in accidentally
-        armMotor.getEncoder().setPosition(armMotor.getAbsoluteEncoder().getPosition());
-        targetPosition = armMotor.getEncoder().getPosition();
-        goalPosition = targetPosition;
+        targetPosition = armMotor.getAbsoluteEncoder().getPosition();
+        armMotor.getEncoder().setPosition(targetPosition);
     }
 
     private void configureController() {
@@ -137,10 +139,10 @@ public class Arm extends StateSubsystem {
 
         
         // Slot 3 configs | FOR TESTING
-        p = robotController.numericInput.getNumber("p", 0.01);
-        System.out.println("Using p to configure slot 3 " + p);
+
+        System.out.println("Using p to configure slot 3 " + kP);
         armMotorConfig.closedLoop.pid(
-            p, 
+            kP, 
             0, 
             0.001, 
             ClosedLoopSlot.kSlot3
@@ -165,8 +167,10 @@ public class Arm extends StateSubsystem {
         Logger.recordOutput(this.name + "/AbsEncoder", armMotor.getAbsoluteEncoder().getPosition());
         Logger.recordOutput(this.name + "/RelEncoder", armMotor.getEncoder().getPosition());
         Logger.recordOutput(this.name + "/TargetPosition", targetPosition);
-        Logger.recordOutput(this.name + "/GoalPosition", goalPosition);
-        Logger.recordOutput(this.name + "/p", p);
+        //Logger.recordOutput(this.name + "/GoalPosition", goalPosition);
+        Logger.recordOutput(this.name + "/entry kP", kP);
+        Logger.recordOutput(this.name + "/entry dur", dur);
+        Logger.recordOutput(this.name + "/entry tar", tar);
         Logger.recordOutput(this.name + "/coralTOF", coralTimeOfFlight.getRange());
         Logger.recordOutput(this.name + "/coralTOFisValid", coralTimeOfFlight.isRangeValidRegularCheck());
         Logger.recordOutput(this.name + "/hasCoral", hasCoral());
@@ -189,11 +193,11 @@ public class Arm extends StateSubsystem {
             
         }
 
-        // armMotor.getClosedLoopController().setReference(
-        //     targetPosition, 
-        //     ControlType.kPosition, 
-        //     ClosedLoopSlot.kSlot3
-        // );
+        armMotor.getClosedLoopController().setReference(
+            targetPosition, 
+            ControlType.kPosition, 
+            ClosedLoopSlot.kSlot3
+        );
     }
 
     @Override
@@ -203,9 +207,13 @@ public class Arm extends StateSubsystem {
             System.out.println("Made new target curve");
             targetCurve = new ControlCurve(
                 armMotor.getEncoder().getPosition(),
-                60.0,
-                4.0
+                tar,
+                dur
             );
+        }
+        if (previousState == ArmState.L2) {
+            targetPosition = armMotor.getAbsoluteEncoder().getPosition();
+            armMotor.getEncoder().setPosition(targetPosition);
         }
     }
 

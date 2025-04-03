@@ -21,11 +21,15 @@ public class ControlCurve {
     public double calculate() {
         if (!started) {
             curveTime.restart();
+            started = true;
         }
         if (curveTime.get() > duration) {
             return endPosition;
         }
 
-        return startPosition + Math.sin(Math.PI * curveTime.get()/duration - Math.PI/2) * (endPosition - startPosition);
+        return 
+            startPosition + 
+                (Math.sin(Math.PI * curveTime.get()/duration - Math.PI/2.0) + 1.0) *
+                    0.5 * (endPosition - startPosition);
     }
 }
