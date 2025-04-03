@@ -17,10 +17,6 @@ public class EEtimeOfFlight {
         return tof.getRange();
     }
 
-    // public boolean isRangeValid() {
-    //     return tof.isRangeValid();
-    // }
-
     public boolean isRangeValidRegularCheck() {
         if (tof.isRangeValid()) {
             timeTOFInvalid.reset();

@@ -23,6 +23,7 @@ import tech.lindblom.subsystems.types.StateSubsystem;
 import tech.lindblom.utils.Constants;
 import tech.lindblom.utils.EEtimeOfFlight;
 import tech.lindblom.utils.EnumCollection.OperatingMode;
+import tech.lindblom.utils.TunedDouble;
 
 public class Arm extends StateSubsystem {
     private SparkMax armMotor;
@@ -32,11 +33,14 @@ public class Arm extends StateSubsystem {
     private Timer timeCoralTOFInvalid;
     private ArmState previousState;
     private ArmFeedforward armFeedforward;
+    private TunedDouble KGTesting;
 
     private boolean performedSafeStates = true;
 
     public Arm(RobotController controller) {
         super("Arm", ArmState.IDLE);
+
+        KGTesting = new TunedDouble("/Arm/KGDutyCycle",0);
 
         armFeedforward = new ArmFeedforward(0, 0, 0);
         coralTimeOfFlight = new EEtimeOfFlight(Constants.Arm.CLAW_CORAL_SENSOR_ID, 24);
@@ -159,8 +163,8 @@ public class Arm extends StateSubsystem {
                 case IDLE:
                     armMotor.set(0);
                     break;
-                case MANUAL_DOWN:   //logic is reverses down is up
-                    armMotor.set(-1);
+                case MANUAL_DOWN:
+                    armMotor.set(KGTesting.getAsDouble());
                     break;
                 case MANUAL_UP:  // and up is down
                     armMotor.set(0.2);
