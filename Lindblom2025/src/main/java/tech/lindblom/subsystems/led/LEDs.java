@@ -60,7 +60,7 @@ public class LEDs extends StateSubsystem {
                         solid(250, 156, 28);
                         break;
                     case TELEOP:
-                        solid(0, 255, 255);
+                        solid(254, 254, 254);
                         break;
                     case DISABLED:
                         rainbow();
@@ -71,7 +71,7 @@ public class LEDs extends StateSubsystem {
                 rainbow();
                 break;
             case MARCH_WHITE:
-                marching(0, 255, 255);
+                marching(255, 255, 0);
                 break;
             case WHITE:
                 solid(0, 255, 255);
@@ -151,21 +151,27 @@ public class LEDs extends StateSubsystem {
     private int newMarcher;
 
     private void marching(int r, int g, int b) {
-        if(newMarcher <= 0) {
-            newMarcher = 4;
-            ledBuffer.setRGB(0, r, g, b);
-        }
-
         if(marchingTimer.get() >= 0.2)
         {
-            for(int i = LED_LENGTH - 1; i > 0; i++) {
-                ledBuffer.setRGB(i + 1, ledBuffer.getRed(i), ledBuffer.getRed(g), ledBuffer.getRed(b));
+            for(int i = LED_LENGTH - 1; i > 0; i--) {
+                ledBuffer.setRGB(i, ledBuffer.getRed(i - 1), ledBuffer.getGreen(i - 1), ledBuffer.getBlue(i - 1));
             }
-            flashingTimer.reset();
-            flashingTimer.stop();
+
+            if(newMarcher <= 0) {
+                ledBuffer.setRGB(0, r, g, b);
+                newMarcher = 4;
+            }
+            else
+            {
+                ledBuffer.setRGB(0, 0, 0, 0);
+            }
+            newMarcher--;
+
+            marchingTimer.reset();
+            marchingTimer.stop();
         }
 
-        flashingTimer.start();
+        marchingTimer.start();
     }
 
     @Override
