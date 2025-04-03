@@ -216,7 +216,7 @@ public class RobotController {
                     ledsSystem.setState(LEDState.FLASH_YELLOW);
                 }
                 else {
-                    ledsSystem.setState(LEDState.OPERATING_COLOR);
+                    ledsSystem.setState(LEDState.MARCH_WHITE);
                 }
 
                 Logger.recordOutput("RobotController/hasActionFinished", hasActionFinished());
