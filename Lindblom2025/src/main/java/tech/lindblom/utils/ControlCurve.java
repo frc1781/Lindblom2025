@@ -8,25 +8,24 @@ public class ControlCurve {
     private double startPosition;
     private double endPosition;
     private double duration;
+    private boolean started;
 
     public ControlCurve(double startPosition, double endPosition, double duration) {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.duration = duration;
-        curveTime.reset();
-        curveTime.start();
-    }
-
-    public void startCurve() {
-        curveTime.reset();
-        curveTime.start();
+        curveTime = new Timer();
+        started = false;
     }
 
     public double calculate() {
+        if (!started) {
+            curveTime.restart();
+        }
         if (curveTime.get() > duration) {
             return endPosition;
         }
 
-        return startPosition + Math.sin((curveTime.get()/duration) * Math.PI/2) * (endPosition - startPosition);
+        return startPosition + Math.sin(Math.PI * curveTime.get()/duration - Math.PI/2) * (endPosition - startPosition);
     }
 }

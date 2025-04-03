@@ -90,6 +90,7 @@ public class Drive extends Subsystem {
             return;
         }
 
+
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, Constants.General.LOOP_PERIOD_SECONDS);
         SwerveModuleState[] setPointStatesUnoptimized = swerveDriveKinematics.toSwerveModuleStates(discreteSpeeds);
         currentSetpoint =
@@ -107,10 +108,10 @@ public class Drive extends Subsystem {
         Logger.recordOutput(name + "/setPointsUnoptimized", setPointStatesUnoptimized);
         Logger.recordOutput(name + "/ChassisSpeeds", discreteSpeeds);
 
-        frontLeftModule.runDesiredModuleState(moduleStates[0]);
-        frontRightModule.runDesiredModuleState(moduleStates[1]);
-        backLeftModule.runDesiredModuleState(moduleStates[2]);
-        backRightModule.runDesiredModuleState(moduleStates[3]);
+        //frontLeftModule.runDesiredModuleState(moduleStates[0]);
+        //frontRightModule.runDesiredModuleState(moduleStates[1]);
+        //backLeftModule.runDesiredModuleState(moduleStates[2]);
+        //backRightModule.runDesiredModuleState(moduleStates[3]);
     }
 
     public void setInitialPose(Pose2d pose) {

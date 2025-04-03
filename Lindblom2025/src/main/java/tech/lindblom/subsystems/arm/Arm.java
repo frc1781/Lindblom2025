@@ -184,7 +184,9 @@ public class Arm extends StateSubsystem {
             }
         } 
         else if (getCurrentState() == ArmState.L2) {
+            System.out.println("calculating with target curve");
             targetPosition = targetCurve.calculate();
+            
         }
 
         // armMotor.getClosedLoopController().setReference(
@@ -198,6 +200,7 @@ public class Arm extends StateSubsystem {
     public void stateTransition(SubsystemState previousState, SubsystemState newState) {
         this.previousState = (ArmState) previousState;
         if (newState == ArmState.L2) {
+            System.out.println("Made new target curve");
             targetCurve = new ControlCurve(
                 armMotor.getEncoder().getPosition(),
                 60.0,
